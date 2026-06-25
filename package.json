@@ -1,0 +1,15 @@
+{
+  "name": "devcamp-codequest",
+  "private": true,
+  "scripts": {
+    "dev:client": "pnpm --filter codequest-fe dev",
+    "dev:server": "pnpm --filter backend start:dev",
+    "dev": "pnpm --filter codequest-fe --filter backend --parallel dev",
+    "build:client": "pnpm --filter codequest-fe build",
+    "build:server": "pnpm --filter backend build",
+    "build": "pnpm --filter codequest-fe --filter backend build",
+    "lint:client": "pnpm --filter codequest-fe lint",
+    "lint:server": "pnpm --filter backend lint",
+    "lint": "pnpm run /^lint:/"
+  }
+}
