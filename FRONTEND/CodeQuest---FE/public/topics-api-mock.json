@@ -1,0 +1,30 @@
+{
+  "success": true,
+  "message": "Fetch modules data successfully from CodeQuest server",
+  "data": [
+    {
+      "id": "mod-01",
+      "title": "React Fundamentals",
+      "description": "Test your knowledge of React core concepts, component lifecycle, and fundamental state management.",
+      "iconType": "recursion",
+      "slug": "react-basics",
+      "totalQuestions": 10
+    },
+    {
+      "id": "mod-02",
+      "title": "Tailwind CSS Mastery",
+      "description": "Explore the power of utility-first CSS to build responsive, high-performance tech layouts.",
+      "iconType": "graph",
+      "slug": "tailwind-styling",
+      "totalQuestions": 12
+    },
+    {
+      "id": "mod-03",
+      "title": "Advanced Data Layer",
+      "description": "Deep dive into API integration, state normalization, caching systems, and database queries.",
+      "iconType": "dynamic",
+      "slug": "advanced-data",
+      "totalQuestions": 15
+    }
+  ]
+}

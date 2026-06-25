@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "level": "Vừa",
+    "category": "Binary Search",
+    "title": "Analyze the time complexity of the following code snippet. Assume {n} is the length of the input array.",
+    "code": "function findPeakElement(nums) {\n  let left = 0;\n  let right = nums.length - 1;\n  while (left < right) {\n    let mid = Math.floor((left + right) / 2);\n    if (nums[mid] > nums[mid + 1]) {\n      right = mid;\n    } else {\n      left = mid + 1;\n    }\n  }\n  return left;\n}",
+    "options": [
+      { "id": "A", "text": "O(1) - Constant time" },
+      { "id": "B", "text": "O(log n) - Logarithmic time" },
+      { "id": "C", "text": "O(n) - Linear time" },
+      { "id": "D", "text": "O(n log n) - Linearithmic time" }
+    ]
+  },
+  {
+    "id": 2,
+    "level": "Khó",
+    "category": "Recursion",
+    "type": "essay",
+    "title": "Explain the concept of a {base case} in recursive functions. What would happen if we remove line 2 from the following code?",
+    "code": "function fibonacci(n) {\n  if (n <= 1) return n;\n  return fibonacci(n - 1) + fibonacci(n - 2);\n}"
+  },
+  {
+    "id": 3,
+    "level": "Dễ",
+    "category": "System Design",
+    "type": "essay",
+    "title": "Hãy giải thích ngắn gọn sự khác biệt giữa kiến trúc {Monolithic} và {Microservices}. Theo bạn, khi nào một dự án nên bắt đầu chuyển từ Monolithic sang Microservices?"
+  }
+]
