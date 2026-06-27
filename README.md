@@ -20,10 +20,15 @@ pnpm approve-builds
 Then select `msgpackr-extract` to allow its build script to run.
 
 ### 2. Database Initialization
-Start the MongoDB container in the background via Docker:
+Start both MongoDB and Redis containers in the background via Docker Compose:
 ```bash
 docker-compose up -d
 ```
+To ensure the Redis container is running properly and accepting connections:
+```bash
+docker exec -it codequest_redis redis-cli ping
+```
+(Should return `PONG`)
 ### 3. Local Development
 Launch both frontend and backend applications concurrently:
 ```bash
