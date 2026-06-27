@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RoadmapHeader } from "./RoadmapHeader";
 import { RoadmapSidebar } from "./RoadmapSidebar";
 import { Connector } from "../../../components/common/Connector";
@@ -9,24 +9,6 @@ import StatCard from "../../dashboard/components/StatCard";
 import bg from "../../../../public/bg.png";
 import { useNavigate } from "react-router";
 import { getMyRoadmapsApi } from "../api";
-const [roadmaps, setRoadmaps] = useState<any[]>([]);
-const [isLoading, setIsLoading] = useState(false);
-
-useEffect(() => {
-  async function loadRoadmaps() {
-    try {
-      setIsLoading(true);
-      const data = await getMyRoadmapsApi();
-      setRoadmaps(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  loadRoadmaps();
-}, []);
 
 const stepsData = [
   {
@@ -138,6 +120,24 @@ const stepsData = [
 ];
 
 export default function RoadmapPage() {
+  const [roadmaps, setRoadmaps] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    async function loadRoadmaps() {
+      try {
+        setIsLoading(true);
+        const data = await getMyRoadmapsApi();
+        setRoadmaps(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadRoadmaps();
+  }, []);
   const navigate = useNavigate();
   const [activeNodeId] = useState<string | null>("4"); // Mặc định chọn bài .map()
   const [previewData, setPreviewData] = useState<{
