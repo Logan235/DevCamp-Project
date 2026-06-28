@@ -14,9 +14,8 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 
 interface RequestWithUser {
   user: {
-    id?: string;
-    _id?: string;
-    subject?: string;
+    userId: string;
+    email?: string;
   };
 }
 
@@ -34,11 +33,8 @@ export class CodeExecutionController {
     @Request() req: RequestWithUser,
     @Body() executeCodeDto: ExecuteCodeDto,
   ) {
-    const userId = req.user.id || req.user._id || req.user.subject;
-    return this.codeExecutionService.executeCode(
-      userId as string,
-      executeCodeDto,
-    );
+    const userId = req.user.userId;
+    return this.codeExecutionService.executeCode(userId, executeCodeDto);
   }
 
   /**
@@ -53,9 +49,9 @@ export class CodeExecutionController {
     @Query('limit') limit: string = '10',
     @Query('skip') skip: string = '0',
   ) {
-    const userId = req.user.id || req.user._id || req.user.subject;
+    const userId = req.user.userId;
     return this.codeExecutionService.getSubmissions(
-      userId as string,
+      userId,
       challengeId,
       parseInt(limit),
       parseInt(skip),
@@ -72,10 +68,7 @@ export class CodeExecutionController {
     @Request() req: RequestWithUser,
     @Param('submissionId') submissionId: string,
   ) {
-    const userId = req.user.id || req.user._id || req.user.subject;
-    return this.codeExecutionService.getSubmissionDetail(
-      userId as string,
-      submissionId,
-    );
+    const userId = req.user.userId;
+    return this.codeExecutionService.getSubmissionDetail(userId, submissionId);
   }
 }

@@ -1,4 +1,9 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Submission } from './schema/submission.schema';
@@ -14,6 +19,14 @@ export class CodeExecutionService {
     @InjectQueue('code-execution')
     private codeExecutionQueue: Queue,
   ) {}
+
+  private toObjectId(value: string, fieldName: string): Types.ObjectId {
+    if (!Types.ObjectId.isValid(value)) {
+      throw new BadRequestException(`${fieldName} is invalid`);
+    }
+
+    return new Types.ObjectId(value);
+  }
 
   /**
    * Execute code asynchronously via Job Queue
@@ -32,8 +45,8 @@ export class CodeExecutionService {
 
     // Create submission record with pending status
     const submission = await this.submissionModel.create({
-      userId: new Types.ObjectId(userId),
-      challengeId: new Types.ObjectId(challengeId),
+      userId: this.toObjectId(userId, 'userId'),
+      challengeId: this.toObjectId(challengeId, 'challengeId'),
       code,
       input,
       language,
@@ -73,10 +86,10 @@ export class CodeExecutionService {
     skip: number = 0,
   ): Promise<Submission[]> {
     const query: Record<string, Types.ObjectId> = {
-      userId: new Types.ObjectId(userId),
+      userId: this.toObjectId(userId, 'userId'),
     };
     if (challengeId) {
-      query.challengeId = new Types.ObjectId(challengeId);
+      query.challengeId = this.toObjectId(challengeId, 'challengeId');
     }
 
     return this.submissionModel
@@ -95,7 +108,10 @@ export class CodeExecutionService {
     submissionId: string,
   ): Promise<Submission> {
     // First, find if the submission exists at all
-    const submission = await this.submissionModel.findById(submissionId);
+    const submission = await this.submissionModel.findOne({
+      _id: this.toObjectId(submissionId, 'submissionId'),
+      userId: this.toObjectId(userId, 'userId'),
+    });
 
     // If it doesn't exist, throw 404
     if (!submission) {

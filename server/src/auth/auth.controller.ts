@@ -55,10 +55,15 @@ export class AuthController {
   async googleRedirect(@Request() req: { user: UserDocument }) {
     // req.user is automatically populated by GoogleStrategy after successful authentication
     const authToken = await this.authService.login(req.user);
-    const token = authToken.accessToken; // Extract the JWT token from the authentication result
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+    const redirectUrl = new URL('/oauth/callback', frontendUrl);
+    redirectUrl.searchParams.set('accessToken', authToken.accessToken);
+    redirectUrl.searchParams.set('refreshToken', authToken.refreshToken);
+
     return {
       statusCode: 302,
-      url: process.env.FRONTEND_URL!, // Redirect to frontend URL
+      url: redirectUrl.toString(),
     };
   }
 
@@ -75,10 +80,15 @@ export class AuthController {
   @Redirect() // Redirect to frontend after successful authentication
   async githubRedirect(@Request() req: { user: UserDocument }) {
     const authToken = await this.authService.login(req.user);
-    const token = authToken.accessToken; // Extract the JWT token from the authentication result
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+    const redirectUrl = new URL('/oauth/callback', frontendUrl);
+    redirectUrl.searchParams.set('accessToken', authToken.accessToken);
+    redirectUrl.searchParams.set('refreshToken', authToken.refreshToken);
+
     return {
       statusCode: 302,
-      url: process.env.FRONTEND_URL!, // Redirect to frontend URL
+      url: redirectUrl.toString(),
     };
   }
 }
