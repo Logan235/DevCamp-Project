@@ -28,7 +28,7 @@ export class AuthService {
         message: 'User with this email already exists',
       });
     }
-    const hashedPass = await bcrypt.hash(registerDto.passWord, 10); // Hash password with 10 salt
+    const hashedPass = await bcrypt.hash(registerDto.password, 10); // Hash password with 10 salt
     const autoDisplayName = email.split('@')[0]; // split email by @ and take the first part as display name
     const createdUser = new this.userModel({
       ...registerDto,
@@ -40,7 +40,7 @@ export class AuthService {
   }
 
   async validateUser(loginDto: LoginDto): Promise<Partial<User>> {
-    const { email, passWord } = loginDto;
+    const { email, password } = loginDto;
     const user = await this.userModel.findOne({ email }); // Check user exist or not
     if (!user) {
       throw new UnauthorizedException('User with this email not found');
@@ -51,7 +51,7 @@ export class AuthService {
         'Invalid password or user signed up using an external provider',
       );
     }
-    const isMatch = await bcrypt.compare(passWord, user.passHash);
+    const isMatch = await bcrypt.compare(password, user.passHash);
     // Check password match
     if (!isMatch) {
       throw new UnauthorizedException('Invalid email or password');

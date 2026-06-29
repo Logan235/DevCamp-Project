@@ -4,12 +4,12 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export interface LoginPayload {
   email: string;
-  passWord: string;
+  password: string;
 }
 
 export interface RegisterPayload {
   email: string;
-  passWord: string;
+  password: string;
   displayName?: string;
 }
 

@@ -3,13 +3,13 @@ import { FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { registerApi } from "../api";
+import { registerApi, loginWithGithub, loginWithGoogle } from "../api";
 
 export function SignUp() {
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
-  const [passWord, setPassWord] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -20,13 +20,16 @@ export function SignUp() {
 
       await registerApi({
         email,
-        passWord,
+        password,
         displayName,
       });
 
       navigate("/login");
-    } catch {
-      setError("Failed to create an account. Please try again.");
+    } catch (err: any) {
+      setError(
+        err.response?.data?.message ||
+          "Failed to create an account. Please try again.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -37,9 +40,15 @@ export function SignUp() {
         {/* Logo */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-blue-400">CodeQuest</h1>
-
           <p className="text-gray-400 mt-2">I Code, I Think, I Conquer</p>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-lg text-center">
+            {error}
+          </div>
+        )}
 
         {/* Họ tên */}
         <div className="mb-4">
@@ -84,8 +93,8 @@ export function SignUp() {
 
             <input
               type="password"
-              value={passWord}
-              onChange={(e) => setPassWord(e.target.value)}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               className="w-full pl-10 pr-4 py-3 rounded-lg bg-[#0b1220] border border-gray-700 focus:outline-none focus:border-blue-500"
             />
