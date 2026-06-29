@@ -1,7 +1,8 @@
 import { SetMetadata } from '@nestjs/common';
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { JwtAuthGuard } from './jwt.guard';
+import { RequestWithUser } from '../../interfaceFile/interface';
+
 // Check user's role
 export const Roles = (...roles: string[]) => SetMetadata('roles', roles);
 @Injectable()
@@ -14,9 +15,7 @@ export class RoleGuard implements CanActivate {
     ]);
     // Check if this route requires any specific roles.
     if (!requiredRoles) return true;
-    const request = context
-      .switchToHttp()
-      .getRequest<{ user?: { role?: string } }>();
+    const request = context.switchToHttp().getRequest<RequestWithUser>();
     // Check the user for any roles => block
     const user = request.user;
     if (!user?.role) return false;
