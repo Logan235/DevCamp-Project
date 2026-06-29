@@ -10,6 +10,8 @@ import {
 import { ExerciseService } from './exercise.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { SubmitExerciseDto } from './dto/submit.dto';
+import { RoleGuard, Roles } from '../auth/guards/role.guard';
+import type { RequestWithUser } from '../interfaceFile/interface';
 
 @Controller('exercises')
 export class ExerciseController {
@@ -17,8 +19,8 @@ export class ExerciseController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  getExercises(@Request() req: any) {
-    const userId = req.user.subject;
+  getExercises(@Request() req: RequestWithUser) {
+    const userId = req.user.userId;
     return this.exerciseService.getExercises(userId);
   }
 
@@ -28,13 +30,14 @@ export class ExerciseController {
   }
 
   @Post(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles('user') //Chỉ có user mới có quyền nộp bài
   postExercise(
     @Param('id') id: string,
-    @Request() req: any,
+    @Request() req: RequestWithUser,
     @Body() body: SubmitExerciseDto,
   ) {
-    const userId = req.user.subject;
+    const userId = req.user.userId;
     return this.exerciseService.postExercise(userId, id, body);
   }
 }
