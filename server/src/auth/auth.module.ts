@@ -17,7 +17,7 @@ import { GithubStrategy } from './strategy/github.strategy';
       imports: [ConfigModule, PassportModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('secretJwt'), // Define Jwt.Module with secret key
+        secret: configService.get<string>('JWT_SECRET'), // Define Jwt.Module with secret key
       }),
     }),
   ],

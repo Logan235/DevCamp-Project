@@ -65,7 +65,7 @@ export class AuthService {
   async login(user: UserDocument) {
     const payLoad = {
       email: user.email,
-      subject: String(user._id),
+      sub: String(user._id),
     };
     const refreshTokenPayload = {
       subject: String(user._id),

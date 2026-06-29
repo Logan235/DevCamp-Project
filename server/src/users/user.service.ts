@@ -1,8 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schema/user.schema';
-import { Model } from 'mongoose';
-import { UpdateProfile } from './user.controller';
+import { Model, Types } from 'mongoose';
+import { UpdateProfile } from './dto/updateProfileDto';
 
 @Injectable()
 export class UserService {
@@ -20,16 +20,24 @@ export class UserService {
   }
 
   // Update profile (Update name)
-  async updateProfile(updateProfileDto: UpdateProfile): Promise<UserDocument> {
-    const { email, displayName } = updateProfileDto; // Destructure the email and displayName from the updateProfileDto
+  async updateProfile(
+    userId: string,
+    updateProfileDto: UpdateProfile,
+  ): Promise<UserDocument> {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new UnauthorizedException('Invalid user id');
+    }
+
     const user = await this.userModel.findOneAndUpdate(
-      { email },
-      { $set: { displayName } },
+      { _id: new Types.ObjectId(userId) },
+      { $set: { displayName: updateProfileDto.displayName } },
       { new: true },
     );
+
     if (!user) {
-      throw new UnauthorizedException('User with this email not found');
+      throw new UnauthorizedException('User not found');
     }
+
     return user;
   }
 

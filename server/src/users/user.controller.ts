@@ -6,12 +6,19 @@ import {
   HttpCode,
   Body,
   Param,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { RegisterDto } from '../auth/dto/register.dto';
+import { UpdateProfile } from './dto/updateProfileDto';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 
-//Update profile
-export class UpdateProfile extends RegisterDto {}
+interface RequestWithUser {
+  user: {
+    userId: string;
+    email?: string;
+  };
+}
 
 @Controller('users')
 export class UserController {
@@ -32,12 +39,20 @@ export class UserController {
   }
 
   @Patch('me')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(200)
-  async UpdateProfile(@Body() updateProfileDto: UpdateProfile) {
-    return await this.userService.updateProfile(updateProfileDto);
+  async updateProfile(
+    @Request() req: RequestWithUser,
+    @Body() updateProfileDto: UpdateProfile,
+  ) {
+    return await this.userService.updateProfile(
+      req.user.userId,
+      updateProfileDto,
+    );
   }
 
   @Delete('me/:displayName')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   async deleteProfile(@Param('displayName') displayName: string) {
     return await this.userService.deleteProfile(displayName);

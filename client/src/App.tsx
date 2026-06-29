@@ -11,6 +11,8 @@ import Result from "./features/assessment/Result";
 import LessonPage from "./features/roadmap/components/LessonPage";
 import { AdminLayout } from "./features/admin/components/AdminLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { OAuthCallback } from "./features/auth/components/OAuthCallback";
+
 function App() {
   return (
     <Routes>
@@ -115,6 +117,7 @@ function App() {
       />
       <Route path="/lesson/:id" element={<LessonPage />} />
       <Route path="/admin" element={<AdminLayout />} />
+      <Route path="/oauth/callback" element={<OAuthCallback />} />
     </Routes>
   );
 }

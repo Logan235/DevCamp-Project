@@ -50,7 +50,9 @@ export function SignUp() {
 
             <input
               type="text"
-              placeholder="Nhập họ và tên"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Enter your full name"
               className="w-full pl-10 pr-4 py-3 rounded-lg bg-[#0b1220] border border-gray-700 focus:outline-none focus:border-blue-500"
             />
           </div>
@@ -65,6 +67,8 @@ export function SignUp() {
 
             <input
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="email@example.com"
               className="w-full pl-10 pr-4 py-3 rounded-lg bg-[#0b1220] border border-gray-700 focus:outline-none focus:border-blue-500"
             />
@@ -80,15 +84,22 @@ export function SignUp() {
 
             <input
               type="password"
+              value={passWord}
+              onChange={(e) => setPassWord(e.target.value)}
               placeholder="••••••••"
               className="w-full pl-10 pr-4 py-3 rounded-lg bg-[#0b1220] border border-gray-700 focus:outline-none focus:border-blue-500"
             />
           </div>
+          {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
         </div>
 
         {/* Button */}
-        <button className="w-full bg-green-500 hover:bg-green-600 py-3 rounded-lg font-semibold transition">
-          Tạo tài khoản
+        <button
+          onClick={handleSignUp}
+          disabled={isLoading}
+          className="w-full bg-green-500 hover:bg-green-600 py-3 rounded-lg font-semibold transition"
+        >
+          {isLoading ? "Đang tạo tài khoản..." : "Tạo tài khoản"}
         </button>
 
         {/* Divider */}

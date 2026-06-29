@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { BullModule } from '@nestjs/bullmq'; // Đã import BullModule
+import { BullModule } from '@nestjs/bullmq';
 import { UserModule } from './users/user.module';
 import { AuthModule } from './auth/auth.module';
 import { TestModule } from './test/test.module';
@@ -16,24 +16,43 @@ import { CodeExecutionModule } from './code-execution/code-execution.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         uri:
-          configService.get<string>('mongoUrl') || // Hãy check lại xem trong .env viết là mongoUrl hay MONGO_URL nhé
+          configService.get<string>('MONGO_URL') ||
+          configService.get<string>('mongoUrl') ||
           'mongodb://localhost:27017/FESSIORDEVCAMP_BACKEND',
       }),
     }),
+
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        connection: {
-          host: configService.get<string>('REDIS_HOST') || 'localhost',
-          port: configService.get<number>('REDIS_PORT') || 6379,
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const redisUrl = configService.get<string>('REDIS_URL');
+
+        if (redisUrl) {
+          return {
+            connection: {
+              url: redisUrl,
+            },
+          };
+        }
+
+        const redisTls = configService.get<string>('REDIS_TLS') === 'true';
+
+        return {
+          connection: {
+            host: configService.get<string>('REDIS_HOST') || 'localhost',
+            port: Number(configService.get<string>('REDIS_PORT')) || 6379,
+            password: configService.get<string>('REDIS_PASSWORD') || undefined,
+            tls: redisTls ? {} : undefined,
+          },
+        };
+      },
     }),
 
     UserModule,

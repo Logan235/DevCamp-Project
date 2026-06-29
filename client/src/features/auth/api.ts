@@ -1,5 +1,7 @@
 import { apiClient } from "../../lib/apiClient";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 export interface LoginPayload {
   email: string;
   passWord: string;
@@ -22,9 +24,9 @@ export async function registerApi(payload: RegisterPayload) {
 }
 
 export function loginWithGoogle() {
-  window.location.href = `${import.meta.env.VITE_API_URL}/auth/google/login`;
+  window.location.href = `${API_URL}/auth/google/login`;
 }
 
 export function loginWithGithub() {
-  window.location.href = `${import.meta.env.VITE_API_URL}/auth/github/login`;
+  window.location.href = `${API_URL}/auth/github/login`;
 }
