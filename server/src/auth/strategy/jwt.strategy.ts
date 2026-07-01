@@ -6,18 +6,17 @@ import type { JwtPayload } from '../../interfaceFile/interface';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private configService: ConfigService) {
-    const jwtSecret = configService.get<string>('JWT_SECRET');
-    if (!jwtSecret) {
-      throw new Error(
-        'JWT_SECRET is not defined in the environment variables!',
-      );
-    }
+  constructor(private readonly configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: jwtSecret,
+      secretOrKey:
+        configService.get<string>('JWT_SECRET') || 'default_backup_secret',
     });
+
+    if (!configService.get<string>('JWT_SECRET')) {
+      console.warn('JWT_SECRET is not defined in env variables!');
+    }
   }
 
   // This is method that will be called by Passport after it verifies the JWT token. The payload parameter contains the decoded JWT payload.

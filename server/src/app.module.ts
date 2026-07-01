@@ -10,11 +10,16 @@ import { TestModule } from './test/test.module';
 import { RoadmapModule } from './roadmap/roadmap.module';
 import { ExerciseModule } from './exercise/exercise.module';
 import { CodeExecutionModule } from './code-execution/code-execution.module';
+import path from 'path';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: '../../.env',
+      envFilePath: [
+        path.resolve(__dirname, '../../.env'),
+        path.resolve(__dirname, '../.env'),
+        '.env',
+      ],
       isGlobal: true,
     }),
 
@@ -24,8 +29,10 @@ import { CodeExecutionModule } from './code-execution/code-execution.module';
       useFactory: (configService: ConfigService) => ({
         uri:
           configService.get<string>('MONGO_URL') ||
+          configService.get<string>('MONGO_URI') ||
+          configService.get<string>('MONGODB_URI') ||
           configService.get<string>('mongoUrl') ||
-          'mongodb://localhost:27017/FESSIORDEVCAMP_BACKEND',
+          'mongodb://127.0.0.1:27017/FESSIORDEVCAMP_BACKEND', 
       }),
     }),
 
