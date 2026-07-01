@@ -6,7 +6,7 @@ import { Node } from "../../../components/common/Node";
 import { Preview } from "../../../components/common/Preview";
 import { CheckCircle2, Compass, Award } from "lucide-react";
 import StatCard from "../../dashboard/components/StatCard";
-import bg from "../../../../public/bg.png";
+import bg from "../../../assets/bg.png";
 import { useNavigate } from "react-router";
 import { getMyRoadmapsApi } from "../api";
 

@@ -100,22 +100,7 @@ export function Login() {
         >
           {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
         </button>
-        {/* Login  Github Button */}
-        <button
-          onClick={loginWithGithub}
-          className="w-full border border-gray-700 py-3 rounded-lg hover:bg-[#1f2937] flex items-center justify-center gap-2"
-        >
-          <FaGithub size={18} />
-          GitHub
-        </button>
-        {/* Login  Google Button */}
-        <button
-          onClick={loginWithGoogle}
-          className="w-full border border-gray-700 py-3 rounded-lg hover:bg-[#1f2937] flex items-center justify-center gap-2"
-        >
-          <FcGoogle size={18} />
-          Google
-        </button>
+
         {/* Divider */}
         <div className="my-6 flex items-center">
           <div className="flex-1 border-t border-gray-700"></div>
@@ -124,11 +109,17 @@ export function Login() {
         </div>
         {/* Social Login */}
         <div className="space-y-3">
-          <button className="w-full border border-gray-700 py-3 rounded-lg hover:bg-[#1f2937] flex items-center justify-center gap-2">
+          <button
+            onClick={loginWithGithub}
+            className="w-full border border-gray-700 py-3 rounded-lg hover:bg-[#1f2937] flex items-center justify-center gap-2"
+          >
             <FaGithub size={18} />
             GitHub
           </button>
-          <button className="w-full border border-gray-700 py-3 rounded-lg hover:bg-[#1f2937] flex items-center justify-center gap-2">
+          <button
+            onClick={loginWithGoogle}
+            className="w-full border border-gray-700 py-3 rounded-lg hover:bg-[#1f2937] flex items-center justify-center gap-2"
+          >
             <FcGoogle size={18} />
             Google
           </button>

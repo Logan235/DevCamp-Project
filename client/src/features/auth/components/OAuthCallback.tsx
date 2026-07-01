@@ -1,13 +1,13 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 export function OAuthCallback() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams(); // hook của react-router-dom để quản lý query params
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const accessToken = params.get("accessToken");
-    const refreshToken = params.get("refreshToken");
+    const accessToken = searchParams.get("accessToken");
+    const refreshToken = searchParams.get("refreshToken");
 
     if (accessToken) {
       localStorage.setItem("accessToken", accessToken);
@@ -17,12 +17,17 @@ export function OAuthCallback() {
       localStorage.setItem("refreshToken", refreshToken);
     }
 
+    localStorage.setItem("user", JSON.stringify({ loggedInViaOAuth: true }));
+
     navigate("/dashboard");
-  }, [navigate]);
+  }, [searchParams, navigate]);
 
   return (
-    <div className="min-h-screen bg-[#050816] text-white flex items-center justify-center">
-      Đang đăng nhập...
+    <div className="min-h-screen bg-[#050816] text-white flex flex-col items-center justify-center">
+      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+      <p className="text-gray-400 text-sm">
+        Đang đồng bộ tài khoản với CodeQuest...
+      </p>
     </div>
   );
 }
