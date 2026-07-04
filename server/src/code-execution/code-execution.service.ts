@@ -38,13 +38,14 @@ export class CodeExecutionService {
     const {
       code,
       input,
+      expectedOutput, // add expectedOutput to job payload
       challengeId,
       language = 'cpp',
       timeout = 5,
     } = executeCodeDto;
 
     // Create submission record with pending status
-    const submission = await this.submissionModel.create({
+    const submission = new this.submissionModel({
       userId: this.toObjectId(userId, 'userId'),
       challengeId: this.toObjectId(challengeId, 'challengeId'),
       code,
@@ -52,6 +53,7 @@ export class CodeExecutionService {
       language,
       status: 'pending',
     });
+    await submission.save();
 
     try {
       // Add job to the queue
@@ -59,6 +61,7 @@ export class CodeExecutionService {
         submissionId: submission._id.toString(),
         code,
         input,
+        expectedOutput, // add expectedOutput to job payload
         language,
         timeout,
       });
