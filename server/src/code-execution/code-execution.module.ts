@@ -5,6 +5,7 @@ import { CodeExecutionController } from './code-execution.controller';
 import { Submission, SubmissionSchema } from './schema/submission.schema';
 import { BullModule } from '@nestjs/bullmq';
 import { CodeExecutionProcessor } from './code-execution.processor';
+import { JudgeModule } from '../judge0/judge.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { CodeExecutionProcessor } from './code-execution.processor';
     BullModule.registerQueue({
       name: 'code-execution',
     }),
+    JudgeModule,
   ],
   controllers: [CodeExecutionController],
   providers: [CodeExecutionService, CodeExecutionProcessor],
