@@ -66,6 +66,8 @@ export class AuthService {
     const payLoad = {
       email: user.email,
       sub: String(user._id),
+      userId: String(user._id),
+      role: user.role || 'user', // Thêm role vào payload
     };
     const refreshTokenPayload = {
       subject: String(user._id),
