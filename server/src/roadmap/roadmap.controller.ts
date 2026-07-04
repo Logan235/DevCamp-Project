@@ -2,7 +2,7 @@ import { Controller, Get, Put, Body, Request, UseGuards } from '@nestjs/common';
 import { RoadmapService } from './roadmap.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { UpdateRoadmapDto } from './dto/update.dto';
-import type { JwtPayload } from '../interfaceFile/interface';
+import type { RequestWithUser } from '../interfaceFile/interface';
 
 @Controller('roadmaps')
 @UseGuards(JwtAuthGuard)
@@ -10,14 +10,14 @@ export class RoadmapController {
   constructor(private readonly roadmapService: RoadmapService) {}
 
   @Get('me')
-  getRoadmaps(@Request() req: JwtPayload) {
-    const userId = req.userId;
+  getRoadmaps(@Request() req: RequestWithUser) {
+    const userId = req.user.userId;
     return this.roadmapService.getRoadmaps(userId);
   }
 
   @Put('me')
-  putRoadmaps(@Request() req: JwtPayload, @Body() body: UpdateRoadmapDto) {
-    const userId = req.userId;
+  putRoadmaps(@Request() req: RequestWithUser, @Body() body: UpdateRoadmapDto) {
+    const userId = req.user.userId;
     return this.roadmapService.putRoadmaps(userId, body);
   }
 }
