@@ -45,4 +45,8 @@ export class ExecuteCodeDto {
   @Min(1)
   @Max(10)
   timeout?: number; // seconds, default: 5
+
+  @IsString()
+  @IsOptional()
+  expectedOutput?: string; // Optional expected output for comparison
 }
