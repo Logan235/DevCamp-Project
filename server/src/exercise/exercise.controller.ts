@@ -1,17 +1,17 @@
 import {
   Controller,
   Get,
-  Post,
   Param,
-  Body,
   Request,
   UseGuards,
+  Post,
+  Body,
 } from '@nestjs/common';
 import { ExerciseService } from './exercise.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
-import { SubmitExerciseDto } from './dto/submit.dto';
 import { RoleGuard, Roles } from '../auth/guards/role.guard';
 import type { RequestWithUser } from '../interfaceFile/interface';
+import { RunCodeDto, SubmitExerciseDto } from './dto/submit.dto';
 
 @Controller('exercises')
 export class ExerciseController {
@@ -29,15 +29,28 @@ export class ExerciseController {
     return this.exerciseService.getExerciseById(id);
   }
 
-  @Post(':id')
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles('user') //Chỉ có user mới có quyền nộp bài
-  postExercise(
+  // id is the challengeId
+  @Post(':id/run')
+  @UseGuards(JwtAuthGuard)
+  runCode(
     @Param('id') id: string,
     @Request() req: RequestWithUser,
-    @Body() body: SubmitExerciseDto,
+    @Body() runCodeDto: RunCodeDto,
   ) {
     const userId = req.user.userId;
-    return this.exerciseService.postExercise(userId, id, body);
+    return this.exerciseService.handleRun(userId, id, runCodeDto);
+  }
+
+  // id is the challengeId
+  @Post(':id/submit')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles('user')
+  submitCode(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+    @Body() submitCodeDto: SubmitExerciseDto,
+  ) {
+    const userId = req.user.userId;
+    return this.exerciseService.handleSubmit(userId, id, submitCodeDto);
   }
 }
