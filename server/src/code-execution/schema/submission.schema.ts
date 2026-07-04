@@ -36,6 +36,9 @@ export class Submission extends Document {
   @Prop({ default: 'pending' })
   status: string; // pending, success, error
 
+  @Prop({ alias: 'expected_output' })
+  expectedOutput?: string; // Optional expected output for comparison
+
   @Prop({ default: new Date() })
   createdAt: Date;
 
