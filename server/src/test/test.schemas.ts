@@ -24,11 +24,11 @@ export class TestCase extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Challenge', required: true })
   challengeId: Types.ObjectId;
 
-  @Prop({ type: String, required: true })
-  input: string; // User answer
+  @Prop({ type: String }) // Not required, can be in storage
+  input?: string;
 
-  @Prop({ type: String, required: true })
-  expectedOutput: string; // Expected answer
+  @Prop({ type: String, alias: 'expected_output' }) // Not required, can be in storage. Keep alias.
+  expectedOutput?: string;
 
   @Prop({
     type: String,
