@@ -10,6 +10,8 @@ export class User extends Document {
   displayName!: string;
   @Prop()
   passHash?: string;
+  @Prop({ default: 'user' })
+  role?: string;
   @Prop()
   avatarUrl?: string;
   @Prop()

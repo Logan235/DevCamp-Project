@@ -66,6 +66,8 @@ export class AuthService {
     const payLoad = {
       email: user.email,
       sub: String(user._id),
+      userId: String(user._id),
+      role: user.role || 'user', // add role to payload, default to 'user' if not set
     };
     const refreshTokenPayload = {
       subject: String(user._id),

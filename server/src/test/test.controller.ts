@@ -10,7 +10,7 @@ import {
 import { TestService } from './test.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { SubmitAssessmentDto } from './dto/submit.dto';
-
+import type { RequestWithUser } from '../interfaceFile/interface';
 @Controller('assessment')
 export class TestController {
   constructor(private readonly testService: TestService) {}
@@ -22,10 +22,13 @@ export class TestController {
 
   @Post('submissions')
   @UseGuards(JwtAuthGuard)
-  postSubmissions(@Request() req: any, @Body() body: SubmitAssessmentDto) {
+  postSubmissions(
+    @Request() req: RequestWithUser,
+    @Body() body: SubmitAssessmentDto,
+  ) {
     return this.testService.postSubmissions({
       ...body,
-      userId: req.user.subject,
+      userId: req.user.userId,
     });
   }
 
