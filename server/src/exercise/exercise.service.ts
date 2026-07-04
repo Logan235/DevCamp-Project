@@ -5,8 +5,13 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Challenge, Submission } from './exercise.schemas';
-import { UserRoadmap, RoadmapTemplate } from '../roadmap/roadmap.schemas'; // Đường dẫn tương đối tới folder roadmap
+import { Challenge } from './exercise.schemas';
+import { Submission } from '../code-execution/schema/submission.schema'; // <--- Sửa đường dẫn import
+import { UserRoadmap, RoadmapTemplate } from '../roadmap/roadmap.schemas';
+import { CodeExecutionService } from '../code-execution/code-execution.service';
+import { RunCodeDto, SubmitExerciseDto } from './dto/submit.dto';
+import { R2Service } from '../shared/r2.service';
+import { TestCase } from 'src/test/test.schemas';
 
 @Injectable()
 export class ExerciseService {
@@ -16,6 +21,11 @@ export class ExerciseService {
     @InjectModel(UserRoadmap.name) private userRoadmapModel: Model<UserRoadmap>,
     @InjectModel(RoadmapTemplate.name)
     private templateModel: Model<RoadmapTemplate>,
+    // 1. Sửa lỗi: Inject thêm TestCase model vào đây
+    @InjectModel(TestCase.name)
+    private readonly testCaseModel: Model<TestCase>,
+    private readonly codeExecutionService: CodeExecutionService,
+    private readonly r2Service: R2Service,
   ) {}
 
   // GET all the exercises for the active roadmap of the user
@@ -53,38 +63,95 @@ export class ExerciseService {
     return exercise;
   }
 
-  // POST a solution for a specific exercise
-  async postExercise(
-    userId: string,
-    challengeId: string,
-    data: { language: string; code: string },
-  ) {
+  // Process "Run Code"
+  async handleRun(userId: string, challengeId: string, runCodeDto: RunCodeDto) {
     if (!Types.ObjectId.isValid(challengeId)) {
       throw new BadRequestException('Định dạng ID bài tập không hợp lệ');
     }
 
-    const challenge = await this.challengeModel.findById(challengeId).exec();
-    if (!challenge) {
+    const challengeExists = await this.challengeModel
+      .findById(challengeId)
+      .exec();
+    if (!challengeExists) {
       throw new NotFoundException('Bài tập không tồn tại trên hệ thống');
     }
 
-    const mockRuntime = Math.floor(Math.random() * 120) + 15;
-    const mockMemory = Math.floor(Math.random() * 1024) + 256;
-    const statusPool = ['Accepted', 'Wrong Answer', 'Time Limit Exceeded'];
-    const mockStatus =
-      statusPool[Math.floor(Math.random() * statusPool.length)];
+    const { language, code, stdin } = runCodeDto;
 
-    const newSubmission = new this.submissionModel({
-      userId: new Types.ObjectId(userId),
-      challengeId: new Types.ObjectId(challengeId),
-      language: data.language || 'typescript',
-      code: data.code || '',
-      status: mockStatus,
-      runtime: mockRuntime,
-      memory: mockMemory,
-      sourceCodePath: `storage/codes/${userId}_${challengeId}.ts`,
+    const job = await this.codeExecutionService.executeCode(userId, {
+      challengeId,
+      language,
+      code,
+      input: stdin,
     });
 
-    return newSubmission.save();
+    return { submissionId: job._id };
+  }
+
+  // Process "Submit Code" - This method handles the submission of code for a specific challenge. It validates the user ID and challenge ID, checks if the challenge exists, retrieves the test cases for the challenge, and executes the code against each test case. The results are returned as an array of submission IDs.
+  async handleSubmit(
+    userId: string,
+    challengeId: string,
+    submitExerciseDto: SubmitExerciseDto,
+  ) {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new BadRequestException('userId is invalid');
+    }
+
+    if (!Types.ObjectId.isValid(challengeId)) {
+      throw new BadRequestException('Challenge ID is invalid');
+    }
+
+    const challengeExists = await this.challengeModel
+      .findById(challengeId)
+      .exec();
+    if (!challengeExists) {
+      throw new NotFoundException('Challenge not found');
+    }
+
+    const { language, code } = submitExerciseDto;
+
+    const testCases = await this.testCaseModel
+      .find({ challengeId: new Types.ObjectId(challengeId) })
+      .exec();
+    if (!testCases || testCases.length === 0) {
+      throw new NotFoundException('No test cases found for this challenge.');
+    }
+
+    // Luồng xử lý lấy dữ liệu và map sang promises song song
+    const submissionPromises = testCases.map(async (testCase) => {
+      // Sửa lại cho đúng với schema: testCase.storageRef.inputUrl
+      const input = testCase.storageRef?.inputUrl
+        ? await this.r2Service.getFileContent(testCase.storageRef.inputUrl)
+        : testCase.input;
+
+      if (input === undefined || input === null) {
+        throw new Error(`Input for test case ${challengeId} is missing.`);
+      }
+
+      // Lấy expected output từ test case
+      const expectedOutput = testCase.storageRef?.outputUrl
+        ? await this.r2Service.getFileContent(testCase.storageRef.outputUrl)
+        : testCase.expectedOutput || ''; // Đảm bảo không bao giờ là undefined
+
+      const job = await this.codeExecutionService.executeCode(userId, {
+        challengeId,
+        language,
+        code,
+        input,
+        expectedOutput: expectedOutput, // Send expected output to the code execution service
+      });
+
+      // Return the ID of the submission created for this test case
+      return job._id;
+    });
+
+    // Wait for all submissions to be processed and collect their IDs
+    const submissionIds = await Promise.all(submissionPromises);
+
+    return {
+      message: 'Submission received and is being processed.',
+      testCaseSubmissionIds: submissionIds,
+    };
   }
 }
