@@ -1,12 +1,14 @@
 import React from "react";
 import { NavBar } from "../../NavBar";
+import { useAuth } from "../../auth/hooks";
 
 export const RoadmapHeader: React.FC = () => {
+  const { isLoggedIn, displayName, avatarUrl } = useAuth();
   return (
     <NavBar
-      isLoggedIn={true}
-      userAvatar="/d09df851e636fc7377e7a5fb048706c0.jpg"
-      userName="anh Huy"
+      isLoggedIn={isLoggedIn}
+      userAvatar={avatarUrl}
+      userName={displayName} 
     />
   );
 };

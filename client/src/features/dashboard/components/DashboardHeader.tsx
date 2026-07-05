@@ -2,7 +2,7 @@ import React from "react";
 import { NavBar } from "../../NavBar";
 import { useAuth } from "../../auth/hooks";
 
-export const AdminHeader: React.FC = () => {
+export const DashboardHeader: React.FC = () => {
   const { isLoggedIn, displayName, avatarUrl } = useAuth();
   return (
     <NavBar
