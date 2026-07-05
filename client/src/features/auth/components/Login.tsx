@@ -27,7 +27,7 @@ export function Login() {
       localStorage.setItem("user", JSON.stringify(data.user));
 
       navigate("/dashboard");
-    } catch {
+    } catch (err: any) {
       setError(
         err.response?.data?.message ||
           "Wrong email or password. Please try again.",
@@ -48,7 +48,7 @@ export function Login() {
 
         {/* Error */}
         {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-lg text-center">
+          <div className="mb-4 p-3 text-red-400 text-sm rounded-lg text-center">
             {error}
           </div>
         )}
@@ -96,7 +96,7 @@ export function Login() {
         <button
           onClick={handleLogin}
           disabled={isLoading}
-          className="w-full bg-green-500 hover:bg-green-600 py-3 rounded-lg font-semibold transition"
+          className="w-full bg-green-500 hover:bg-green-600 py-3 rounded-lg font-semibold transition cursor-pointer"
         >
           {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
         </button>
