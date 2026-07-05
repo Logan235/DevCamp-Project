@@ -22,7 +22,6 @@ import { TestCase } from 'src/test/test.schemas';
 export class ExerciseService {
   constructor(
     @InjectModel(Challenge.name) private challengeModel: Model<Challenge>,
-    @InjectModel(Submission.name) private submissionModel: Model<Submission>,
     @InjectModel(UserRoadmap.name) private userRoadmapModel: Model<UserRoadmap>,
     @InjectModel(RoadmapTemplate.name)
     private templateModel: Model<RoadmapTemplate>,

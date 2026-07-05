@@ -4,12 +4,16 @@ import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
+import path from 'path';
+
 import { UserModule } from './users/user.module';
 import { AuthModule } from './auth/auth.module';
 import { TestModule } from './test/test.module';
 import { RoadmapModule } from './roadmap/roadmap.module';
 import { ExerciseModule } from './exercise/exercise.module';
 import { CodeExecutionModule } from './code-execution/code-execution.module';
+import { LearningModule } from './learning/learning.module';
+import { AiMirrorModule } from './ai-mirror/ai-mirror.module';
 import { JudgeModule } from './judge0/judge.module';
 import path from 'path';
 
@@ -27,12 +31,18 @@ import path from 'path';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        uri:
+      useFactory: (configService: ConfigService) => {
+        const mongoUri =
           configService.get<string>('MONGO_URL') ||
           configService.get<string>('MONGO_URI') ||
           configService.get<string>('MONGODB_URI') ||
           configService.get<string>('mongoUrl') ||
+          'mongodb://127.0.0.1:27017/FESSIORDEVCAMP_BACKEND';
+
+        return {
+          uri: mongoUri,
+        };
+      },
           'mongodb://127.0.0.1:27017/FESSIORDEVCAMP_BACKEND',
       }),
     }),
@@ -70,6 +80,8 @@ import path from 'path';
     RoadmapModule,
     ExerciseModule,
     CodeExecutionModule,
+    LearningModule,
+    AiMirrorModule,
     JudgeModule,
   ],
   controllers: [AppController],

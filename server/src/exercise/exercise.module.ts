@@ -21,7 +21,6 @@ import { R2Service } from '../shared/r2.service';
   imports: [
     MongooseModule.forFeature([
       { name: Challenge.name, schema: ChallengeSchema },
-      { name: Submission.name, schema: SubmissionSchema },
 
       { name: UserRoadmap.name, schema: UserRoadmapSchema },
       { name: RoadmapTemplate.name, schema: RoadmapTemplateSchema },
