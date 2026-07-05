@@ -41,6 +41,7 @@ export interface Judge0Submission {
   time?: string | null;
   memory?: number | null;
   token?: string;
+  expected_output?: string;
 }
 
 export interface CodeExecutionJob {
