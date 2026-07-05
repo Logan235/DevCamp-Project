@@ -1,30 +1,652 @@
 [
   {
     "id": 1,
-    "level": "Vừa",
-    "category": "Binary Search",
-    "title": "Analyze the time complexity of the following code snippet. Assume {n} is the length of the input array.",
-    "code": "function findPeakElement(nums) {\n  let left = 0;\n  let right = nums.length - 1;\n  while (left < right) {\n    let mid = Math.floor((left + right) / 2);\n    if (nums[mid] > nums[mid + 1]) {\n      right = mid;\n    } else {\n      left = mid + 1;\n    }\n  }\n  return left;\n}",
+    "level": "Dễ",
+    "category": "Big-O",
+    "title": "Phân tích độ phức tạp thời gian của đoạn mã sau.",
+    "code": "for(let i=0;i<n;i++){\n console.log(i);\n}",
     "options": [
-      { "id": "A", "text": "O(1) - Constant time" },
-      { "id": "B", "text": "O(log n) - Logarithmic time" },
-      { "id": "C", "text": "O(n) - Linear time" },
-      { "id": "D", "text": "O(n log n) - Linearithmic time" }
-    ]
+      {
+        "id": "A",
+        "text": "O(1)"
+      },
+      {
+        "id": "B",
+        "text": "O(log n)"
+      },
+      {
+        "id": "C",
+        "text": "O(n)"
+      },
+      {
+        "id": "D",
+        "text": "O(n²)"
+      }
+    ],
+    "answer": "C"
   },
   {
     "id": 2,
-    "level": "Khó",
-    "category": "Recursion",
-    "type": "essay",
-    "title": "Explain the concept of a {base case} in recursive functions. What would happen if we remove line 2 from the following code?",
-    "code": "function fibonacci(n) {\n  if (n <= 1) return n;\n  return fibonacci(n - 1) + fibonacci(n - 2);\n}"
+    "level": "Dễ",
+    "category": "Big-O",
+    "title": "Phân tích độ phức tạp thời gian của đoạn mã sau.",
+    "code": "for(let i=1;i<n;i*=2){\n console.log(i);\n}",
+    "options": [
+      {
+        "id": "A",
+        "text": "O(log n)"
+      },
+      {
+        "id": "B",
+        "text": "O(n)"
+      },
+      {
+        "id": "C",
+        "text": "O(n log n)"
+      },
+      {
+        "id": "D",
+        "text": "O(n²)"
+      }
+    ],
+    "answer": "A"
   },
   {
     "id": 3,
+    "level": "Vừa",
+    "category": "Big-O",
+    "title": "Độ phức tạp của hai vòng lặp lồng nhau sau là gì?",
+    "code": "for(let i=0;i<n;i++){\n for(let j=0;j<n;j++){}\n}",
+    "options": [
+      {
+        "id": "A",
+        "text": "O(n)"
+      },
+      {
+        "id": "B",
+        "text": "O(log n)"
+      },
+      {
+        "id": "C",
+        "text": "O(n²)"
+      },
+      {
+        "id": "D",
+        "text": "O(n³)"
+      }
+    ],
+    "answer": "C"
+  },
+  {
+    "id": 4,
+    "level": "Vừa",
+    "category": "Big-O",
+    "title": "Độ phức tạp của đoạn mã sau là gì?",
+    "code": "for(let i=0;i<n;i++){\n for(let j=1;j<n;j*=2){}\n}",
+    "options": [
+      {
+        "id": "A",
+        "text": "O(log n)"
+      },
+      {
+        "id": "B",
+        "text": "O(n)"
+      },
+      {
+        "id": "C",
+        "text": "O(n log n)"
+      },
+      {
+        "id": "D",
+        "text": "O(n²)"
+      }
+    ],
+    "answer": "C"
+  },
+  {
+    "id": 5,
     "level": "Dễ",
-    "category": "System Design",
-    "type": "essay",
-    "title": "Hãy giải thích ngắn gọn sự khác biệt giữa kiến trúc {Monolithic} và {Microservices}. Theo bạn, khi nào một dự án nên bắt đầu chuyển từ Monolithic sang Microservices?"
+    "category": "Array",
+    "title": "Truy cập phần tử theo chỉ số trong mảng có độ phức tạp trung bình là bao nhiêu?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "O(1)"
+      },
+      {
+        "id": "B",
+        "text": "O(log n)"
+      },
+      {
+        "id": "C",
+        "text": "O(n)"
+      },
+      {
+        "id": "D",
+        "text": "O(n²)"
+      }
+    ],
+    "answer": "A"
+  },
+  {
+    "id": 6,
+    "level": "Dễ",
+    "category": "Array",
+    "title": "Cấu trúc dữ liệu nào phù hợp nhất khi cần truy cập ngẫu nhiên nhanh?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "Linked List"
+      },
+      {
+        "id": "B",
+        "text": "Array"
+      },
+      {
+        "id": "C",
+        "text": "Stack"
+      },
+      {
+        "id": "D",
+        "text": "Queue"
+      }
+    ],
+    "answer": "B"
+  },
+  {
+    "id": 7,
+    "level": "Vừa",
+    "category": "String",
+    "title": "So sánh hai chuỗi có độ dài n trong trường hợp xấu nhất có độ phức tạp là gì?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "O(1)"
+      },
+      {
+        "id": "B",
+        "text": "O(log n)"
+      },
+      {
+        "id": "C",
+        "text": "O(n)"
+      },
+      {
+        "id": "D",
+        "text": "O(n²)"
+      }
+    ],
+    "answer": "C"
+  },
+  {
+    "id": 8,
+    "level": "Dễ",
+    "category": "Linked List",
+    "title": "Tìm kiếm một giá trị trong Linked List đơn có độ phức tạp xấu nhất là bao nhiêu?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "O(1)"
+      },
+      {
+        "id": "B",
+        "text": "O(log n)"
+      },
+      {
+        "id": "C",
+        "text": "O(n)"
+      },
+      {
+        "id": "D",
+        "text": "O(n²)"
+      }
+    ],
+    "answer": "C"
+  },
+  {
+    "id": 9,
+    "level": "Vừa",
+    "category": "Linked List",
+    "title": "Thao tác nào có thể thực hiện trong O(1) ở đầu Linked List đơn?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "Chèn phần tử"
+      },
+      {
+        "id": "B",
+        "text": "Tìm kiếm"
+      },
+      {
+        "id": "C",
+        "text": "Sắp xếp"
+      },
+      {
+        "id": "D",
+        "text": "Tìm phần tử giữa"
+      }
+    ],
+    "answer": "A"
+  },
+  {
+    "id": 10,
+    "level": "Dễ",
+    "category": "Stack",
+    "title": "Cấu trúc dữ liệu nào tuân theo nguyên tắc LIFO?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "Queue"
+      },
+      {
+        "id": "B",
+        "text": "Stack"
+      },
+      {
+        "id": "C",
+        "text": "Heap"
+      },
+      {
+        "id": "D",
+        "text": "Tree"
+      }
+    ],
+    "answer": "B"
+  },
+  {
+    "id": 11,
+    "level": "Dễ",
+    "category": "Queue",
+    "title": "Thuật toán duyệt đồ thị nào chủ yếu sử dụng Queue?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "DFS"
+      },
+      {
+        "id": "B",
+        "text": "BFS"
+      },
+      {
+        "id": "C",
+        "text": "Dijkstra"
+      },
+      {
+        "id": "D",
+        "text": "Prim"
+      }
+    ],
+    "answer": "B"
+  },
+  {
+    "id": 12,
+    "level": "Dễ",
+    "category": "Hash Table",
+    "title": "Độ phức tạp trung bình của thao tác tìm kiếm trong Hash Table là gì?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "O(1)"
+      },
+      {
+        "id": "B",
+        "text": "O(log n)"
+      },
+      {
+        "id": "C",
+        "text": "O(n)"
+      },
+      {
+        "id": "D",
+        "text": "O(n log n)"
+      }
+    ],
+    "answer": "A"
+  },
+  {
+    "id": 13,
+    "level": "Vừa",
+    "category": "Hash Table",
+    "title": "Hiện tượng hai khóa cùng ánh xạ đến một bucket được gọi là gì?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "Overflow"
+      },
+      {
+        "id": "B",
+        "text": "Collision"
+      },
+      {
+        "id": "C",
+        "text": "Underflow"
+      },
+      {
+        "id": "D",
+        "text": "Recursion"
+      }
+    ],
+    "answer": "B"
+  },
+  {
+    "id": 14,
+    "level": "Dễ",
+    "category": "Tree",
+    "title": "Trong Binary Search Tree, mối quan hệ nào là đúng?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "Trái > Gốc > Phải"
+      },
+      {
+        "id": "B",
+        "text": "Trái < Gốc < Phải"
+      },
+      {
+        "id": "C",
+        "text": "Gốc luôn nhỏ nhất"
+      },
+      {
+        "id": "D",
+        "text": "Gốc luôn lớn nhất"
+      }
+    ],
+    "answer": "B"
+  },
+  {
+    "id": 15,
+    "level": "Vừa",
+    "category": "Tree",
+    "title": "Kiểu duyệt nào của BST trả về các phần tử theo thứ tự tăng dần?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "Preorder"
+      },
+      {
+        "id": "B",
+        "text": "Postorder"
+      },
+      {
+        "id": "C",
+        "text": "Inorder"
+      },
+      {
+        "id": "D",
+        "text": "Level Order"
+      }
+    ],
+    "answer": "C"
+  },
+  {
+    "id": 16,
+    "level": "Vừa",
+    "category": "BST",
+    "title": "Tìm kiếm trong BST cân bằng có độ phức tạp bao nhiêu?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "O(1)"
+      },
+      {
+        "id": "B",
+        "text": "O(log n)"
+      },
+      {
+        "id": "C",
+        "text": "O(n)"
+      },
+      {
+        "id": "D",
+        "text": "O(n²)"
+      }
+    ],
+    "answer": "B"
+  },
+  {
+    "id": 17,
+    "level": "Dễ",
+    "category": "Heap",
+    "title": "Nút gốc của Max Heap chứa giá trị nào?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "Nhỏ nhất"
+      },
+      {
+        "id": "B",
+        "text": "Lớn nhất"
+      },
+      {
+        "id": "C",
+        "text": "Trung vị"
+      },
+      {
+        "id": "D",
+        "text": "Ngẫu nhiên"
+      }
+    ],
+    "answer": "B"
+  },
+  {
+    "id": 18,
+    "level": "Vừa",
+    "category": "Priority Queue",
+    "title": "Cấu trúc dữ liệu nào thường được dùng để cài đặt Priority Queue?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "Heap"
+      },
+      {
+        "id": "B",
+        "text": "Linked List"
+      },
+      {
+        "id": "C",
+        "text": "Array"
+      },
+      {
+        "id": "D",
+        "text": "Stack"
+      }
+    ],
+    "answer": "A"
+  },
+  {
+    "id": 19,
+    "level": "Dễ",
+    "category": "Graph",
+    "title": "Thuật toán duyệt nào thường sử dụng Stack hoặc đệ quy?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "BFS"
+      },
+      {
+        "id": "B",
+        "text": "DFS"
+      },
+      {
+        "id": "C",
+        "text": "Dijkstra"
+      },
+      {
+        "id": "D",
+        "text": "Kruskal"
+      }
+    ],
+    "answer": "B"
+  },
+  {
+    "id": 20,
+    "level": "Vừa",
+    "category": "Graph",
+    "title": "Thuật toán nào tìm đường đi ngắn nhất trên đồ thị không trọng số?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "DFS"
+      },
+      {
+        "id": "B",
+        "text": "BFS"
+      },
+      {
+        "id": "C",
+        "text": "Prim"
+      },
+      {
+        "id": "D",
+        "text": "Kruskal"
+      }
+    ],
+    "answer": "B"
+  },
+  {
+    "id": 21,
+    "level": "Vừa",
+    "category": "Graph",
+    "title": "Dijkstra có hoạt động đúng với cạnh trọng số âm không?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "Có"
+      },
+      {
+        "id": "B",
+        "text": "Không"
+      },
+      {
+        "id": "C",
+        "text": "Chỉ với DAG"
+      },
+      {
+        "id": "D",
+        "text": "Chỉ với cây"
+      }
+    ],
+    "answer": "B"
+  },
+  {
+    "id": 22,
+    "level": "Vừa",
+    "category": "Binary Search",
+    "title": "Độ phức tạp xấu nhất của Binary Search là gì?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "O(1)"
+      },
+      {
+        "id": "B",
+        "text": "O(log n)"
+      },
+      {
+        "id": "C",
+        "text": "O(n)"
+      },
+      {
+        "id": "D",
+        "text": "O(n log n)"
+      }
+    ],
+    "answer": "B"
+  },
+  {
+    "id": 23,
+    "level": "Vừa",
+    "category": "Recursion",
+    "title": "Kết quả của factorial(4) là bao nhiêu?",
+    "code": "function factorial(n){\n if(n<=1) return 1;\n return n*factorial(n-1);\n}",
+    "options": [
+      {
+        "id": "A",
+        "text": "16"
+      },
+      {
+        "id": "B",
+        "text": "12"
+      },
+      {
+        "id": "C",
+        "text": "24"
+      },
+      {
+        "id": "D",
+        "text": "32"
+      }
+    ],
+    "answer": "C"
+  },
+  {
+    "id": 24,
+    "level": "Vừa",
+    "category": "Dynamic Programming",
+    "title": "Dynamic Programming phù hợp nhất khi bài toán có đặc điểm nào?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "Cấu trúc con tối ưu và bài toán con chồng lặp"
+      },
+      {
+        "id": "B",
+        "text": "Chỉ có sắp xếp"
+      },
+      {
+        "id": "C",
+        "text": "Chỉ có đồ thị"
+      },
+      {
+        "id": "D",
+        "text": "Chỉ có cây"
+      }
+    ],
+    "answer": "A"
+  },
+  {
+    "id": 25,
+    "level": "Vừa",
+    "category": "Dynamic Programming",
+    "title": "Kỹ thuật nào thường được dùng để tránh tính lại cùng một bài toán con trong DP?",
+    "code": "",
+    "options": [
+      {
+        "id": "A",
+        "text": "Memoization"
+      },
+      {
+        "id": "B",
+        "text": "Binary Search"
+      },
+      {
+        "id": "C",
+        "text": "Hash Collision"
+      },
+      {
+        "id": "D",
+        "text": "Heapify"
+      }
+    ],
+    "answer": "A"
   }
 ]

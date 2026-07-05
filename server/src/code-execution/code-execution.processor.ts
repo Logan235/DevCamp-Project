@@ -1,165 +1,119 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Job } from 'bullmq';
-import axios from 'axios';
-import { ConfigService } from '@nestjs/config';
+import { JUDGE0_LANGUAGE_MAP } from '../judge0/constants/languageMap';
 import { Submission } from './schema/submission.schema';
-import { Logger } from '@nestjs/common';
+import { JudgeService } from '../judge0/judge.service';
+import { CodeExecutionJob, Judge0Response } from '../interfaceFile/interface';
 
+@Injectable()
 @Processor('code-execution')
 export class CodeExecutionProcessor extends WorkerHost {
   private readonly logger = new Logger(CodeExecutionProcessor.name);
 
-  // Language mapping for Piston API
-  private readonly languageMap: Record<string, string> = {
-    cpp: 'c++',
-    c: 'c',
-    python: 'python3',
-    javascript: 'javascript',
-    java: 'java',
-    ruby: 'ruby',
-    go: 'go',
-    rust: 'rust',
-    typescript: 'typescript',
-  };
-
   constructor(
     @InjectModel(Submission.name)
-    private submissionModel: Model<Submission>,
-    private configService: ConfigService,
+    private readonly submissionModel: Model<Submission>,
+    private readonly judgeService: JudgeService,
   ) {
     super();
   }
 
-  private get pistonApiUrl(): string {
-    return (
-      this.configService.get<string>('PISTON_API_URL') ||
-      'https://emkc.org/api/v2/piston/execute'
+  async process(job: Job<CodeExecutionJob>): Promise<void> {
+    const { submissionId, code, language, input, expectedOutput } = job.data;
+    const base64Code = Buffer.from(code || '').toString('base64');
+    const base64Input = Buffer.from(input || '').toString('base64');
+    const base64ExpectedOutput = Buffer.from(expectedOutput || '').toString(
+      'base64',
     );
-  }
-
-  async process(
-    job: Job<
-      {
-        submissionId: string;
-        code: string;
-        input: string;
-        language: string;
-        timeout: number;
-      },
-      any,
-      string
-    >,
-  ): Promise<any> {
-    const { submissionId, code, input, language, timeout } = job.data;
-    const pistonLanguage =
-      this.languageMap[language] || this.languageMap['cpp'];
-
-    this.logger.log(`Processing execution for submission: ${submissionId}`);
-
+    this.logger.log(
+      `Processing submission ${submissionId} with language ${language}`,
+    );
     const submission = await this.submissionModel.findById(submissionId);
     if (!submission) {
-      this.logger.error(`Submission not found: ${submissionId}`);
-      return;
+      throw new Error(`Submission ${submissionId} not found`);
+    }
+
+    // Update the submission with the expectedOutput from the job
+    // This is the critical step to ensure the data is available for comparison
+    if (expectedOutput !== undefined) {
+      submission.expectedOutput = expectedOutput;
+      // We will save it once later with all the other results
     }
 
     try {
-      const startTime = Date.now();
-
-      const response = await axios.post<{
-        run?: {
-          stdout?: string;
-          stderr?: string;
-          output?: string;
-          code?: number;
-          signal?: string | null;
-        };
-        compile?: {
-          stdout?: string;
-          stderr?: string;
-          output?: string;
-          code?: number;
-          signal?: string | null;
-        };
-      }>(
-        this.pistonApiUrl,
-        {
-          language: pistonLanguage,
-          version: '*',
-          files: [
-            {
-              name: this.getFileName(pistonLanguage),
-              content: code,
-            },
-          ],
-          stdin: input || '',
-          run_timeout: timeout * 1000,
-        },
-        {
-          timeout: (timeout + 10) * 1000,
-        },
-      );
-
-      const runtime = Date.now() - startTime;
-      const result = response.data;
-
-      let output = '';
-      let error = '';
-      let statusCode = 0;
-
-      if (result.compile && result.compile.code !== 0) {
-        output = result.compile.stdout || '';
-        error =
-          result.compile.stderr || result.compile.output || 'Compilation error';
-        statusCode = result.compile.code ?? 1;
-      } else if (result.run) {
-        output = result.run.stdout || '';
-        error = result.run.stderr || '';
-        statusCode = result.run.code ?? 0;
+      const languageId = JUDGE0_LANGUAGE_MAP[language];
+      if (!languageId) {
+        throw new Error(`Language ${language} not supported`);
       }
 
-      submission.output = output;
-      submission.error = error;
-      submission.statusCode = statusCode;
-      submission.runtime = runtime;
-      submission.status = statusCode === 0 ? 'success' : 'error';
+      const result = await this.judgeService.runCode({
+        source_code: base64Code,
+        language_id: languageId,
+        stdin: base64Input,
+        expected_output: base64ExpectedOutput, // Gửi expected_output đến Judge0
+      });
 
-      await submission.save();
-      this.logger.log(
-        `Execution completed for: ${submissionId} with status: ${submission.status}`,
-      );
+      const actualOutput = result.stdout
+        ? Buffer.from(result.stdout, 'base64').toString('utf-8')
+        : '';
 
-      return { status: submission.status, statusCode };
-    } catch (error) {
-      this.logger.error(`Execution failed for ${submissionId}`, error);
+      // Logic so sánh được chuyển về đây
+      // Judge0 đã tự so sánh, ta chỉ cần kiểm tra status.id
+      const isAccepted = result.status?.id === 3; // 3 là status "Accepted" của Judge0
 
-      submission.status = 'error';
-      if (axios.isAxiosError<{ message?: string }>(error)) {
-        submission.error =
-          error.response?.data?.message || error.message || 'Execution failed';
+      // Cập nhật submission với kết quả
+      submission.output = actualOutput;
+      const rawError =
+        result.stderr || result.compile_output || result.message || '';
+      submission.error = rawError
+        ? Buffer.from(rawError, 'base64').toString('utf-8')
+        : '';
+      submission.runtime = result.time
+        ? parseFloat(result.time) * 1000
+        : undefined;
+
+      submission.status = result.status?.description || 'Error';
+      submission.statusCode = result.status?.id || 11; // Default to Runtime Error
+
+      if (isAccepted) {
+        // Đã được xử lý ở trên
       } else {
-        submission.error =
-          error instanceof Error ? error.message : 'Execution failed';
+        // Nếu không phải "Accepted", tạo thông báo lỗi rõ ràng hơn
+        submission.error = `Output:\n${actualOutput}\n\nExpected output:\n${submission.expectedOutput}`;
       }
 
       await submission.save();
-      throw error;
-    }
-  }
 
-  private getFileName(language: string): string {
-    const fileExtensions: Record<string, string> = {
-      cpp: 'main.cpp',
-      c: 'main.c',
-      python3: 'main.py',
-      javascript: 'main.js',
-      java: 'Main.java',
-      ruby: 'main.rb',
-      go: 'main.go',
-      rust: 'main.rs',
-      typescript: 'main.ts',
-    };
-    return fileExtensions[language] || 'main.txt';
+      // Log the result
+      this.logger.log(`Submission ${submissionId} processed successfully`);
+    } catch (error) {
+      // Xử lý lỗi biên dịch/runtime từ JudgeService một cách an toàn
+      if (typeof error === 'object' && error !== null && 'status' in error) {
+        const execError = error as Judge0Response; // Ép kiểu an toàn sang Judge0Response
+        if (execError.status) {
+          submission.status = execError.status.description || 'error';
+          submission.statusCode = execError.status.id || 11; // Runtime Error
+        }
+        if (execError.stderr) {
+          submission.error = Buffer.from(execError.stderr, 'base64').toString(
+            'utf-8',
+          );
+        } else {
+          submission.error = 'Execution Error';
+        }
+      } else {
+        submission.status = 'error';
+        submission.error =
+          error instanceof Error ? error.message : 'Unknown error';
+      }
+      this.logger.error(
+        `Error processing submission ${submissionId}: ${submission.error}`,
+      );
+      await submission.save();
+      throw error; // Re-throw the error to let BullMQ handle retries if configured
+    }
   }
 }

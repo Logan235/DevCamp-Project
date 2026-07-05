@@ -1,13 +1,14 @@
 import React from "react";
 import { NavBar } from "../../NavBar";
+import { useAuth } from "../../auth/hooks";
 
-export const CodeHeader: React.FC  = () => {
-    return (
-      <NavBar
-        isLoggedIn={true}
-        variant="editor"
-        userAvatar="/d09df851e636fc7377e7a5fb048706c0.jpg"
-        userName="anh Huy"
-      />
-    ); 
-}
+export const CodeHeader: React.FC = () => {
+  const { isLoggedIn, displayName, avatarUrl } = useAuth();
+  return (
+    <NavBar
+      isLoggedIn={isLoggedIn}
+      userAvatar={avatarUrl}
+      userName={displayName}
+    />
+  );
+};

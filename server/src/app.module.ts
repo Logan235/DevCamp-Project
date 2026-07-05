@@ -14,6 +14,8 @@ import { ExerciseModule } from './exercise/exercise.module';
 import { CodeExecutionModule } from './code-execution/code-execution.module';
 import { LearningModule } from './learning/learning.module';
 import { AiMirrorModule } from './ai-mirror/ai-mirror.module';
+import { JudgeModule } from './judge0/judge.module';
+import path from 'path';
 
 @Module({
   imports: [
@@ -41,6 +43,8 @@ import { AiMirrorModule } from './ai-mirror/ai-mirror.module';
           uri: mongoUri,
         };
       },
+          'mongodb://127.0.0.1:27017/FESSIORDEVCAMP_BACKEND',
+      }),
     }),
 
     BullModule.forRootAsync({
@@ -78,6 +82,7 @@ import { AiMirrorModule } from './ai-mirror/ai-mirror.module';
     CodeExecutionModule,
     LearningModule,
     AiMirrorModule,
+    JudgeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

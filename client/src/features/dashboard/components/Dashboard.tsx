@@ -4,24 +4,22 @@ import StatCard from "./StatCard";
 import ThinkingScoreChart from "./ThinkingScoreChart";
 import SkillRadarChart from "./SkillRadarChart";
 import ImprovementReport from "./ImprovementReport";
-import { NavBar } from "../../NavBar";
+import { DashboardHeader } from "./DashboardHeader";
 import { Button } from "../../../components/common/Button";
+import { useAuth } from "../../auth/hooks";
 
-export default function Dashboard({ userName = "anh Huy" }) {
+export default function Dashboard() {
+  const { displayName } = useAuth()
   return (
     <div className="bg-[#0b0f19] min-h-screen text-gray-300 font-sans antialiased selection:bg-blue-500/30">
-      <NavBar
-        isLoggedIn={true}
-        userAvatar="/d09df851e636fc7377e7a5fb048706c0.jpg"
-        userName={userName}
-      />
+      <DashboardHeader />
 
       <main className="max-w-7xl mx-auto p-6 md:p-10 space-y-10">
         <div className=" flex justify-between items-center">
           <div>
             <h1 className="text-xl font-semibold text-white tracking-tight">
               Chào mừng trở lại,{" "}
-              <span className="text-blue-400">{userName}</span>
+              <span className="text-blue-400">{displayName}</span>
             </h1>
           </div>
 

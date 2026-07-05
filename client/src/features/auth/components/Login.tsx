@@ -27,7 +27,7 @@ export function Login() {
       localStorage.setItem("user", JSON.stringify(data.user));
 
       navigate("/dashboard");
-    } catch {
+    } catch (err: any) {
       setError(
         err.response?.data?.message ||
           "Wrong email or password. Please try again.",
@@ -48,7 +48,7 @@ export function Login() {
 
         {/* Error */}
         {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-lg text-center">
+          <div className="mb-4 p-3 text-red-400 text-sm rounded-lg text-center">
             {error}
           </div>
         )}
@@ -88,7 +88,7 @@ export function Login() {
             <input type="checkbox" />
             <span className="text-gray-400">Ghi nhớ đăng nhập</span>
           </label>
-          <button className="text-blue-400 hover:underline">
+          <button className="text-blue-400 hover:underline cursor-pointer">
             Quên mật khẩu?
           </button>
         </div>
@@ -96,7 +96,7 @@ export function Login() {
         <button
           onClick={handleLogin}
           disabled={isLoading}
-          className="w-full bg-green-500 hover:bg-green-600 py-3 rounded-lg font-semibold transition"
+          className="w-full bg-green-500 hover:bg-green-600 py-3 rounded-lg font-semibold transition cursor-pointer"
         >
           {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
         </button>
@@ -111,14 +111,14 @@ export function Login() {
         <div className="space-y-3">
           <button
             onClick={loginWithGithub}
-            className="w-full border border-gray-700 py-3 rounded-lg hover:bg-[#1f2937] flex items-center justify-center gap-2"
+            className="w-full border cursor-pointer border-gray-700 py-3 rounded-lg hover:bg-[#1f2937] flex items-center justify-center gap-2"
           >
             <FaGithub size={18} />
             GitHub
           </button>
           <button
             onClick={loginWithGoogle}
-            className="w-full border border-gray-700 py-3 rounded-lg hover:bg-[#1f2937] flex items-center justify-center gap-2"
+            className="w-full border cursor-pointer border-gray-700 py-3 rounded-lg hover:bg-[#1f2937] flex items-center justify-center gap-2"
           >
             <FcGoogle size={18} />
             Google

@@ -44,6 +44,9 @@ function formatSubmissionOutput(submission: SubmissionDetail) {
 
   return lines.join("\n");
 }
+import { useParams } from "react-router";
+import { getExerciseByIdApi, submitExerciseApi } from "../api";
+import { AIChatbot } from "./AIChatbot"; 
 
 export const CodeLayout: React.FC = () => {
   const { challengeId } = useParams();
@@ -65,6 +68,12 @@ export const CodeLayout: React.FC = () => {
         "Mình là AI Mirror. Hãy submit code trước, sau đó hỏi mình phân tích tư duy, lỗi sai hoặc hướng tối ưu nhé.",
     },
   ]);
+  const { challengeId } = useParams();
+  const [exercise, setExercise] = useState<any>(null);
+  const [hasRunCode, setHasRunCode] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!challengeId) return;
 
   const canAskAi = useMemo(
     () => Boolean(challengeId || latestSubmissionId),
@@ -107,6 +116,16 @@ export const CodeLayout: React.FC = () => {
     );
 
     return null;
+  const handleRunCode = () => {
+    setIsRunning(true);
+    setTimeout(() => {
+      setOutput(
+        '[\n\t{ id: 1, name: "Bàn phím cơ", price: 200 },\n\t{ id: 2, name: "Chuột Gaming", price: 100 }\n]',
+      );
+      setIsError(false);
+      setIsRunning(false);
+    }, 1000);
+    setHasRunCode(true);
   };
 
   const handleSubmitCode = async () => {
@@ -220,7 +239,7 @@ export const CodeLayout: React.FC = () => {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col bg-[#050816] overflow-hidden">
+    <div className="h-screen w-full flex flex-col bg-[#050816] overflow-hidden relative"> {/* Thêm relative ở đây để button chat căn góc đúng vị trí */}
       <CodeHeader />
 
       <div className="flex-1 grid grid-cols-1 xl:grid-cols-12 overflow-hidden p-2 gap-2">
@@ -326,6 +345,8 @@ export const CodeLayout: React.FC = () => {
           </div>
         </aside>
       </div>
+
+      <AIChatbot hasRunCode={hasRunCode} />
     </div>
   );
 };
