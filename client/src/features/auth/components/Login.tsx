@@ -88,7 +88,7 @@ export function Login() {
             <input type="checkbox" />
             <span className="text-gray-400">Ghi nhớ đăng nhập</span>
           </label>
-          <button className="text-blue-400 hover:underline">
+          <button className="text-blue-400 hover:underline cursor-pointer">
             Quên mật khẩu?
           </button>
         </div>
@@ -111,14 +111,14 @@ export function Login() {
         <div className="space-y-3">
           <button
             onClick={loginWithGithub}
-            className="w-full border border-gray-700 py-3 rounded-lg hover:bg-[#1f2937] flex items-center justify-center gap-2"
+            className="w-full border cursor-pointer border-gray-700 py-3 rounded-lg hover:bg-[#1f2937] flex items-center justify-center gap-2"
           >
             <FaGithub size={18} />
             GitHub
           </button>
           <button
             onClick={loginWithGoogle}
-            className="w-full border border-gray-700 py-3 rounded-lg hover:bg-[#1f2937] flex items-center justify-center gap-2"
+            className="w-full border cursor-pointer border-gray-700 py-3 rounded-lg hover:bg-[#1f2937] flex items-center justify-center gap-2"
           >
             <FcGoogle size={18} />
             Google
