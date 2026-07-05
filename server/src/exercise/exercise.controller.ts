@@ -6,16 +6,31 @@ import {
   UseGuards,
   Post,
   Body,
+  HttpCode,
 } from '@nestjs/common';
 import { ExerciseService } from './exercise.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { RoleGuard, Roles } from '../auth/guards/role.guard';
 import type { RequestWithUser } from '../interfaceFile/interface';
-import { RunCodeDto, SubmitExerciseDto } from './dto/submit.dto';
+import {
+  RunCodeDto,
+  SubmitExerciseDto,
+  CreateChallengeDto,
+} from './dto/submit.dto';
 
 @Controller('exercises')
 export class ExerciseController {
   constructor(private readonly exerciseService: ExerciseService) {}
+
+  @Post()
+  // @UseGuards(JwtAuthGuard, RoleGuard) // Uncomment this line to enable authentication and role-based access control
+  // @Roles('admin') import role.guard.ts later
+  @HttpCode(201)
+  async createChallenge(@Body() createChallengeDto: CreateChallengeDto) {
+    return await this.exerciseService.createChallengeWithTestCases(
+      createChallengeDto,
+    );
+  }
 
   @Get()
   @UseGuards(JwtAuthGuard)

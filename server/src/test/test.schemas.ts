@@ -38,9 +38,10 @@ export class TestCase extends Document {
       'sample',
       'hidden',
       'stress',
+      'stress_test',
+      'edge_case',
+      'random',
       'generated',
-      'multiple-choice',
-      'essay',
     ],
   })
   type: string;
