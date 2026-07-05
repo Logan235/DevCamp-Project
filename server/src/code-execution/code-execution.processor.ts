@@ -25,6 +25,9 @@ export class CodeExecutionProcessor extends WorkerHost {
     const { submissionId, code, language, input, expectedOutput } = job.data;
     const base64Code = Buffer.from(code || '').toString('base64');
     const base64Input = Buffer.from(input || '').toString('base64');
+    const base64ExpectedOutput = Buffer.from(expectedOutput || '').toString(
+      'base64',
+    );
     this.logger.log(
       `Processing submission ${submissionId} with language ${language}`,
     );
@@ -50,6 +53,7 @@ export class CodeExecutionProcessor extends WorkerHost {
         source_code: base64Code,
         language_id: languageId,
         stdin: base64Input,
+        expected_output: base64ExpectedOutput, // Gửi expected_output đến Judge0
       });
 
       const actualOutput = result.stdout
@@ -57,15 +61,8 @@ export class CodeExecutionProcessor extends WorkerHost {
         : '';
 
       // Logic so sánh được chuyển về đây
-      const normalize = (str: string | undefined) =>
-        (str || '') // str có thể là undefined, || '' sẽ xử lý nó thành chuỗi rỗng
-          .split('\n')
-          .map((line) => line.trim())
-          .filter((line) => line)
-          .join('\n');
-
-      const isAccepted =
-        normalize(actualOutput) === normalize(submission.expectedOutput);
+      // Judge0 đã tự so sánh, ta chỉ cần kiểm tra status.id
+      const isAccepted = result.status?.id === 3; // 3 là status "Accepted" của Judge0
 
       // Cập nhật submission với kết quả
       submission.output = actualOutput;
@@ -78,12 +75,13 @@ export class CodeExecutionProcessor extends WorkerHost {
         ? parseFloat(result.time) * 1000
         : undefined;
 
+      submission.status = result.status?.description || 'Error';
+      submission.statusCode = result.status?.id || 11; // Default to Runtime Error
+
       if (isAccepted) {
-        submission.status = 'success'; // Accepted
-        submission.statusCode = 3; // Accepted
+        // Đã được xử lý ở trên
       } else {
-        submission.status = 'Wrong Answer';
-        submission.statusCode = 4; // Wrong Answer
+        // Nếu không phải "Accepted", tạo thông báo lỗi rõ ràng hơn
         submission.error = `Output:\n${actualOutput}\n\nExpected output:\n${submission.expectedOutput}`;
       }
 
