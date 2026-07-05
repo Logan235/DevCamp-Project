@@ -17,6 +17,26 @@ export async function submitExerciseApi(
     code: string;
   },
 ) {
-  const response = await apiClient.post(`/exercises/${id}`, payload);
+  const response = await apiClient.post("/code-execution/execute", {
+    challengeId: id,
+    language: payload.language,
+    code: payload.code,
+  });
+
+  return response.data;
+}
+
+export async function getSubmissionDetailApi(submissionId: string) {
+  const response = await apiClient.get(`/code-execution/${submissionId}`);
+  return response.data;
+}
+
+export async function chatAiMirrorApi(payload: {
+  message: string;
+  challengeId?: string;
+  submissionId?: string;
+  includeLatestSubmission?: boolean;
+}) {
+  const response = await apiClient.post("/ai-mirror/chat", payload);
   return response.data;
 }

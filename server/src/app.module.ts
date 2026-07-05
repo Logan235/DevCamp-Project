@@ -13,6 +13,7 @@ import { RoadmapModule } from './roadmap/roadmap.module';
 import { ExerciseModule } from './exercise/exercise.module';
 import { CodeExecutionModule } from './code-execution/code-execution.module';
 import { LearningModule } from './learning/learning.module';
+import { AiMirrorModule } from './ai-mirror/ai-mirror.module';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { LearningModule } from './learning/learning.module';
     ExerciseModule,
     CodeExecutionModule,
     LearningModule,
+    AiMirrorModule,
   ],
   controllers: [AppController],
   providers: [AppService],

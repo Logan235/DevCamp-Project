@@ -5,14 +5,13 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Challenge, Submission } from './exercise.schemas';
+import { Challenge } from './exercise.schemas';
 import { UserRoadmap, RoadmapTemplate } from '../roadmap/roadmap.schemas'; // Đường dẫn tương đối tới folder roadmap
 
 @Injectable()
 export class ExerciseService {
   constructor(
     @InjectModel(Challenge.name) private challengeModel: Model<Challenge>,
-    @InjectModel(Submission.name) private submissionModel: Model<Submission>,
     @InjectModel(UserRoadmap.name) private userRoadmapModel: Model<UserRoadmap>,
     @InjectModel(RoadmapTemplate.name)
     private templateModel: Model<RoadmapTemplate>,
