@@ -8,3 +8,14 @@ export class SubmitExerciseDto {
   @MinLength(1)
   code: string;
 }
+
+export class RunCodeDto {
+  @IsString()
+  language: string;
+
+  @IsString()
+  code: string;
+
+  @IsString()
+  stdin: string;
+}

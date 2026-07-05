@@ -10,6 +10,7 @@ import { TestModule } from './test/test.module';
 import { RoadmapModule } from './roadmap/roadmap.module';
 import { ExerciseModule } from './exercise/exercise.module';
 import { CodeExecutionModule } from './code-execution/code-execution.module';
+import { JudgeModule } from './judge0/judge.module';
 import path from 'path';
 
 @Module({
@@ -32,7 +33,7 @@ import path from 'path';
           configService.get<string>('MONGO_URI') ||
           configService.get<string>('MONGODB_URI') ||
           configService.get<string>('mongoUrl') ||
-          'mongodb://127.0.0.1:27017/FESSIORDEVCAMP_BACKEND', 
+          'mongodb://127.0.0.1:27017/FESSIORDEVCAMP_BACKEND',
       }),
     }),
 
@@ -69,6 +70,7 @@ import path from 'path';
     RoadmapModule,
     ExerciseModule,
     CodeExecutionModule,
+    JudgeModule,
   ],
   controllers: [AppController],
   providers: [AppService],
