@@ -6,6 +6,7 @@ import { CodeHeader } from "./CodeHeader";
 import { INITIAL_CODE } from "./constants";
 import { useParams } from "react-router";
 import { getExerciseByIdApi, submitExerciseApi } from "../api";
+import { AIChatbot } from "./AIChatbot"; 
 
 export const CodeLayout: React.FC = () => {
   const [language, setLanguage] = useState<string>("javascript");
@@ -16,6 +17,7 @@ export const CodeLayout: React.FC = () => {
   const [isPassed, setIsPassed] = useState<boolean>(false);
   const { challengeId } = useParams();
   const [exercise, setExercise] = useState<any>(null);
+  const [hasRunCode, setHasRunCode] = useState<boolean>(false);
 
   useEffect(() => {
     if (!challengeId) return;
@@ -41,6 +43,7 @@ export const CodeLayout: React.FC = () => {
       setIsError(false);
       setIsRunning(false);
     }, 1000);
+    setHasRunCode(true);
   };
 
   const handleSubmitCode = async () => {
@@ -77,7 +80,7 @@ export const CodeLayout: React.FC = () => {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col bg-[#050816] overflow-hidden">
+    <div className="h-screen w-full flex flex-col bg-[#050816] overflow-hidden relative"> {/* Thêm relative ở đây để button chat căn góc đúng vị trí */}
       <CodeHeader />
       <div className="flex-1 grid grid-cols-1 md:grid-cols-10 overflow-hidden p-2 gap-2">
         <div className="md:col-span-3 bg-[#050816] border border-zinc-900 rounded-xl overflow-hidden flex flex-col h-full">
@@ -110,6 +113,8 @@ export const CodeLayout: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <AIChatbot hasRunCode={hasRunCode} />
     </div>
   );
 };
