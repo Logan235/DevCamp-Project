@@ -14,7 +14,7 @@ export class SubmissionDto {
 
   @IsOptional()
   @IsString()
-  expected_output?: string;
+  expectedOutput?: string;
 
   @IsOptional()
   @IsNumber()
