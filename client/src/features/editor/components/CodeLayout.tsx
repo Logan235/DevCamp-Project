@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useParams } from "react-router";
 import SidebarTask from "./SidebarTask";
 import CodeEditor from "./CodeEditor";
@@ -9,7 +9,9 @@ import {
   chatAiMirrorApi,
   getSubmissionDetailApi,
   submitExerciseApi,
+  getExerciseByIdApi,
 } from "../api";
+import { AIChatbot } from "./AIChatbot"; 
 
 type SubmissionStatus = "pending" | "running" | "success" | "error" | string;
 
@@ -44,9 +46,6 @@ function formatSubmissionOutput(submission: SubmissionDetail) {
 
   return lines.join("\n");
 }
-import { useParams } from "react-router";
-import { getExerciseByIdApi, submitExerciseApi } from "../api";
-import { AIChatbot } from "./AIChatbot"; 
 
 export const CodeLayout: React.FC = () => {
   const { challengeId } = useParams();
@@ -61,6 +60,8 @@ export const CodeLayout: React.FC = () => {
   const [submissionStatus, setSubmissionStatus] = useState<SubmissionStatus>();
   const [aiInput, setAiInput] = useState<string>("");
   const [isAiThinking, setIsAiThinking] = useState<boolean>(false);
+  const [exercise, setExercise] = useState<any>(null);
+  const [hasRunCode, setHasRunCode] = useState<boolean>(false);
   const [aiMessages, setAiMessages] = useState<AiMirrorMessage[]>([
     {
       role: "assistant",
@@ -68,13 +69,10 @@ export const CodeLayout: React.FC = () => {
         "Mình là AI Mirror. Hãy submit code trước, sau đó hỏi mình phân tích tư duy, lỗi sai hoặc hướng tối ưu nhé.",
     },
   ]);
-  const { challengeId } = useParams();
-  const [exercise, setExercise] = useState<any>(null);
-  const [hasRunCode, setHasRunCode] = useState<boolean>(false);
 
   useEffect(() => {
     if (!challengeId) return;
-
+  })
   const canAskAi = useMemo(
     () => Boolean(challengeId || latestSubmissionId),
     [challengeId, latestSubmissionId],
@@ -116,17 +114,7 @@ export const CodeLayout: React.FC = () => {
     );
 
     return null;
-  const handleRunCode = () => {
-    setIsRunning(true);
-    setTimeout(() => {
-      setOutput(
-        '[\n\t{ id: 1, name: "Bàn phím cơ", price: 200 },\n\t{ id: 2, name: "Chuột Gaming", price: 100 }\n]',
-      );
-      setIsError(false);
-      setIsRunning(false);
-    }, 1000);
-    setHasRunCode(true);
-  };
+  }
 
   const handleSubmitCode = async () => {
     if (!challengeId) {
