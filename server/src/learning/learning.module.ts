@@ -16,10 +16,9 @@ import {
 import {
   Challenge,
   ChallengeSchema,
-  Submission,
-  SubmissionSchema,
 } from '../exercise/exercise.schemas';
 
+import { Submission, SubmissionSchema } from 'src/code-execution/schema/submission.schema';
 import { TestSubmission, TestSubmissionSchema } from '../test/test.schemas';
 
 import { Milestone, MilestoneSchema } from './schemas/milestone.schema';

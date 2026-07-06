@@ -8,7 +8,7 @@ import { Model, Types } from 'mongoose';
 
 import { User, UserDocument } from '../users/schema/user.schema';
 import { UserRoadmap } from '../roadmap/roadmap.schemas';
-import { Submission } from '../exercise/exercise.schemas';
+import { Submission } from 'src/code-execution/schema/submission.schema';
 import { TestSubmission } from '../test/test.schemas';
 
 import { Milestone } from './schemas/milestone.schema';

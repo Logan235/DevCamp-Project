@@ -4,8 +4,6 @@ import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
-import path from 'path';
-
 import { UserModule } from './users/user.module';
 import { AuthModule } from './auth/auth.module';
 import { TestModule } from './test/test.module';
@@ -43,8 +41,6 @@ import path from 'path';
           uri: mongoUri,
         };
       },
-          'mongodb://127.0.0.1:27017/FESSIORDEVCAMP_BACKEND',
-      }),
     }),
 
     BullModule.forRootAsync({
