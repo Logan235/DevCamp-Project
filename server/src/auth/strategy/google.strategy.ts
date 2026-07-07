@@ -21,7 +21,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     }
 
     // Check if the user already exists in the database, if not exist, create a new user with the information from Google profile
-    const user = await this.authService.validateGoogleUser(email);
+    const user = await this.authService.validateGoogleUser(
+      email,
+      profile.displayName,
+      profile.id,
+    );
     return user;
   }
 }
