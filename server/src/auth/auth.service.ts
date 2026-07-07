@@ -99,22 +99,29 @@ export class AuthService {
   }
 
   // Controller save info of user who login with google
-  async validateGoogleUser(email: string): Promise<UserDocument> {
+  async validateGoogleUser(
+    email: string,
+    displayName: string,
+    providerId: string,
+  ): Promise<UserDocument> {
     const user = await this.userModel.findOne({ email });
     if (!user) {
       const newUser = new this.userModel({
         email,
-        displayName: email,
+        displayName: displayName || email.split('@')[0], // Use displayName from Google, fallback to email part
         authProviders: {
           provider: 'google',
-          providerId: email,
+          providerId: providerId, // Use the actual Google User ID
           providerEmail: email,
           providerConnectedAt: new Date(),
         },
       });
       return await newUser.save();
     }
-    return user;
+    // Return plain object without passHash to avoid sending sensitive information
+    const userObj = user.toObject();
+    delete userObj.passHash;
+    return userObj;
   }
 
   async validateGithubUser(
