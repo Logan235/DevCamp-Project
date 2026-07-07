@@ -7,7 +7,6 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Challenge } from './exercise.schemas';
-import { Submission } from '../code-execution/schema/submission.schema'; // <--- Sửa đường dẫn import
 import { UserRoadmap, RoadmapTemplate } from '../roadmap/roadmap.schemas';
 import { CodeExecutionService } from '../code-execution/code-execution.service';
 import {
@@ -60,7 +59,7 @@ export class ExerciseService {
     // Package the entire JSON object (including the test_cases array) into a text Buffer to push to R2
     const jsonBuffer = Buffer.from(JSON.stringify(dto, null, 2), 'utf-8');
     // auto upload to R2
-    const r2Path = await this.r2Service.upFile(
+    const r2Path = await this.r2Service.uploadFile(
       jsonBuffer,
       fileName,
       'application/json',

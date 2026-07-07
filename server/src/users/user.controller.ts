@@ -24,6 +24,12 @@ interface RequestWithUser {
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async getMe(@Request() req: RequestWithUser) {
+    return this.userService.getProfileById(req.user.userId);
+  }
+
   // Get all profiles
   @Get()
   @HttpCode(200)

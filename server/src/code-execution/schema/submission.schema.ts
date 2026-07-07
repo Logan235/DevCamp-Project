@@ -25,7 +25,7 @@ export class Submission extends Document {
   error?: string;
 
   @Prop()
-  statusCode?: number; // Judge0 status (e.g., 3 = Accepted, 4 = Wrong Answer)
+  statusCode?: number; // Local engine/Judge0-compatible code: 3 Accepted, 4 Wrong Answer, 6 Compile Error, 11 Runtime Error
 
   @Prop()
   runtime?: number; // milliseconds
@@ -34,7 +34,7 @@ export class Submission extends Document {
   memory?: number; // bytes
 
   @Prop({ default: 'pending' })
-  status: string; // pending, success, error
+  status: string; // pending, success, wrong_answer, compile_error, runtime_error, error
 
   @Prop({ alias: 'expected_output' })
   expectedOutput?: string; // Optional expected output for comparison

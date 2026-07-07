@@ -58,3 +58,74 @@ export function analyzeThinking(userApproach: string, problemContext: string) {
     followUpQuestions,
   };
 }
+
+export function gradeExecutionResult(submission?: {
+  status?: string;
+  statusCode?: number;
+  runtime?: number;
+  error?: string;
+  output?: string;
+  expectedOutput?: string;
+}) {
+  if (!submission) {
+    return {
+      codeScore: 0,
+      verdict: 'No submission yet',
+      nextActions: ['Submit code so AI Mirror can grade the actual result'],
+    };
+  }
+
+  const status = submission.status || 'unknown';
+
+  if (status === 'success') {
+    return {
+      codeScore: 100,
+      verdict: 'Accepted',
+      nextActions: [
+        'Explain your time and space complexity',
+        'Try one edge case manually',
+        'Ask AI Mirror for optimization feedback',
+      ],
+    };
+  }
+
+  if (status === 'wrong_answer') {
+    return {
+      codeScore: 45,
+      verdict: 'Wrong Answer',
+      nextActions: [
+        'Compare actual output with expected output line by line',
+        'Check boundary cases and formatting',
+        'Trace the smallest failing input by hand',
+      ],
+    };
+  }
+
+  if (status === 'compile_error') {
+    return {
+      codeScore: 20,
+      verdict: 'Compilation Error',
+      nextActions: [
+        'Fix the first compiler error before changing logic',
+        'Check missing return statements, headers, semicolons, and types',
+      ],
+    };
+  }
+
+  if (status === 'runtime_error') {
+    return {
+      codeScore: 30,
+      verdict: 'Runtime Error',
+      nextActions: [
+        'Check invalid indexing, division by zero, recursion depth, and null values',
+        'Add prints around the line that can crash',
+      ],
+    };
+  }
+
+  return {
+    codeScore: 10,
+    verdict: status,
+    nextActions: ['Wait for execution to finish or rerun the submission'],
+  };
+}

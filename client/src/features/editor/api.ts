@@ -10,22 +10,6 @@ export async function getExerciseByIdApi(id: string) {
   return response.data;
 }
 
-export async function submitExerciseApi(
-  id: string,
-  payload: {
-    language: string;
-    code: string;
-  },
-) {
-  const response = await apiClient.post("/code-execution/execute", {
-    challengeId: id,
-    language: payload.language,
-    code: payload.code,
-  });
-
-  return response.data;
-}
-
 export async function getSubmissionDetailApi(submissionId: string) {
   const response = await apiClient.get(`/code-execution/${submissionId}`);
   return response.data;
@@ -38,5 +22,28 @@ export async function chatAiMirrorApi(payload: {
   includeLatestSubmission?: boolean;
 }) {
   const response = await apiClient.post("/ai-mirror/chat", payload);
+  return response.data;
+}
+
+export async function runExerciseApi(
+  id: string,
+  payload: {
+    language: string;
+    code: string;
+    stdin: string;
+  },
+) {
+  const response = await apiClient.post(`/exercises/${id}/run`, payload);
+  return response.data;
+}
+
+export async function submitExerciseApi(
+  id: string,
+  payload: {
+    language: string;
+    code: string;
+  },
+) {
+  const response = await apiClient.post(`/exercises/${id}/submit`, payload);
   return response.data;
 }

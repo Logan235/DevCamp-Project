@@ -1,5 +1,7 @@
 allowBuilds:
+  '@google/genai': true
   '@nestjs/core': true
   bcrypt: true
   msgpackr-extract: true
+  protobufjs: true
   unrs-resolver: true

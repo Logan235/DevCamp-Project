@@ -1,13 +1,14 @@
 import { Button } from "../../components/common/Button";
 import { NavBar } from "../NavBar";
 import { useState, useEffect } from "react";
+import { getMeApi } from "./api";
 
 interface UserProfile {
   email: string;
-  fullname: string;
-  membersince: string;
-  password: string;
+  displayName: string;
+  createdAt?: string;
 }
+
 export default function Profile() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -18,19 +19,18 @@ export default function Profile() {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/Profile.json");
-
-        if (!response.ok) {
-          throw new Error("Không thể tải thông tin người dùng!");
-        }
-
-        const data: UserProfile = await response.json();
-        setUser(data);
+        const data = await getMeApi();
+        setUser({
+          email: data.email,
+          displayName: data.displayName,
+          createdAt: data.createdAt,
+          password: "********",
+        });
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
         } else {
-          setError("Đã xảy ra lỗi không xác định.");
+          setError("Error occurred while fetching user data.");
         }
       } finally {
         setLoading(false);
@@ -42,7 +42,7 @@ export default function Profile() {
   if (loading) {
     return (
       <div className="p-6 text-center text-zinc-400 animate-pulse">
-        Đang tải thông tin người dùng...
+        Loading user information...
       </div>
     );
   }
@@ -50,7 +50,7 @@ export default function Profile() {
   if (error || !user) {
     return (
       <div className="p-6 text-center text-rose-400 bg-rose-500/10 rounded-xl border border-rose-500/20">
-        {error || "Không tìm thấy dữ liệu người dùng."}
+        {error || "User data not found."}
       </div>
     );
   }
@@ -92,13 +92,13 @@ export default function Profile() {
               <span className="uppercase tracking-widest text-muted-foreground mb-0.5 text-zinc-400">
                 HỌ VÀ TÊN
               </span>
-              <span className="font-medium truncate">{user.fullname}</span>
+              <span className="font-medium truncate">{user.displayName}</span>
             </div>
             <div className="flex flex-col gap-3">
               <span className="uppercase tracking-widest text-muted-foreground mb-0.5 text-zinc-400">
                 NGÀY BẮT ĐẦU
               </span>
-              <span className="font-medium truncate">{user.membersince}</span>
+              <span className="font-medium truncate">{user.createdAt}</span>
             </div>
             <div className="border-t border-[#1e2227] mx-6" />
             <div className="flex gap-3 justify-between">

@@ -3,12 +3,7 @@ import Editor from "@monaco-editor/react";
 import { Select } from "../../../components/common/Select";
 import { Button } from "../../../components/common/Button";
 
-const LANGUAGE_OPTIONS = [
-  { value: "javascript", label: "JavaScript" },
-  { value: "python", label: "Python" },
-  { value: "cpp", label: "C++" },
-  { value: "java", label: "Java" },
-];
+const LANGUAGE_OPTIONS = [{ value: "cpp", label: "C++ (Local Engine)" }];
 
 interface CodeEditorProps {
   language: string;
@@ -78,7 +73,6 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           >
             Submit Code
           </Button>
-
         </div>
       </div>
       <div className="flex-1 h-full relative bg-[#0f1422]/40 pt-2">

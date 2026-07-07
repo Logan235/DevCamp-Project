@@ -50,6 +50,23 @@ export class UserService {
     await user.deleteOne();
     return { message: 'User deleted successfully' };
   }
+
+  async getProfileById(userId: string) {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new UnauthorizedException('Invalid user id');
+    }
+
+    const user = await this.userModel
+      .findById(userId)
+      .select('-passHash -refreshToken')
+      .lean();
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return user;
+  }
 }
 
 export default UserService;

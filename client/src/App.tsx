@@ -12,6 +12,7 @@ import LessonPage from "./features/roadmap/components/LessonPage";
 import { AdminLayout } from "./features/admin/components/AdminLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { OAuthCallback } from "./features/auth/components/OAuthCallback";
+import Profile from "./features/profile/Profile";
 
 function App() {
   return (
@@ -123,6 +124,14 @@ function App() {
       <Route path="/lesson/:id" element={<LessonPage />} />
       <Route path="/admin" element={<AdminLayout />} />
       <Route path="/oauth/callback" element={<OAuthCallback />} />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }

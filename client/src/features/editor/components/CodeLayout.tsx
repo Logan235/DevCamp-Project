@@ -8,10 +8,10 @@ import { INITIAL_CODE } from "./constants";
 import {
   chatAiMirrorApi,
   getSubmissionDetailApi,
+  runExerciseApi,
   submitExerciseApi,
-  getExerciseByIdApi,
 } from "../api";
-import { AIChatbot } from "./AIChatbot"; 
+import { AIChatbot } from "./AIChatbot";
 
 type SubmissionStatus = "pending" | "running" | "success" | "error" | string;
 
@@ -29,7 +29,14 @@ type AiMirrorMessage = {
   content: string;
 };
 
-const FINAL_SUBMISSION_STATUSES = new Set(["success", "error", "failed"]);
+const FINAL_SUBMISSION_STATUSES = new Set([
+  "success",
+  "wrong_answer",
+  "compile_error",
+  "runtime_error",
+  "error",
+  "failed",
+]);
 const POLL_INTERVAL_MS = 1200;
 const MAX_POLL_ATTEMPTS = 15;
 
@@ -50,8 +57,8 @@ function formatSubmissionOutput(submission: SubmissionDetail) {
 export const CodeLayout: React.FC = () => {
   const { challengeId } = useParams();
 
-  const [language, setLanguage] = useState<string>("javascript");
-  const [code, setCode] = useState<string>(INITIAL_CODE.javascript);
+  const [language, setLanguage] = useState<string>("cpp");
+  const [code, setCode] = useState<string>(INITIAL_CODE.cpp);
   const [output, setOutput] = useState<string>("");
   const [isError, setIsError] = useState<boolean>(false);
   const [isRunning, setIsRunning] = useState<boolean>(false);
@@ -72,7 +79,7 @@ export const CodeLayout: React.FC = () => {
 
   useEffect(() => {
     if (!challengeId) return;
-  })
+  });
   const canAskAi = useMemo(
     () => Boolean(challengeId || latestSubmissionId),
     [challengeId, latestSubmissionId],
@@ -91,15 +98,22 @@ export const CodeLayout: React.FC = () => {
     setSubmissionStatus(undefined);
   };
 
-  const pollSubmissionResult = async (submissionId: string) => {
+  const pollSubmissionResult = async (
+    submissionId: string,
+    options: { silent?: boolean } = {},
+  ) => {
     for (let attempt = 1; attempt <= MAX_POLL_ATTEMPTS; attempt += 1) {
       const submission = await getSubmissionDetailApi(submissionId);
       const status = submission.status || "pending";
 
-      setSubmissionStatus(status);
-      setOutput(formatSubmissionOutput(submission));
-      setIsError(status === "error" || status === "failed");
-      setIsPassed(status === "success");
+      if (!options.silent) {
+        setSubmissionStatus(status);
+        setOutput(formatSubmissionOutput(submission));
+        setIsError(
+          status !== "pending" && status !== "running" && status !== "success",
+        );
+        setIsPassed(status === "success");
+      }
 
       if (FINAL_SUBMISSION_STATUSES.has(status)) {
         return submission;
@@ -108,13 +122,15 @@ export const CodeLayout: React.FC = () => {
       await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
     }
 
-    setOutput(
-      (currentOutput) =>
-        `${currentOutput}\n\nSubmission is still processing. Please check again later.`,
-    );
+    if (!options.silent) {
+      setOutput(
+        (currentOutput) =>
+          `${currentOutput}\n\nSubmission is still processing. Please check again later.`,
+      );
+    }
 
     return null;
-  }
+  };
 
   const handleSubmitCode = async () => {
     if (!challengeId) {
@@ -128,26 +144,64 @@ export const CodeLayout: React.FC = () => {
       setIsError(false);
       setIsPassed(false);
       setSubmissionStatus("pending");
-      setOutput("Submitting code...");
+      setOutput("Submitting code to all test cases...");
 
       const result = await submitExerciseApi(challengeId, {
         language,
         code,
       });
 
-      setLatestSubmissionId(result._id);
-      setSubmissionStatus(result.status || "pending");
+      const submissionIds = (result.testCaseSubmissionIds || []).map(String);
+      const firstSubmissionId = submissionIds[0];
+
+      if (!firstSubmissionId) {
+        throw new Error("No submission IDs returned from backend");
+      }
+
+      setLatestSubmissionId(firstSubmissionId);
+      setHasRunCode(true);
+
       setOutput(
-        `Submission queued.\nStatus: ${
-          result.status || "pending"
-        }\nSubmission ID: ${result._id}\n\nWaiting for result...`,
+        `Submit queued.\nTest cases: ${submissionIds.length}\nFirst submission ID: ${firstSubmissionId}\n\nWaiting for results...`,
       );
 
-      await pollSubmissionResult(result._id);
+      const results = await Promise.all(
+        submissionIds.map((submissionId) =>
+          pollSubmissionResult(submissionId, { silent: true }),
+        ),
+      );
+
+      const completedResults = results.filter(Boolean) as SubmissionDetail[];
+
+      const passedCount = completedResults.filter(
+        (submission) => submission.status === "success",
+      ).length;
+
+      const allPassed =
+        completedResults.length === submissionIds.length &&
+        passedCount === submissionIds.length;
+
+      setIsPassed(allPassed);
+      setIsError(!allPassed);
+      setSubmissionStatus(allPassed ? "success" : "wrong_answer");
+
+      setOutput(
+        [
+          `Submit finished: ${passedCount}/${submissionIds.length} test cases passed.`,
+          "",
+          ...completedResults.map(
+            (submission, index) =>
+              `Test ${index + 1}: ${submission.status} (${submission._id})` +
+              (submission.error ? `\n${submission.error}` : ""),
+          ),
+          "",
+          "Bạn có thể hỏi AI Mirror để phân tích submission đầu tiên hoặc lỗi sai mới nhất.",
+        ].join("\n"),
+      );
     } catch (error) {
       console.error(error);
       setOutput(
-        "Submit failed. Please check the backend, token, or challengeId.",
+        "Submit failed. Please check the backend, token, challengeId, Redis, or local g++.",
       );
       setIsError(true);
       setIsPassed(false);
@@ -157,7 +211,41 @@ export const CodeLayout: React.FC = () => {
   };
 
   const handleRunCode = async () => {
-    await handleSubmitCode();
+    if (!challengeId) {
+      setOutput("Challenge ID not found.");
+      setIsError(true);
+      return;
+    }
+
+    try {
+      setIsRunning(true);
+      setIsError(false);
+      setIsPassed(false);
+      setSubmissionStatus("pending");
+      setOutput("Running code with the local C++ engine...");
+
+      const result = await runExerciseApi(challengeId, {
+        language,
+        code,
+        stdin: "",
+      });
+
+      setLatestSubmissionId(result.submissionId);
+      setHasRunCode(true);
+
+      setOutput(
+        `Run queued.\nSubmission ID: ${result.submissionId}\n\nWaiting for result...`,
+      );
+
+      await pollSubmissionResult(result.submissionId);
+    } catch (error) {
+      console.error(error);
+      setOutput("Run failed. Local engine currently supports C++ only.");
+      setIsError(true);
+      setIsPassed(false);
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   const handleSendAiMessage = async () => {
@@ -200,6 +288,13 @@ export const CodeLayout: React.FC = () => {
             analysis.followUpQuestions?.length
               ? `\nFollow-up: ${analysis.followUpQuestions.join(" | ")}`
               : "",
+            analysis.codeScore !== undefined
+              ? `\nCode score: ${analysis.codeScore}/100`
+              : "",
+            analysis.verdict ? `\nVerdict: ${analysis.verdict}` : "",
+            analysis.nextActions?.length
+              ? `\nNext actions: ${analysis.nextActions.join(" | ")}`
+              : "",
           ].join("")
         : "";
 
@@ -227,9 +322,10 @@ export const CodeLayout: React.FC = () => {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col bg-[#050816] overflow-hidden relative"> {/* Thêm relative ở đây để button chat căn góc đúng vị trí */}
+    <div className="h-screen w-full flex flex-col bg-[#050816] overflow-hidden relative">
+      {" "}
+      {/* Thêm relative ở đây để button chat căn góc đúng vị trí */}
       <CodeHeader />
-
       <div className="flex-1 grid grid-cols-1 xl:grid-cols-12 overflow-hidden p-2 gap-2">
         <div className="xl:col-span-3 bg-[#050816] border border-zinc-900 rounded-xl overflow-hidden flex flex-col h-full">
           <SidebarTask />
@@ -333,7 +429,6 @@ export const CodeLayout: React.FC = () => {
           </div>
         </aside>
       </div>
-
       <AIChatbot hasRunCode={hasRunCode} />
     </div>
   );

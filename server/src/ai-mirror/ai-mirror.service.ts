@@ -11,7 +11,7 @@ import { Submission } from '../code-execution/schema/submission.schema';
 import { AiMirrorChatDto } from './dto/ai-mirror-chat.dto';
 import { ReflectionSession } from './schema/reflection-session.schema';
 import { DSA_MIRROR_SYSTEM_PROMPT } from './prompts/dsa-mirror.prompt';
-import { analyzeThinking } from './tools/thinking-tools';
+import { analyzeThinking, gradeExecutionResult } from './tools/thinking-tools';
 
 @Injectable()
 export class AiMirrorService {
@@ -107,6 +107,15 @@ ${submission.statusCode ?? ''}
 
 Runtime:
 ${submission.runtime ?? ''} ms
+
+Expected output:
+${submission.expectedOutput || ''}
+
+Local grading context:
+- success means accepted by the local engine/test case.
+- wrong_answer means code compiled and ran but output differed from expected output.
+- compile_error and runtime_error should be explained before algorithm optimization.
+- Give a score explanation, debugging priority, and 2-3 next steps.
 `;
   }
 
@@ -132,6 +141,12 @@ ${submission.runtime ?? ''} ms
         : 'No submission context',
     );
 
+    const executionGrade = gradeExecutionResult(submission || undefined);
+    const analysis = {
+      ...thinkingAnalysis,
+      ...executionGrade,
+    };
+
     const savedSession = await this.reflectionSessionModel.create({
       userId: this.toObjectId(userId, 'userId'),
       submissionId: submission?._id,
@@ -146,7 +161,7 @@ ${submission.runtime ?? ''} ms
 
     return {
       reply,
-      analysis: thinkingAnalysis,
+      analysis,
       sourceSubmissionId: submission?._id,
       reflectionSessionId: savedSession._id,
     };

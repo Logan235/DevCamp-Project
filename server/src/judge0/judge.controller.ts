@@ -25,6 +25,7 @@ export class JudgeController {
   // POST http://localhost:3000/judge/run (Cải tiến để test linh hoạt hơn)
   // Endpoint này chỉ dùng để test nhanh, không có xác thực
   @Post('run')
+  @UseGuards(JwtAuthGuard) // Uncomment this line to enable authentication
   runTest(
     @Body()
     payload: {
@@ -42,11 +43,13 @@ export class JudgeController {
     payload.expectedOutput = Buffer.from(payload.expectedOutput || '').toString(
       'base64',
     );
+
     return this.judgeService.runCode(payload);
   }
 
   // POST http://localhost:3000/judge/submit
   @Post('submit')
+  @UseGuards(JwtAuthGuard)
   submit(@Body() payload: SubmissionDto) {
     return this.judgeService.submitCode(payload);
   }

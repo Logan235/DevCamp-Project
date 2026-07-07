@@ -10,24 +10,31 @@ export class R2Service {
   private s3Client: S3Client;
   private bucketName = process.env.R2_BUCKET_NAME;
 
+  private ensureConfigured() {
+    if (!this.s3Client || !this.bucketName) {
+      throw new Error(
+        'Cloudflare R2 is not configured. Please set R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME.',
+      );
+    }
+  }
+
   constructor() {
     const endpoint = process.env.R2_ENDPOINT;
     const accessKeyId = process.env.R2_ACCESS_KEY_ID;
     const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
     const bucketName = process.env.R2_BUCKET_NAME;
+
     if (!endpoint || !accessKeyId || !secretAccessKey || !bucketName) {
-      throw new Error(
-        'Missing required Cloudflare R2 configurations in environment variables ' +
-          '(R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME).',
-      );
+      return;
     }
+
     this.bucketName = bucketName;
     this.s3Client = new S3Client({
       region: 'auto',
-      endpoint: endpoint,
+      endpoint,
       credentials: {
-        accessKeyId: accessKeyId,
-        secretAccessKey: secretAccessKey,
+        accessKeyId,
+        secretAccessKey,
       },
     });
   }
@@ -54,14 +61,21 @@ export class R2Service {
 
   // Uploads a file to Cloudflare R2 storage with the specified filename and content type.
   // This method is functional and can be used to store files in R2, such as user submissions or generated outputs.
-  async upFile(file: Buffer, filename: string, Type: string): Promise<string> {
+  async uploadFile(
+    file: Buffer,
+    filename: string,
+    contentType: string,
+  ): Promise<string> {
+    this.ensureConfigured();
+
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
       Key: filename,
       Body: file,
-      ContentType: Type,
+      ContentType: contentType,
     });
-    await this.s3Client.send(command); // Send to R2
-    return filename; // return pathfile to save DB
+
+    await this.s3Client.send(command);
+    return filename;
   }
 }
