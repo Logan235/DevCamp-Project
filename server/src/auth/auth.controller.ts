@@ -9,7 +9,7 @@ import {
   Redirect,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthGuard } from '@nestjs/passport';
+// import { AuthGuard } from '@nestjs/passport';
 import { RegisterDto } from './dto/register.dto';
 import { LocalAuthGuard } from './guards/local.guard';
 import { GoogleAuthGuard } from './guards/google.guard';
@@ -51,16 +51,21 @@ export class AuthController {
   }
 
   @Get('google/redirect')
-  @UseGuards(GoogleAuthGuard) // This guard will use the GoogleStrategy to handle the callback from Google
-  @Redirect() // Redirect to frontend after successful authentication
-  async googleRedirect(@Request() req: { user: UserDocument }) {
-    // req.user is automatically populated by GoogleStrategy after successful authentication
+  @UseGuards(GoogleAuthGuard)
+  @Redirect()
+  async googleRedirect(@Request() req: any) {
     const authToken = await this.authService.login(req.user);
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-
     const redirectUrl = new URL('/oauth/callback', frontendUrl);
+
     redirectUrl.searchParams.set('accessToken', authToken.accessToken);
     redirectUrl.searchParams.set('refreshToken', authToken.refreshToken);
+
+    // req.user is converted to a plain object and passHash is removed before sending to the frontend
+    redirectUrl.searchParams.set(
+      'user',
+      encodeURIComponent(JSON.stringify(req.user)),
+    );
 
     return {
       statusCode: 302,
@@ -86,6 +91,14 @@ export class AuthController {
     const redirectUrl = new URL('/oauth/callback', frontendUrl);
     redirectUrl.searchParams.set('accessToken', authToken.accessToken);
     redirectUrl.searchParams.set('refreshToken', authToken.refreshToken);
+    // Pass user info to the frontend as well
+    // Convert Mongoose document to a plain object before sending
+    const userPayload = req.user.toObject();
+    delete userPayload.passHash; // Ensure password hash is not sent
+    redirectUrl.searchParams.set(
+      'user',
+      encodeURIComponent(JSON.stringify(userPayload)),
+    );
 
     return {
       statusCode: 302,

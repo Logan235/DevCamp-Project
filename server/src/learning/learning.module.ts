@@ -13,14 +13,13 @@ import {
   UserRoadmapSchema,
 } from '../roadmap/roadmap.schemas';
 
+import { Challenge, ChallengeSchema } from '../exercise/exercise.schemas';
+
 import {
-  Challenge,
-  ChallengeSchema,
-} from '../exercise/exercise.schemas';
-
-import { Submission, SubmissionSchema } from 'src/code-execution/schema/submission.schema';
-import { TestSubmission, TestSubmissionSchema } from '../test/test.schemas';
-
+  Submission,
+  SubmissionSchema,
+} from 'src/code-execution/schema/submission.schema';
+import { TestSubmission, TestSubmissionSchema } from '../test/test.schemas'; //your path
 import { Milestone, MilestoneSchema } from './schemas/milestone.schema';
 import {
   MilestoneSubmission,
