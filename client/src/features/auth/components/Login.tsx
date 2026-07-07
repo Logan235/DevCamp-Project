@@ -26,7 +26,7 @@ export function Login() {
       localStorage.setItem("refreshToken", data.refreshToken);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      navigate("/dashboard");
+      navigate("/assessment");
     } catch (err: any) {
       setError(
         err.response?.data?.message ||

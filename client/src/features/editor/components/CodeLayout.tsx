@@ -10,8 +10,8 @@ import {
   getSubmissionDetailApi,
   runExerciseApi,
   submitExerciseApi,
+  getExerciseByIdApi,
 } from "../api";
-import { AIChatbot } from "./AIChatbot";
 
 type SubmissionStatus = "pending" | "running" | "success" | "error" | string;
 
@@ -34,6 +34,7 @@ const FINAL_SUBMISSION_STATUSES = new Set([
   "wrong_answer",
   "compile_error",
   "runtime_error",
+  "time_limit_exceeded",
   "error",
   "failed",
 ]);
@@ -54,8 +55,13 @@ function formatSubmissionOutput(submission: SubmissionDetail) {
   return lines.join("\n");
 }
 
+function isMongoObjectId(value?: string) {
+  return Boolean(value && /^[a-f\d]{24}$/i.test(value));
+}
+
 export const CodeLayout: React.FC = () => {
   const { challengeId } = useParams();
+  const isValidChallengeId = isMongoObjectId(challengeId);
 
   const [language, setLanguage] = useState<string>("cpp");
   const [code, setCode] = useState<string>(INITIAL_CODE.cpp);
@@ -68,6 +74,9 @@ export const CodeLayout: React.FC = () => {
   const [aiInput, setAiInput] = useState<string>("");
   const [isAiThinking, setIsAiThinking] = useState<boolean>(false);
   const [exercise, setExercise] = useState<any>(null);
+  const [exerciseLoading, setExerciseLoading] = useState(false);
+  const [exerciseError, setExerciseError] = useState("");
+
   const [hasRunCode, setHasRunCode] = useState<boolean>(false);
   const [aiMessages, setAiMessages] = useState<AiMirrorMessage[]>([
     {
@@ -78,11 +87,49 @@ export const CodeLayout: React.FC = () => {
   ]);
 
   useEffect(() => {
-    if (!challengeId) return;
-  });
+    setExercise(null);
+    setExerciseError("");
+    setOutput("");
+    setIsError(false);
+    setIsPassed(false);
+    setLatestSubmissionId(undefined);
+    setSubmissionStatus(undefined);
+    setHasRunCode(false);
+
+    if (!challengeId) {
+      setExerciseError("Thiếu challengeId trên URL.");
+      return;
+    }
+
+    if (!isValidChallengeId) {
+      setExerciseError(
+        `challengeId "${challengeId}" không hợp lệ. Hãy mở bài từ Roadmap để dùng MongoDB ObjectId thật.`,
+      );
+      return;
+    }
+
+    async function loadExercise() {
+      try {
+        setExerciseLoading(true);
+        const data = await getExerciseByIdApi(challengeId);
+        setExercise(data);
+      } catch (error: any) {
+        console.error("Failed to load exercise:", error);
+        setExerciseError(
+          error.response?.data?.message ||
+            "Failed to load exercise. Please check the backend, token, challengeId, or Redis.",
+        );
+      } finally {
+        setExerciseLoading(false);
+      }
+    }
+
+    void loadExercise();
+  }, [challengeId, isValidChallengeId]);
+
   const canAskAi = useMemo(
-    () => Boolean(challengeId || latestSubmissionId),
-    [challengeId, latestSubmissionId],
+    () => Boolean(latestSubmissionId || isValidChallengeId),
+    [latestSubmissionId, isValidChallengeId],
   );
 
   const handleLanguageChange = (selectedLang: string) => {
@@ -139,6 +186,14 @@ export const CodeLayout: React.FC = () => {
       return;
     }
 
+    if (!isValidChallengeId) {
+      setOutput(
+        `Invalid challengeId "${challengeId}". Please open the exercise from Roadmap to use a valid MongoDB ObjectId.`,
+      );
+      setIsError(true);
+      return;
+    }
+
     try {
       setIsRunning(true);
       setIsError(false);
@@ -173,6 +228,15 @@ export const CodeLayout: React.FC = () => {
 
       const completedResults = results.filter(Boolean) as SubmissionDetail[];
 
+      const aiTargetSubmission =
+        completedResults.find(
+          (submission) => submission.status !== "success",
+        ) || completedResults[0];
+
+      if (aiTargetSubmission?._id) {
+        setLatestSubmissionId(aiTargetSubmission._id);
+      }
+
       const passedCount = completedResults.filter(
         (submission) => submission.status === "success",
       ).length;
@@ -198,10 +262,11 @@ export const CodeLayout: React.FC = () => {
           "Bạn có thể hỏi AI Mirror để phân tích submission đầu tiên hoặc lỗi sai mới nhất.",
         ].join("\n"),
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       setOutput(
-        "Submit failed. Please check the backend, token, challengeId, Redis, or local g++.",
+        error.response?.data?.message ||
+          "Submit failed. Check token, challengeId, Redis, or backend /exercises/:id/submit.",
       );
       setIsError(true);
       setIsPassed(false);
@@ -217,6 +282,14 @@ export const CodeLayout: React.FC = () => {
       return;
     }
 
+    if (!isValidChallengeId) {
+      setOutput(
+        `Invalid challengeId "${challengeId}". Please open the exercise from Roadmap to use a valid MongoDB ObjectId.`,
+      );
+      setIsError(true);
+      return;
+    }
+
     try {
       setIsRunning(true);
       setIsError(false);
@@ -227,18 +300,19 @@ export const CodeLayout: React.FC = () => {
       const result = await runExerciseApi(challengeId, {
         language,
         code,
-        stdin: "",
+        stdin: exercise?.examples?.[0]?.input || "",
       });
 
       setLatestSubmissionId(result.submissionId);
       setHasRunCode(true);
 
       setOutput(
-        `Run queued.\nSubmission ID: ${result.submissionId}\n\nWaiting for result...`,
+        error.response?.data?.message ||
+          "Run failed. Check token, challengeId, Redis, or local C++ engine.",
       );
 
       await pollSubmissionResult(result.submissionId);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       setOutput("Run failed. Local engine currently supports C++ only.");
       setIsError(true);
@@ -267,7 +341,7 @@ export const CodeLayout: React.FC = () => {
 
       const result = await chatAiMirrorApi({
         message,
-        challengeId,
+        challengeId: isValidChallengeId ? challengeId : undefined,
         submissionId: latestSubmissionId,
         includeLatestSubmission: true,
       });
@@ -328,7 +402,11 @@ export const CodeLayout: React.FC = () => {
       <CodeHeader />
       <div className="flex-1 grid grid-cols-1 xl:grid-cols-12 overflow-hidden p-2 gap-2">
         <div className="xl:col-span-3 bg-[#050816] border border-zinc-900 rounded-xl overflow-hidden flex flex-col h-full">
-          <SidebarTask />
+          <SidebarTask
+            exercise={exercise}
+            isLoading={exerciseLoading}
+            error={exerciseError}
+          />
         </div>
 
         <div className="xl:col-span-6 flex flex-col h-full overflow-hidden gap-2">
@@ -429,7 +507,6 @@ export const CodeLayout: React.FC = () => {
           </div>
         </aside>
       </div>
-      <AIChatbot hasRunCode={hasRunCode} />
     </div>
   );
 };

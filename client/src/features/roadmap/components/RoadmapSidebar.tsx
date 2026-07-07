@@ -5,6 +5,8 @@ import { Terminal } from "lucide-react";
 
 interface SidebarProps {
   node: {
+    id: string;
+    challengeId?: string;
     title: string;
     desc: string;
     xp: number;
@@ -67,7 +69,15 @@ export const RoadmapSidebar: React.FC<SidebarProps> = ({ node }) => {
             Luyện tập lại
           </Button>
         ) : node.status === "current" ? (
-          <Button variant="success" className="w-full text-xs" to="/editor">
+          <Button
+            variant="success"
+            className="w-full text-xs"
+            to={
+              node.challengeId
+                ? `/editor/${node.challengeId}`
+                : `/editor/${node.id}`
+            }
+          >
             Bắt đầu Code ngay →
           </Button>
         ) : (

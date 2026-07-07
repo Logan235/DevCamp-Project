@@ -5,9 +5,10 @@ import { useEffect, useState } from "react";
 import Question from "./Question";
 import { Button } from "../../components/common/Button";
 import Confirm from "./Confirm";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useParams, useSearchParams } from "react-router";
 import { Badge } from "../../components/common/Badge";
 import type { QuestionItem } from "./Question";
+import { getAssessmentQuestionsApi, submitAssessmentApi } from "./api";
 
 const MOCK_QUESTION_URL = "/Question.json";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
@@ -21,8 +22,11 @@ interface qtype {
 
 export default function Asssessment() {
   const navigate = useNavigate();
+  const { challengeId: challengeIdFromParams } = useParams();
   const [searchParams] = useSearchParams();
-  const challengeId = searchParams.get("challengeId");
+
+  const challengeId =
+    challengeIdFromParams || searchParams.get("challengeId") || "";
 
   const [currentQuest, setCurrentQuest] = useState(1);
   const [ans, setAns] = useState<Record<number, string>>({});
@@ -64,20 +68,7 @@ export default function Asssessment() {
       userCodeOutput,
     };
 
-    const response = await fetch(`${API_URL}/assessment/submissions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw new Error("Lỗi nộp bài");
-    }
-
-    const result = await response.json();
+    const result = await submitAssessmentApi(payload);
 
     setshowConfirm(false);
 
@@ -116,33 +107,28 @@ export default function Asssessment() {
         setLoading(true);
         setLoadError(false);
 
-        const url = challengeId
-          ? `${API_URL}/assessment/questions?challengeId=${challengeId}`
-          : MOCK_QUESTION_URL;
-
-        const res = await fetch(url, {
-          headers: challengeId
-            ? {
-                Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        const data = challengeId
+          ? await getAssessmentQuestionsApi(challengeId)
+          : await fetch(MOCK_QUESTION_URL).then((res) => {
+              if (!res.ok) {
+                throw new Error("Error fetching mock questions");
               }
-            : undefined,
-        });
+              return res.json();
+            });
 
-        if (!res.ok) {
-          throw new Error("Lỗi khi tải dữ liệu từ Server");
-        }
+        const rawQuestions = Array.isArray(data) ? data : data.questions || [];
 
-        const data = await res.json();
-
-        const formattedQuest = data.questions.map(
-          (q: qtype, index: number) => ({
-            id: index + 1,
-            title: q.input || "Không có tiêu đề",
-            type: q.type,
-            options: q.options || [],
-            code: "",
-          }),
-        );
+        const formattedQuest = rawQuestions.map((q: any, index: number) => ({
+          id: index + 1,
+          title: q.input || q.title || "No title",
+          type: q.type || "multiple-choice",
+          options: Array.isArray(q.options)
+            ? q.options.map((option: any) =>
+                typeof option === "string" ? option : option.text,
+              )
+            : [],
+          code: q.code || "",
+        }));
 
         setQuest(formattedQuest);
         setCurrentQuest(1);

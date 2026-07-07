@@ -34,15 +34,7 @@ export class TestCase extends Document {
     type: String,
     required: true,
     // Type of test case:
-    enum: [
-      'sample',
-      'hidden',
-      'stress',
-      'stress_test',
-      'edge_case',
-      'random',
-      'generated',
-    ],
+    enum: ['sample', 'multiple-choice', 'essay'],
   })
   type: string;
 

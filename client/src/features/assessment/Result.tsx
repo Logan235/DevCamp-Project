@@ -41,8 +41,8 @@ export default function Result() {
   useEffect(() => {
     const fetchRoadmap = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const API_URL = "";
+        const token = localStorage.getItem("accessToken");
+        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
         const res = await fetch(`${API_URL}/roadmaps/me`, {
           method: "GET",
           headers: {
