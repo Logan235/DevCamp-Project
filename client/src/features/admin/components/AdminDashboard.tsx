@@ -56,6 +56,14 @@ interface JsonFileStructure {
   test_cases?: JsonTestCaseStructure[];
 }
 
+// START: Add Category interface
+interface CategoryData {
+  _id: string;
+  name: string;
+  description?: string;
+}
+// END: Add Category interface
+
 export const AdminDashboard: React.FC = () => {
   const [data, setData] = useState<ChallengeData[]>([
     {
@@ -79,6 +87,20 @@ export const AdminDashboard: React.FC = () => {
     },
   ]);
 
+  // START: Add state for categories
+  const [categories, setCategories] = useState<CategoryData[]>([
+    {
+      _id: "cat_1",
+      name: "Mảng (Array)",
+      description: "Các bài tập liên quan đến mảng.",
+    },
+    { _id: "cat_2", name: "Chuỗi (String)", description: "Xử lý chuỗi ký tự." },
+  ]);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<CategoryData | null>(
+    null,
+  );
+  // END: Add state for categories
   const [open, setOpen] = useState<boolean>(false);
   const [editing, setEditing] = useState<ChallengeData | null>(null);
   const [form] = Form.useForm();
@@ -89,6 +111,37 @@ export const AdminDashboard: React.FC = () => {
   const [isSubFormOpen, setIsSubFormOpen] = useState<boolean>(false);
   const [editingTestCase, setEditingTestCase] = useState<TestCase | null>(null);
   const [subForm] = Form.useForm();
+
+  // START: Add handlers for categories
+  const handleCategorySubmit = () => {
+    form.validateFields().then((values) => {
+      if (editingCategory) {
+        setCategories(
+          categories.map((cat) =>
+            cat._id === editingCategory._id ? { ...cat, ...values } : cat,
+          ),
+        );
+        message.success("Cập nhật danh mục thành công!");
+      } else {
+        const newCategory: CategoryData = {
+          _id: "cat_" + Date.now(),
+          ...values,
+        };
+        setCategories([...categories, newCategory]);
+        message.success("Thêm danh mục thành công!");
+      }
+      setIsCategoryModalOpen(false);
+      setEditingCategory(null);
+      form.resetFields();
+    });
+  };
+
+  const handleEditCategory = (record: CategoryData) => {
+    setEditingCategory(record);
+    form.setFieldsValue(record);
+    setIsCategoryModalOpen(true);
+  };
+  // END: Add handlers for categories
 
   const handleSubmit = (): void => {
     form.validateFields().then((formValues) => {
@@ -349,21 +402,105 @@ export const AdminDashboard: React.FC = () => {
       }}
     >
       <div className="p-6 min-h-[calc(100vh-64px)] bg-[#050816]">
-        <Button
-          onClick={() => setOpen(true)}
-          className=" flex items-center gap-2 px-5 py-3 mx-1 rounded-xl bg-linear-to-r from-[#2563eb] border-none ring-0 outline-none focus:ring-0 focus:outline-none   to-[#3b82f6] text-white"
-        >
-          <CirclePlus size={18} />
-          Thêm câu hỏi mới
-        </Button>
-        <Table
-          dataSource={data}
-          columns={columns}
-          rowKey="_id"
-          pagination={{ pageSize: 8 }}
-          className="bg-[#111827] rounded-lg overflow-hidden shadow-2xl border border-zinc-800/50"
-        />
+        <Tabs defaultActiveKey="1">
+          <Tabs.TabPane tab="Quản lý câu hỏi" key="1">
+            <div className="mt-4">
+              <Button
+                onClick={() => setOpen(true)}
+                className="flex items-center gap-2 px-5 py-3 mb-4 rounded-xl bg-linear-to-r from-[#2563eb] border-none ring-0 outline-none focus:ring-0 focus:outline-none to-[#3b82f6] text-white"
+              >
+                <CirclePlus size={18} />
+                Thêm câu hỏi mới
+              </Button>
+              <Table
+                dataSource={data}
+                columns={columns}
+                rowKey="_id"
+                pagination={{ pageSize: 8 }}
+                className="bg-[#111827] rounded-lg overflow-hidden shadow-2xl border border-zinc-800/50"
+              />
+            </div>
+          </Tabs.TabPane>
+          <Tabs.TabPane tab="Quản lý danh mục" key="2">
+            <div className="mt-4">
+              <Button
+                onClick={() => {
+                  setEditingCategory(null);
+                  form.resetFields();
+                  setIsCategoryModalOpen(true);
+                }}
+                className="flex items-center gap-2 px-5 py-3 mb-4 rounded-xl bg-linear-to-r from-[#2563eb] border-none ring-0 outline-none focus:ring-0 focus:outline-none to-[#3b82f6] text-white"
+              >
+                <CirclePlus size={18} />
+                Thêm danh mục mới
+              </Button>
+              <Table
+                dataSource={categories}
+                columns={[
+                  { title: "Tên danh mục", dataIndex: "name", key: "name" },
+                  {
+                    title: "Mô tả",
+                    dataIndex: "description",
+                    key: "description",
+                    ellipsis: true,
+                  },
+                  {
+                    title: "Hành động",
+                    key: "action",
+                    align: "center",
+                    render: (_, record: CategoryData) => (
+                      <Space>
+                        <Edit
+                          size={16}
+                          className="text-blue-500 hover:text-blue-400 cursor-pointer"
+                          onClick={() => handleEditCategory(record)}
+                        />
+                        <Trash2
+                          size={16}
+                          className="text-red-500 hover:text-red-400 cursor-pointer"
+                          onClick={() => {
+                            setCategories(
+                              categories.filter((c) => c._id !== record._id),
+                            );
+                            message.success("Đã xóa danh mục!");
+                          }}
+                        />
+                      </Space>
+                    ),
+                  },
+                ]}
+                rowKey="_id"
+                pagination={{ pageSize: 5 }}
+                className="bg-[#111827] rounded-lg overflow-hidden shadow-2xl border border-zinc-800/50"
+              />
+            </div>
+          </Tabs.TabPane>
+        </Tabs>
 
+        {/* MODAL 1: QUẢN LÝ DANH MỤC (Đã dọn sạch Button và Table thừa) */}
+        <Modal
+          open={isCategoryModalOpen}
+          title={editingCategory ? "Cập nhật danh mục" : "Tạo danh mục mới"}
+          onCancel={() => setIsCategoryModalOpen(false)}
+          onOk={handleCategorySubmit}
+          okText="Lưu"
+          cancelText="Hủy"
+        >
+          <Form form={form} layout="vertical" className="mt-6">
+            <Form.Item
+              name="name"
+              label="Tên danh mục"
+              rules={[{ required: true, message: "Tên không được để trống" }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item name="description" label="Mô tả">
+              <Input.TextArea rows={3} />
+            </Form.Item>
+          </Form>
+        </Modal>
+
+        {/* MODAL 2: TẠO/CẬP NHẬT CÂU HỎI */}
         <Modal
           open={open}
           title={editing ? "Cập nhật câu hỏi" : "Tạo câu hỏi mới"}
@@ -402,6 +539,21 @@ export const AdminDashboard: React.FC = () => {
               </Form.Item>
 
               <Form.Item
+                name="categoryId"
+                label="Danh mục"
+                rules={[{ required: true, message: "Vui lòng chọn danh mục" }]}
+                className="flex-1"
+              >
+                <Select placeholder="Chọn danh mục cho câu hỏi">
+                  {categories.map((cat) => (
+                    <Select.Option key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+
+              <Form.Item
                 name="difficulty"
                 label="Độ khó"
                 rules={[{ required: true, message: "Vui lòng chọn độ khó" }]}
@@ -437,9 +589,39 @@ export const AdminDashboard: React.FC = () => {
             >
               <Input.TextArea rows={4} />
             </Form.Item>
+
+            {!editing && (
+              <Form.Item
+                label="Tải lên Testcase (JSON)"
+                help="Tải lên các file JSON chứa mảng 'test_cases'. Dữ liệu sẽ được đính kèm khi tạo câu hỏi mới."
+              >
+                <Upload.Dragger
+                  multiple={true}
+                  accept=".json"
+                  beforeUpload={() => false}
+                  onChange={(info) => {
+                    form.setFieldsValue({ jsonFiles: info.fileList });
+                  }}
+                  className="border-dashed border-2 border-zinc-700 bg-zinc-900/30 rounded-xl hover:border-blue-500 transition-colors py-6"
+                >
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <div className="p-3 bg-zinc-800/80 rounded-full text-blue-500">
+                      <UploadCloud size={24} />
+                    </div>
+                    <p className="ant-upload-text text-slate-300 text-sm">
+                      Nhấp hoặc kéo thả file JSON vào đây
+                    </p>
+                    <p className="ant-upload-hint text-slate-500 text-xs">
+                      Hỗ trợ tải lên nhiều file cùng lúc.
+                    </p>
+                  </div>
+                </Upload.Dragger>
+              </Form.Item>
+            )}
           </Form>
         </Modal>
 
+        {/* MODAL 3: DANH SÁCH TESTCASE */}
         <Modal
           open={isTestCaseModalOpen}
           title={`Danh sách Testcase: ${currentChallenge?.title || ""}`}
@@ -587,6 +769,7 @@ export const AdminDashboard: React.FC = () => {
           />
         </Modal>
 
+        {/* MODAL 4: SUB-FORM THÊM/SỬA CHI TIẾT 1 TESTCASE */}
         <Modal
           open={isSubFormOpen}
           title={editingTestCase ? "Cập nhật Testcase" : "Tạo Testcase mới"}
@@ -642,7 +825,7 @@ export const AdminDashboard: React.FC = () => {
             </Form.Item>
           </Form>
         </Modal>
-      </div>
+      </div>{" "}
     </ConfigProvider>
   );
 };
