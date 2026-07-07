@@ -14,22 +14,22 @@ import { Type } from 'class-transformer';
 
 export class SubmitExerciseDto {
   @IsString()
-  language: string;
+  language!: string;
 
   @IsString()
   @MinLength(1)
-  code: string;
+  code!: string;
 }
 
 export class RunCodeDto {
   @IsString()
-  language: string;
+  language!: string;
 
   @IsString()
-  code: string;
+  code!: string;
 
   @IsString()
-  stdin: string;
+  stdin!: string;
 }
 
 class TestCaseDto {
