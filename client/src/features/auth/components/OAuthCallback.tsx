@@ -1,26 +1,38 @@
 import { useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export function OAuthCallback() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams(); // hook của react-router-dom để quản lý query params
+  const location = useLocation(); // get the information from the URL
 
   useEffect(() => {
-    const accessToken = searchParams.get("accessToken");
-    const refreshToken = searchParams.get("refreshToken");
+    const params = new URLSearchParams(location.search);
+    const accessToken = params.get("accessToken");
+    const refreshToken = params.get("refreshToken");
+    const userString = params.get("user");
 
-    if (accessToken) {
+    // 1. Check if there is enough information, then save it to localStorage.
+    if (accessToken && refreshToken && userString) {
       localStorage.setItem("accessToken", accessToken);
-    }
-
-    if (refreshToken) {
       localStorage.setItem("refreshToken", refreshToken);
+      // 2. Decode the user string and save it
+      localStorage.setItem("user", decodeURIComponent(userString));
+
+      // 3. Navigate to the dashboard, replacing the callback page in the history
+      navigate("/dashboard", { replace: true });
+    } else {
+      // 4. If information is missing, go back to the login page
+      console.error(
+        "OAuth callback error: Missing required parameters. Received:",
+        {
+          accessToken: !!accessToken,
+          refreshToken: !!refreshToken,
+          user: !!userString,
+        },
+      );
+      navigate("/login", { replace: true });
     }
-
-    localStorage.setItem("user", JSON.stringify({ loggedInViaOAuth: true }));
-
-    navigate("/dashboard");
-  }, [searchParams, navigate]);
+  }, [location, navigate]);
 
   return (
     <div className="min-h-screen bg-[#050816] text-white flex flex-col items-center justify-center">
