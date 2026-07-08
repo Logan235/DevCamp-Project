@@ -101,8 +101,11 @@ export class AiMirrorService {
     ];
 
     // 2. Khởi tạo model với system prompt và tools
+    const modelName =
+      this.configService.get<string>('GEMINI_MODEL') || 'gemini-1.5-flash';
+
     const model = this.genAI.getGenerativeModel({
-      model: 'gemini-3.5-flash',
+      model: modelName,
       systemInstruction: DSA_MIRROR_SYSTEM_PROMPT,
       tools,
     });

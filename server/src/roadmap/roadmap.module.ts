@@ -10,6 +10,7 @@ import {
 } from './roadmap.schemas';
 import { Challenge, ChallengeSchema } from '../exercise/exercise.schemas';
 import { AiMirrorModule } from '../ai-mirror/ai-mirror.module';
+import { TestCase, TestCaseSchema } from '../test/test.schemas';
 
 @Module({
   imports: [
@@ -19,6 +20,8 @@ import { AiMirrorModule } from '../ai-mirror/ai-mirror.module';
       { name: UserRoadmap.name, schema: UserRoadmapSchema },
 
       { name: Challenge.name, schema: ChallengeSchema },
+
+      { name: TestCase.name, schema: TestCaseSchema },
     ]),
   ],
   controllers: [RoadmapController],

@@ -55,6 +55,48 @@ export class TestService {
     };
   }
 
+  private normalizeAssessmentAnswer(value?: string): string {
+    return String(value || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, ' ');
+  }
+
+  private isAssessmentAnswerCorrect(
+    question: any,
+    userAnswer: string,
+  ): boolean {
+    const normalizedUserAnswer = this.normalizeAssessmentAnswer(userAnswer);
+    const normalizedExpectedAnswer = this.normalizeAssessmentAnswer(
+      question.answer,
+    );
+
+    if (!normalizedUserAnswer || !normalizedExpectedAnswer) {
+      return false;
+    }
+
+    if (normalizedUserAnswer === normalizedExpectedAnswer) {
+      return true;
+    }
+
+    const selectedOption = Array.isArray(question.options)
+      ? question.options.find(
+          (option: any) =>
+            this.normalizeAssessmentAnswer(option.id) === normalizedUserAnswer,
+        )
+      : null;
+
+    if (!selectedOption) {
+      return false;
+    }
+
+    const normalizedSelectedText = this.normalizeAssessmentAnswer(
+      selectedOption.text,
+    );
+
+    return normalizedSelectedText === normalizedExpectedAnswer;
+  }
+
   // Process user submissions for a given challengeId, compare with expected outputs, calculate score, and save the submission record
   async postSubmissions(body: {
     assessmentId?: string;
@@ -102,7 +144,7 @@ export class TestService {
         isCorrect = true;
         status = 'Submitted';
       } else {
-        isCorrect = userAnswer === expectedAnswer;
+        isCorrect = this.isAssessmentAnswerCorrect(question, userAnswer);
         status = isCorrect ? 'Passed' : 'Failed';
         scoreableQuestionsCount += 1;
 
@@ -173,15 +215,23 @@ export class TestService {
       details,
     };
 
-    const roadmap = userId
-      ? await this.roadmapService.generateFromAssessment(
+    let roadmap: Awaited<
+      ReturnType<RoadmapService['generateFromAssessment']>
+    > | null = null;
+
+    if (userId) {
+      try {
+        roadmap = await this.roadmapService.generateFromAssessment(
           userId,
           assessmentResult,
-        )
-      : null;
+        );
+      } catch (error) {
+        console.warn('Failed to generate roadmap from assessment:', error);
+      }
+    }
 
     return {
-      assessment: assessmentResult,
+      ...assessmentResult,
       roadmap,
     };
   }

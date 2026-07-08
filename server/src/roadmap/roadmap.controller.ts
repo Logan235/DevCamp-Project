@@ -36,6 +36,9 @@ export class RoadmapController {
     @Body() body: GenerateRoadmapDto,
   ) {
     const userId = req.user.userId;
-    return this.roadmapService.generateRoadmap(userId, body.assessmentResult);
+    return this.roadmapService.generateFromAssessment(
+      userId,
+      body.assessmentResult,
+    );
   }
 }

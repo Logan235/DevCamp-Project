@@ -45,29 +45,29 @@ export const RoadmapTemplateSchema =
 
 @Schema({ _id: false })
 class GenerationParams {
-  @Prop({
-    type: String,
-    format: 'enum',
-    enum: ['absolute_beginner', 'beginner', 'intermediate', 'advanced'],
-  })
-  detectedLevel?: string;
-  @Prop({ type: [String] }) weakSkills: string[];
-  @Prop({ type: [String] }) strongSkills: string[];
-  @Prop({
-    type: String,
-    format: 'enum',
-    enum: ['slow', 'medium', 'fast'],
-  })
   @Prop({ type: String })
   detectedLevel?: string;
-  @Prop({ type: [String], default: [] }) weakSkills: string[];
-  @Prop({ type: [String], default: [] }) strongSkills: string[];
+
+  @Prop({ type: [String], default: [] })
+  weakSkills: string[];
+
+  @Prop({ type: [String], default: [] })
+  strongSkills: string[];
+
   @Prop({ type: String, enum: ['slow', 'medium', 'fast'] })
   pacePreference?: string;
-  @Prop({ type: [String], default: [] }) skillOrder?: string[];
-  @Prop({ type: [String], default: [] }) difficulties?: string[];
-  @Prop({ type: String }) reason?: string;
-  @Prop({ type: String }) assessmentId?: string;
+
+  @Prop({ type: [String], default: [] })
+  skillOrder?: string[];
+
+  @Prop({ type: [String], default: [] })
+  difficulties?: string[];
+
+  @Prop({ type: String })
+  reason?: string;
+
+  @Prop({ type: String })
+  assessmentId?: string;
 }
 
 @Schema({ timestamps: true })
