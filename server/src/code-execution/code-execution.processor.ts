@@ -141,10 +141,7 @@ export class CodeExecutionProcessor extends WorkerHost {
     const message = result.message || '';
 
     const statusCode = result.status?.id || 11;
-    const status = this.mapStatusCodeToInternalStatus(
-      statusCode,
-      result.status?.description,
-    );
+    const status = this.mapStatusCodeToInternalStatus(statusCode);
 
     const runtime = result.time ? parseFloat(result.time) * 1000 : undefined;
     const memory = result.memory ?? undefined;
@@ -171,29 +168,26 @@ export class CodeExecutionProcessor extends WorkerHost {
 
   private mapStatusCodeToInternalStatus(
     statusCode: number,
-    description?: string,
   ): InternalSubmissionStatus {
-    if (statusCode === 3) {
-      return 'success';
+    switch (statusCode) {
+      case 3:
+        return 'success';
+      case 4:
+        return 'wrong_answer';
+      case 5:
+        return 'time_limit_exceeded';
+      case 6:
+        return 'compile_error';
+      case 7:
+      case 8:
+      case 9:
+      case 10:
+      case 11:
+      case 12:
+        return 'runtime_error';
+      default:
+        return 'error';
     }
-
-    if (statusCode === 4) {
-      return 'wrong_answer';
-    }
-
-    if (statusCode === 6) {
-      return 'compile_error';
-    }
-
-    if (statusCode === 11) {
-      return 'runtime_error';
-    }
-
-    if (/time limit/i.test(description || '')) {
-      return 'time_limit_exceeded';
-    }
-
-    return 'error';
   }
 
   private buildWrongAnswerMessage(
