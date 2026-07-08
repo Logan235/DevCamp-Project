@@ -33,7 +33,7 @@ export class ExerciseService {
     private readonly testCaseModel: Model<TestCase>,
 
     @InjectModel(Category.name)
-    private readonly categoryModel: Model<Category>, 
+    private readonly categoryModel: Model<Category>,
 
     private readonly codeExecutionService: CodeExecutionService,
     private readonly r2Service: R2Service,
@@ -253,6 +253,22 @@ export class ExerciseService {
       throw new NotFoundException('Không tìm thấy bài tập cần cập nhật');
     }
 
+    const shouldUpdateDbTestcases = dto.test_cases !== undefined;
+
+    if (!shouldUpdateDbTestcases) {
+      // Load existing test cases to keep R2 file complete
+      const existingTestCases = await this.testCaseModel
+        .find({ challengeId: challenge._id })
+        .exec();
+      dto.test_cases = existingTestCases.map((tc, index) => ({
+        id: index + 1,
+        type: tc.type,
+        input: tc.input || '',
+        expected_output: tc.expectedOutput || '',
+        explanation: tc.explanation || '',
+      }));
+    }
+
     try {
       const fileName = `challenge/${challenge.slug}.json`;
       const jsonBuffer = Buffer.from(JSON.stringify(dto, null, 2), 'utf-8');
@@ -272,28 +288,32 @@ export class ExerciseService {
       : [];
 
     challenge.title = dto.problem_name;
-    challenge.categoryId = new Types.ObjectId(dto.categoryId) as any;
-    challenge.difficulty = dto.difficulty as any;
+    challenge.categoryId = new Types.ObjectId(dto.categoryId);
+    challenge.difficulty = dto.difficulty as Challenge['difficulty'];
     challenge.description = dto.description;
     challenge.challengeType = dto.challengeType;
     challenge.examples = examples;
     await challenge.save();
 
-    await this.testCaseModel.deleteMany({ challengeId: challenge._id }).exec();
+    if (shouldUpdateDbTestcases) {
+      await this.testCaseModel
+        .deleteMany({ challengeId: challenge._id })
+        .exec();
 
-    if (dto.test_cases && dto.test_cases.length > 0) {
-      const testCaseDocs = dto.test_cases.map((tc) => ({
-        challengeId: challenge._id,
-        type: tc.type,
-        input: tc.input,
-        expectedOutput: tc.expected_output,
-        explanation: tc.explanation,
-        storageRef: {
-          inputUrl: '',
-          outputUrl: '',
-        },
-      }));
-      await this.testCaseModel.insertMany(testCaseDocs);
+      if (dto.test_cases && dto.test_cases.length > 0) {
+        const testCaseDocs = dto.test_cases.map((tc) => ({
+          challengeId: challenge._id,
+          type: tc.type,
+          input: tc.input,
+          expectedOutput: tc.expected_output,
+          explanation: tc.explanation,
+          storageRef: {
+            inputUrl: '',
+            outputUrl: '',
+          },
+        }));
+        await this.testCaseModel.insertMany(testCaseDocs);
+      }
     }
 
     return challenge;
