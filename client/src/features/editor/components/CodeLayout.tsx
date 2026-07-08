@@ -12,7 +12,7 @@ import {
   submitExerciseApi,
   getExerciseByIdApi,
 } from "../api";
-
+import ReactMarkdown from "react-markdown";
 type SubmissionStatus = "pending" | "running" | "success" | "error" | string;
 
 type SubmissionDetail = {
@@ -111,7 +111,7 @@ export const CodeLayout: React.FC = () => {
     async function loadExercise() {
       try {
         setExerciseLoading(true);
-        const data = await getExerciseByIdApi(challengeId);
+        const data = await getExerciseByIdApi(challengeId!);
         setExercise(data);
       } catch (error: any) {
         console.error("Failed to load exercise:", error);
@@ -221,7 +221,7 @@ export const CodeLayout: React.FC = () => {
       );
 
       const results = await Promise.all(
-        submissionIds.map((submissionId) =>
+        submissionIds.map((submissionId: string) =>
           pollSubmissionResult(submissionId, { silent: true }),
         ),
       );
@@ -399,10 +399,8 @@ export const CodeLayout: React.FC = () => {
 
   return (
     <div className="h-screen w-full flex flex-col bg-[#050816] overflow-hidden relative">
-      {" "}
-      {/* Thêm relative ở đây để button chat căn góc đúng vị trí */}
       <CodeHeader />
-      <div className="flex-1 grid grid-cols-1 xl:grid-cols-12 overflow-hidden p-2 gap-2">
+      <div className="flex-1 grid grid-cols-1 xl:grid-cols-14 overflow-hidden p-2 gap-2">
         <div className="xl:col-span-3 bg-[#050816] border border-zinc-900 rounded-xl overflow-hidden flex flex-col h-full">
           <SidebarTask
             exercise={exercise}
@@ -410,8 +408,7 @@ export const CodeLayout: React.FC = () => {
             error={exerciseError}
           />
         </div>
-
-        <div className="xl:col-span-6 flex flex-col h-full overflow-hidden gap-2">
+        <div className="xl:col-span-8 flex flex-col h-full overflow-hidden gap-2">
           <div className="flex-1 min-h-0">
             <CodeEditor
               language={language}
@@ -436,7 +433,6 @@ export const CodeLayout: React.FC = () => {
             />
           </div>
         </div>
-
         <aside className="xl:col-span-3 bg-[#090d16] border border-zinc-900 rounded-xl overflow-hidden flex flex-col min-h-0">
           <div className="h-12 px-4 border-b border-zinc-800 flex items-center justify-between">
             <h2 className="text-sm font-bold text-zinc-100">AI Mirror</h2>
@@ -456,7 +452,17 @@ export const CodeLayout: React.FC = () => {
                     : "mr-6 bg-zinc-900/80 border border-zinc-800 text-zinc-200"
                 }`}
               >
-                {message.content}
+                {message.role === "user" ? (
+                  message.content
+                ) : (
+                  <div
+                    className="prose prose-invert prose-xs max-w-none 
+          [&_strong]:text-emerald-400 [&_strong]:font-bold
+          [&_ul]:list-disc [&_ul]:ml-4 [&_li]:mt-1"
+                  >
+                    <ReactMarkdown>{message.content || ""}</ReactMarkdown>
+                  </div>
+                )}
               </div>
             ))}
 
