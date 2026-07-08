@@ -107,16 +107,22 @@ export class CodeExecutionProcessor extends WorkerHost {
   }
 
   private resolveLanguageId(language: string): number {
-    if (language !== 'cpp') {
-      throw new Error('Local engine currently supports C++ only');
+    const normalizedLanguage = language?.trim().toLowerCase();
+    if (
+      normalizedLanguage !== 'cpp' &&
+      normalizedLanguage !== 'c++ (local engine)'
+    ) {
+      throw new Error(
+        `Local engine currently supports C++ only. Received: "${language}"`,
+      );
     }
-
-    const languageId = JUDGE0_LANGUAGE_MAP[language];
-
+    const targetKey = 'cpp';
+    const languageId = JUDGE0_LANGUAGE_MAP[targetKey];
     if (!languageId) {
-      throw new Error(`Language ${language} is not supported`);
+      throw new Error(
+        `Language '${targetKey}' is not configured in JUDGE0_LANGUAGE_MAP`,
+      );
     }
-
     return languageId;
   }
 

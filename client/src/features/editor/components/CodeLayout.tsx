@@ -306,15 +306,15 @@ export const CodeLayout: React.FC = () => {
       setLatestSubmissionId(result.submissionId);
       setHasRunCode(true);
 
-      setOutput(
-        error.response?.data?.message ||
-          "Run failed. Check token, challengeId, Redis, or local C++ engine.",
-      );
+      setOutput(`Run queued. Submission ID: ${result.submissionId}\nWaiting for result...`);
 
       await pollSubmissionResult(result.submissionId);
     } catch (error: any) {
       console.error(error);
-      setOutput("Run failed. Local engine currently supports C++ only.");
+      setOutput(
+        error.response?.data?.message ||
+          "Run failed. Local engine error or invalid setup.",
+      );
       setIsError(true);
       setIsPassed(false);
     } finally {
