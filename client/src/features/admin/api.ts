@@ -27,3 +27,6 @@ export const createExerciseApi = (data: any) => api.post("", data);
 export const updateExerciseApi = (id: string, data: any) =>
   api.put(`/${id}`, data);
 export const deleteExerciseApi = (id: string) => api.delete(`/${id}`);
+
+export const getTestCasesByChallengeApi = (challengeId: string) =>
+  api.get(`http://localhost:3000/exercises/${challengeId}/testcases`);

@@ -29,6 +29,7 @@ import {
   createExerciseApi,
   updateExerciseApi,
   deleteExerciseApi,
+  getTestCasesByChallengeApi
 } from "../api";
 
 interface ChallengeData {
@@ -190,9 +191,40 @@ const DashboardContent: React.FC = () => {
     }
   };
 
-  const handleOpenTestCases = (record: ChallengeData): void => {
-    setCurrentChallenge(record);
+  const handleOpenTestCases = async (record: ChallengeData): Promise<void> => {
     setIsTestCaseModalOpen(true);
+    setLoading(true);
+
+    try {
+      if (record._id) {
+        const response = await getTestCasesByChallengeApi(record._id);
+        const dbTestCases = Array.isArray(response.data) ? response.data : [];
+
+        const formattedTestCases = dbTestCases.map((tc: any) => ({
+          id: tc._id, 
+          type: tc.type || "sample",
+          input: tc.input || "",
+          expected_output: tc.expectedOutput || tc.expected_output || "",
+          explanation: tc.explanation || "",
+        }));
+
+        const updatedChallenge = { ...record, testcases: formattedTestCases };
+        setCurrentChallenge(updatedChallenge);
+
+        setData((prevData) =>
+          prevData.map((item) =>
+            item._id === record._id
+              ? { ...item, testcases: formattedTestCases }
+              : item,
+          ),
+        );
+      }
+    } catch (error) {
+      message.error("Không thể tải danh sách testcase từ DB!");
+      console.error("Lỗi tải testcases:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOpenSubForm = (testcase?: TestCase): void => {

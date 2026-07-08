@@ -76,7 +76,7 @@ export class ExerciseController {
   @Roles('admin')
   async updateChallenge(
     @Param('id') id: string,
-    @Body() updateChallengeDto: CreateChallengeDto, 
+    @Body() updateChallengeDto: CreateChallengeDto,
   ) {
     return await this.exerciseService.updateChallenge(id, updateChallengeDto);
   }
@@ -86,5 +86,10 @@ export class ExerciseController {
   @Roles('admin')
   async deleteChallenge(@Param('id') id: string) {
     return await this.exerciseService.deleteChallenge(id);
+  }
+
+  @Get(':id/testcases')
+  async getTestCasesByChallenge(@Param('id') id: string) {
+    return await this.exerciseService.getTestCasesByChallenge(id);
   }
 }

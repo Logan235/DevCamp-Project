@@ -312,4 +312,13 @@ export class ExerciseService {
       message: `Đã xóa thành công bài tập "${deletedChallenge.title}" cùng các testcases liên quan.`,
     };
   }
+
+  async getTestCasesByChallenge(challengeId: string) {
+    if (!Types.ObjectId.isValid(challengeId)) {
+      throw new BadRequestException('Định dạng ID bài tập không hợp lệ');
+    }
+    return this.testCaseModel
+      .find({ challengeId: new Types.ObjectId(challengeId) })
+      .exec();
+  }
 }
