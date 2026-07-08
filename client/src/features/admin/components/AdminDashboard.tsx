@@ -43,7 +43,8 @@ interface ChallengeData {
   title: string;
   description: string;
   module?: number;
-  topic: string; 
+  topic: string;
+  patternGroup?: string;
   difficulty: "easy" | "medium" | "hard";
   challengeType: "coding" | "multiple_choice";
   testcases: TestCase[];
@@ -107,7 +108,8 @@ const DashboardContent: React.FC = () => {
 
       const mappedData = rawList.map((item: any) => ({
         ...item,
-        topic: item.categoryId || item.patternGroup || item.topic || "",
+        topic: item.categoryId || item.topic || "",
+        patternGroup: item.patternGroup || "",
         testcases: item.testcases || item.test_cases || [],
       }));
 
@@ -132,6 +134,7 @@ const DashboardContent: React.FC = () => {
         difficulty: formValues.difficulty,
         challengeType: "coding",
         categoryId: formValues.topic,
+        patternGroup: formValues.patternGroup || "",
       };
 
       try {
@@ -256,6 +259,7 @@ const DashboardContent: React.FC = () => {
       difficulty: challenge.difficulty,
       challengeType: challenge.challengeType || "coding",
       categoryId: challenge.topic,
+      patternGroup: challenge.patternGroup || "",
       test_cases: formattedTestCases,
     };
 
@@ -545,6 +549,14 @@ const DashboardContent: React.FC = () => {
                   </Select.Option>
                 ))}
               </Select>
+            </Form.Item>
+
+            <Form.Item
+              name="patternGroup"
+              label="Thuật toán (Pattern)"
+              className="flex-1"
+            >
+              <Input placeholder="Ví dụ: Two Pointers, Sliding Window..." />
             </Form.Item>
 
             <Form.Item
