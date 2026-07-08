@@ -15,9 +15,12 @@ import type { RequestWithUser } from '../interfaceFile/interface';
 export class TestController {
   constructor(private readonly testService: TestService) {}
 
-  @Get('questions') // GET /assessment/questions?challengeId=...
-  getQuestions(@Query('challengeId') challengeId: string) {
-    return this.testService.getQuestions(challengeId);
+  @Get('questions')
+  getQuestions(
+    @Query('assessmentId') assessmentId?: string,
+    @Query('challengeId') challengeId?: string,
+  ) {
+    return this.testService.getQuestions(assessmentId || challengeId);
   }
 
   @Post('submissions')

@@ -4,6 +4,8 @@ import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginApi, loginWithGithub, loginWithGoogle } from "../api";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../slice";
 
 export function Login() {
   const navigate = useNavigate();
@@ -11,6 +13,8 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const dispatch = useDispatch();
 
   const handleLogin = async () => {
     try {
@@ -24,7 +28,10 @@ export function Login() {
 
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
-      localStorage.setItem("user", JSON.stringify(data.user));
+
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+      dispatch(setCredentials(data.user));
 
       navigate("/assessment");
     } catch (err: any) {

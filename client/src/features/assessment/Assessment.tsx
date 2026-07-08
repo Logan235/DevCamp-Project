@@ -7,40 +7,89 @@ import { Button } from "../../components/common/Button";
 import Confirm from "./Confirm";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { Badge } from "../../components/common/Badge";
-import type { QuestionItem } from "./Question";
+import type { QuestionItem, OptionItem } from "./Question";
 import { getAssessmentQuestionsApi, submitAssessmentApi } from "./api";
 
-const MOCK_QUESTION_URL = "/Question.json";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const optionLabels = ["A", "B", "C", "D", "E", "F"];
 
-interface qtype {
-  _id?: string | number;
-  input?: string;
-  type: string;
-  options?: string[];
+function normalizeOption(option: any, optionIndex: number): OptionItem {
+  if (typeof option === "string") {
+    return {
+      id: optionLabels[optionIndex] || String(optionIndex + 1),
+      text: option,
+    };
+  }
+
+  return {
+    id:
+      option?.id ||
+      option?.key ||
+      option?.value ||
+      optionLabels[optionIndex] ||
+      String(optionIndex + 1),
+    text:
+      option?.text || option?.label || option?.content || option?.value || "",
+  };
+}
+
+function normalizeQuestion(q: any, index: number): QuestionItem {
+  const rawType = q?.type || q?.questionType || q?.challengeType;
+
+  return {
+    id: Number(q?.id || q?.order) || index + 1,
+    level: q?.level || q?.difficulty || "Dễ",
+    title: q?.input || q?.title || q?.question || q?.content || "No title",
+    code: q?.code || q?.snippet || "",
+    type: rawType === "essay" ? "essay" : "multiple-choice",
+    category: q?.category || q?.categoryId || q?.skillSlug || "Assessment",
+    options: Array.isArray(q?.options)
+      ? q.options.map((option: any, optionIndex: number) =>
+          normalizeOption(option, optionIndex),
+        )
+      : [],
+  };
+}
+
+function getAnswerValue(question: QuestionItem, answer: string) {
+  if (question.type === "essay") {
+    return answer || "";
+  }
+
+  return answer || "";
 }
 
 export default function Asssessment() {
   const navigate = useNavigate();
-  const { challengeId: challengeIdFromParams } = useParams();
+  const { challengeId: assessmentIdFromParams } = useParams();
   const [searchParams] = useSearchParams();
 
-  const challengeId =
-    challengeIdFromParams || searchParams.get("challengeId") || "";
+  const routeAssessmentId =
+    assessmentIdFromParams ||
+    searchParams.get("assessmentId") ||
+    searchParams.get("challengeId") ||
+    "";
 
+  const [assessmentId, setAssessmentId] = useState("");
+  const [assessmentTitle, setAssessmentTitle] = useState("");
   const [currentQuest, setCurrentQuest] = useState(1);
   const [ans, setAns] = useState<Record<number, string>>({});
   const [quest, setQuest] = useState<QuestionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [loadErrorMessage, setLoadErrorMessage] = useState("");
   const [flag, setFlag] = useState<number[]>([]);
   const [showConfirm, setshowConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const answeredCount = Object.keys(ans).length;
+  const answeredCount = Object.keys(ans).filter((questionId) => {
+    const answer = ans[Number(questionId)];
+    return answer !== undefined && answer !== "";
+  }).length;
+
   const XP = 50 * answeredCount;
   const totalquest = quest.length;
   const activeQuest = quest[currentQuest - 1];
-  const isCompleted = answeredCount === totalquest;
+  const isCompleted = totalquest > 0 && answeredCount === totalquest;
 
   const handleFlag = (id: number) => {
     setFlag((prev) => {
@@ -53,31 +102,45 @@ export default function Asssessment() {
   };
 
   const handleSubmit = async () => {
-    if (!challengeId) {
-      alert("Thiếu challengeId nên chưa thể nộp bài lên backend.");
+    if (!assessmentId) {
+      alert(
+        "Thiếu assessmentId nên chưa thể nộp bài. Hãy kiểm tra API /assessment/questions có trả assessmentId hay không.",
+      );
       return;
     }
 
-    const userCodeOutput = quest.map((_, index) => {
-      const questNo = index + 1;
-      return ans[questNo] || "";
-    });
+    try {
+      setIsSubmitting(true);
 
-    const payload = {
-      challengeId,
-      userCodeOutput,
-    };
+      const userCodeOutput = quest.map((question) =>
+        getAnswerValue(question, ans[question.id] || ""),
+      );
 
-    const result = await submitAssessmentApi(payload);
+      const payload = {
+        assessmentId,
+        userCodeOutput,
+      };
 
-    setshowConfirm(false);
+      const result = await submitAssessmentApi(payload);
 
-    navigate("/result", {
-      state: {
-        ...result,
-        XP,
-      },
-    });
+      setshowConfirm(false);
+
+      navigate("/result", {
+        state: {
+          ...result,
+          XP,
+          assessmentTitle,
+        },
+      });
+    } catch (error: any) {
+      console.error("Lỗi khi nộp assessment:", error);
+      alert(
+        error.response?.data?.message ||
+          "Không thể nộp assessment. Hãy kiểm tra token, backend hoặc assessmentId.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSelect = (answer: string) => {
@@ -91,13 +154,13 @@ export default function Asssessment() {
 
   const handlePrev = () => {
     if (currentQuest > 1) {
-      setCurrentQuest(currentQuest - 1);
+      setCurrentQuest((prev) => prev - 1);
     }
   };
 
   const handleNext = () => {
     if (currentQuest < totalquest) {
-      setCurrentQuest(currentQuest + 1);
+      setCurrentQuest((prev) => prev + 1);
     }
   };
 
@@ -106,59 +169,75 @@ export default function Asssessment() {
       try {
         setLoading(true);
         setLoadError(false);
+        setLoadErrorMessage("");
 
-        const data = challengeId
-          ? await getAssessmentQuestionsApi(challengeId)
-          : await fetch(MOCK_QUESTION_URL).then((res) => {
-              if (!res.ok) {
-                throw new Error("Error fetching mock questions");
-              }
-              return res.json();
-            });
+        const data = routeAssessmentId
+          ? await getAssessmentQuestionsApi(routeAssessmentId)
+          : await getAssessmentQuestionsApi();
 
-        const rawQuestions = Array.isArray(data) ? data : data.questions || [];
+        const rawQuestions = Array.isArray(data)
+          ? data
+          : data?.questions || data?.data || [];
 
-        const formattedQuest = rawQuestions.map((q: any, index: number) => ({
-          id: index + 1,
-          title: q.input || q.title || "No title",
-          type: q.type || "multiple-choice",
-          options: Array.isArray(q.options)
-            ? q.options.map((option: any) =>
-                typeof option === "string" ? option : option.text,
-              )
-            : [],
-          code: q.code || "",
-        }));
+        const formattedQuest = rawQuestions.map((q: any, index: number) =>
+          normalizeQuestion(q, index),
+        );
 
+        setAssessmentId(String(data?.assessmentId || routeAssessmentId || ""));
+        setAssessmentTitle(data?.title || "CodeQuest Assessment");
         setQuest(formattedQuest);
         setCurrentQuest(1);
         setAns({});
         setFlag([]);
-      } catch (error) {
-        console.error("Lỗi khi tải câu hỏi:", { error });
+      } catch (error: any) {
+        console.error("Lỗi khi tải câu hỏi:", error);
         setLoadError(true);
+        setLoadErrorMessage(
+          error.response?.data?.message ||
+            "Không thể tải assessment. Hãy kiểm tra backend /assessment/questions và collection assessments.",
+        );
       } finally {
         setLoading(false);
       }
     };
 
-    fetchQuest();
-  }, [challengeId]);
+    void fetchQuest();
+  }, [routeAssessmentId]);
 
   if (loading) {
     return (
-      <div>
-        <div className="animate-pulse">Đang tải CodeQuest cho bạn...</div>
+      <div className="w-full min-h-screen flex items-center justify-center bg-[#050b17] text-white">
+        <div className="animate-pulse text-slate-400">
+          Đang tải CodeQuest cho bạn...
+        </div>
       </div>
     );
   }
 
   if (loadError) {
-    return <Badge variant="error">Error when loading question.</Badge>;
+    return (
+      <div className="w-full min-h-screen flex flex-col gap-5 items-center justify-center bg-[#050b17] px-5">
+        <Badge variant="error">Error when loading assessment.</Badge>
+        <p className="max-w-xl text-center text-sm text-slate-400">
+          {loadErrorMessage}
+        </p>
+        <Button variant="secondary" onClick={() => navigate("/login")}>
+          Quay lại đăng nhập
+        </Button>
+      </div>
+    );
   }
 
   if (quest.length === 0 || !activeQuest) {
-    return <div>Đang tìm kiếm câu hỏi</div>;
+    return (
+      <div className="w-full min-h-screen flex flex-col gap-5 items-center justify-center bg-[#050b17] text-slate-400">
+        <p>Assessment hiện chưa có câu hỏi.</p>
+        <p className="text-sm text-slate-500">
+          Hãy kiểm tra document trong collection assessments có field questions
+          hay chưa.
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -187,8 +266,8 @@ export default function Asssessment() {
               Khám phá trình độ lập trình của bạn
             </h1>
             <p className="text-lg leading-8 text-slate-300 max-w-2xl">
-              Trả lời một vài câu hỏi DSA và giải thuật để nhận được một lộ
-              trình học tập cá nhân tạo bởi AI.
+              {assessmentTitle ||
+                "Trả lời một vài câu hỏi DSA và giải thuật để nhận được một lộ trình học tập cá nhân tạo bởi AI."}
             </p>
           </div>
 
@@ -240,39 +319,25 @@ export default function Asssessment() {
                 flag={flag.includes(activeQuest.id)}
                 setFlag={() => handleFlag(activeQuest.id)}
               />
-            </div>
 
-            <div className="flex bg-[#0f1523] rounded-b-2xl justify-between items-center px-8 py-3">
-              <div>
+              <div className="flex justify-between pt-4">
                 <Button
-                  variant={isCompleted ? "primary" : "normal"}
-                  className="w-fit"
-                  onClick={() => {
-                    setshowConfirm(true);
-                  }}
-                >
-                  <span>Nộp bài</span>
-                </Button>
-              </div>
-
-              <div className="flex gap-3 text-[15px] font-bold">
-                <Button
+                  variant="normal"
                   onClick={handlePrev}
                   disabled={currentQuest === 1}
-                  variant="secondary"
-                  className="flex gap-2 items-center px-3"
+                  className="gap-2"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  <span>Trước</span>
+                  Câu trước
                 </Button>
 
                 <Button
+                  variant="primary"
                   onClick={handleNext}
                   disabled={currentQuest === totalquest}
-                  variant="success"
-                  className="flex gap-2 items-center text-black"
+                  className="gap-2"
                 >
-                  <span>Sau</span>
+                  Câu tiếp
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </div>
@@ -280,31 +345,47 @@ export default function Asssessment() {
           </div>
 
           <div className="flex flex-col gap-5">
-            <div className="bg-[#0b1220] p-5 rounded-2xl flex flex-col gap-3 ">
-              <span className="text-[14px] font-bold text-[#fbfbfb] whitespace-nowrap text-left">
-                Câu hỏi
-              </span>
-
-              <div className="w-fit">
-                <Navigator
-                  totalquest={totalquest}
-                  currentQuest={currentQuest}
-                  setCurrentQuest={setCurrentQuest}
-                  ans={ans}
-                  flag={flag}
-                />
+            <div
+              className="
+                bg-[#0f172a]
+                border border-[#1e293b]
+                rounded-2xl
+                p-5
+                flex
+                flex-col
+                gap-5
+              "
+            >
+              <div className="flex items-center gap-3">
+                <Star className="text-[#facc15]" />
+                <div>
+                  <h2 className="font-bold text-white">Tiến độ assessment</h2>
+                  <p className="text-sm text-slate-400">
+                    {answeredCount}/{totalquest} câu đã trả lời
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-5 p-5 bg-linear-to-br from-[#1a2b22] to-[#0d1621] rounded-2xl border border-[#1c492d] ">
-              <div className="rounded-full bg-[#18442d] p-3 shadow-[0_0_15px_rgba(255,255,255,0.15)]">
-                <Star className="text-[#22c55e]" />
-              </div>
+              <Navigator
+                totalquest={totalquest}
+                currentQuest={currentQuest}
+                setCurrentQuest={setCurrentQuest}
+                ans={ans}
+                flag={flag}
+              />
 
-              <div className="flex flex-col">
-                <span className="font-bold text-[#fbfbfb]">XP Nhận được</span>
-                <div className="text-[#22c55e] text-left font-bold">+{XP}</div>
-              </div>
+              <Button
+                variant="success"
+                disabled={!isCompleted || isSubmitting}
+                onClick={() => setshowConfirm(true)}
+                className="w-full"
+              >
+                {isSubmitting
+                  ? "Đang nộp..."
+                  : isCompleted
+                    ? "Hoàn thành assessment"
+                    : "Trả lời hết câu hỏi để nộp"}
+              </Button>
             </div>
           </div>
         </div>

@@ -5,120 +5,168 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { TestCase, TestSubmission } from './test.schemas';
+import {
+  TestCase,
+  TestSubmission,
+  Assessment,
+  AssessmentSubmission,
+} from './test.schemas';
 
 @Injectable()
 export class TestService {
   constructor(
     @InjectModel(TestCase.name) private readonly testCaseModel: Model<TestCase>,
+
     @InjectModel(TestSubmission.name)
     private readonly testSubmissionModel: Model<TestSubmission>,
+
+    @InjectModel(Assessment.name)
+    private readonly assessmentModel: Model<Assessment>,
+
+    @InjectModel(AssessmentSubmission.name)
+    private readonly assessmentSubmissionModel: Model<AssessmentSubmission>,
   ) {}
 
   // Return list of questions for a given challengeId, only including those that are active and of displayable types (sample, multiple-choice, essay)
-  async getQuestions(challengeId: string) {
-    if (!Types.ObjectId.isValid(challengeId)) {
-      throw new BadRequestException(
-        'Invalid challengeId format. Must be a valid MongoDB ObjectId string.',
-      );
+  async getQuestions(assessmentId?: string) {
+    let assessment;
+
+    if (assessmentId && Types.ObjectId.isValid(assessmentId)) {
+      assessment = await this.assessmentModel.findById(assessmentId).lean();
+    } else {
+      assessment = await this.assessmentModel
+        .findOne({ isActive: true })
+        .sort({ createdAt: -1 })
+        .lean();
     }
 
-    const questions = await this.testCaseModel
-      .find({
-        challengeId: new Types.ObjectId(challengeId),
-        isActive: true,
-        type: { $in: ['sample', 'multiple-choice', 'essay'] },
-      })
-      .select('input expectedOutput type options')
-      .exec();
+    if (!assessment) {
+      throw new NotFoundException('Assessment not found');
+    }
 
     return {
-      challengeId,
-      totalQuestions: questions.length,
-      questions: questions,
+      assessmentId: assessment._id,
+      title: assessment.title,
+      totalQuestions: assessment.questions?.length || 0,
+      questions: assessment.questions || [],
     };
   }
 
   // Process user submissions for a given challengeId, compare with expected outputs, calculate score, and save the submission record
   async postSubmissions(body: {
-    challengeId: string;
+    assessmentId?: string;
+    challengeId?: string;
     userId?: string;
-    userCodeOutput: string[]; // Expected output (can be blank)
+    userCodeOutput: string[];
   }) {
-    const { challengeId, userId, userCodeOutput } = body;
+    const assessmentId = body.assessmentId || body.challengeId;
+    const { userId, userCodeOutput } = body;
 
-    if (!challengeId || !userCodeOutput || !Array.isArray(userCodeOutput)) {
+    if (!userCodeOutput || !Array.isArray(userCodeOutput)) {
       throw new BadRequestException(
-        'Invalid request body. Required: { challengeId: string, userCodeOutput: string[] }',
+        'Invalid request body. Required: { userCodeOutput: string[] }',
       );
     }
 
-    const allTestCases = await this.testCaseModel
-      .find({ challengeId: new Types.ObjectId(challengeId), isActive: true })
-      .exec();
+    let assessment;
 
-    if (!allTestCases || allTestCases.length === 0) {
-      throw new NotFoundException(
-        'Not found any active test cases for the given challengeId',
-      );
+    if (assessmentId && Types.ObjectId.isValid(assessmentId)) {
+      assessment = await this.assessmentModel.findById(assessmentId).lean();
+    } else {
+      assessment = await this.assessmentModel
+        .findOne({ isActive: true })
+        .sort({ createdAt: -1 })
+        .lean();
     }
+
+    if (!assessment) {
+      throw new NotFoundException('Assessment not found');
+    }
+
+    const questions = assessment.questions || [];
 
     let passedCount = 0;
     let scoreableQuestionsCount = 0;
-    const details: any[] = [];
 
-    allTestCases.forEach((testcase, index) => {
-      const userSingleOutput = userCodeOutput[index]?.trim() || '';
-      const expected = testcase.expectedOutput?.trim();
+    const details = questions.map((question: any, index: number) => {
+      const userAnswer = userCodeOutput[index]?.trim() || '';
+      const expectedAnswer = question.answer?.trim() || '';
 
       let isCorrect = false;
       let status = 'Failed';
 
-      // Type of test case:
-      if (testcase.type === 'essay') {
+      if (question.type === 'essay') {
         isCorrect = true;
         status = 'Submitted';
       } else {
-        isCorrect = userSingleOutput === expected;
+        isCorrect = userAnswer === expectedAnswer;
         status = isCorrect ? 'Passed' : 'Failed';
-        scoreableQuestionsCount++;
-        if (isCorrect) passedCount++;
+        scoreableQuestionsCount += 1;
+
+        if (isCorrect) {
+          passedCount += 1;
+        }
       }
 
-      details.push({
-        testCaseId: testcase._id,
-        type: testcase.type,
-        status: status,
-        input: testcase.type !== 'hidden' ? testcase.input : 'Hidden Test Case',
-        expected: testcase.type !== 'hidden' ? expected : 'Hidden Test Case',
-        actual:
-          testcase.type !== 'hidden'
-            ? userSingleOutput
-            : isCorrect
-              ? 'Match'
-              : 'Mismatch',
-      });
+      return {
+        questionOrder: question.order || index + 1,
+        type: question.type,
+        status,
+        input: question.title,
+        expected: expectedAnswer,
+        actual: userAnswer,
+        category: question.category,
+        level: question.level,
+      };
     });
 
     const totalToDivide =
-      scoreableQuestionsCount > 0
-        ? scoreableQuestionsCount
-        : allTestCases.length;
-    const scorePercentage = Math.round((passedCount / totalToDivide) * 100);
+      scoreableQuestionsCount > 0 ? scoreableQuestionsCount : questions.length;
 
-    await this.testSubmissionModel.create({
+    const scorePercentage =
+      totalToDivide > 0 ? Math.round((passedCount / totalToDivide) * 100) : 0;
+
+    const weakSkills: string[] = details
+      .filter(
+        (item) => item.status === 'Failed' && typeof item.category === 'string',
+      )
+      .map((item) => item.category as string);
+
+    const strongSkills: string[] = details
+      .filter(
+        (item) => item.status === 'Passed' && typeof item.category === 'string',
+      )
+      .map((item) => item.category as string);
+
+    const uniqueStrongSkills: string[] = [...new Set<string>(strongSkills)];
+    const uniqueWeakSkills: string[] = [...new Set<string>(weakSkills)];
+
+    const detectedLevel =
+      scorePercentage >= 80
+        ? 'advanced'
+        : scorePercentage >= 50
+          ? 'intermediate'
+          : 'beginner';
+
+    await this.assessmentSubmissionModel.create({
       userId: userId ? new Types.ObjectId(userId) : undefined,
-      challengeId: new Types.ObjectId(challengeId),
-      userAnswers: userCodeOutput, // Save user outputs for reference
+      assessmentId: assessment._id,
+      userAnswers: userCodeOutput,
       score: scorePercentage,
+      detectedLevel,
+      strongSkills: uniqueStrongSkills,
+      weakSkills: uniqueWeakSkills,
       status: 'Completed',
     });
 
     return {
-      challengeId,
+      assessmentId: assessment._id,
       status: scorePercentage === 100 ? 'Accepted' : 'Completed',
       score: scorePercentage,
-      passed: `${passedCount}/${allTestCases.length}`,
+      detectedLevel,
+      strongSkills: uniqueStrongSkills,
+      weakSkills: uniqueWeakSkills,
+      passed: `${passedCount}/${questions.length}`,
       details,
     };
   }
