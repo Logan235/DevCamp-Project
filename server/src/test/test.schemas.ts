@@ -101,6 +101,9 @@ export class TestCase extends Document {
   @Prop({ type: String, alias: 'expected_output' }) // Not required, can be in storage. Keep alias.
   expectedOutput?: string;
 
+  @Prop({ type: String })
+  explanation?: string;
+
   @Prop({
     type: String,
     required: true,
