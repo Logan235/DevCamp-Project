@@ -26,6 +26,7 @@ export class RoadmapTemplate extends Document {
   @Prop({ type: String }) description?: string;
   @Prop({
     type: String,
+    format: 'enum',
     enum: ['absolute_beginner', 'beginner', 'intermediate', 'advanced'],
   })
   targetLevel?: string;
@@ -38,10 +39,19 @@ export const RoadmapTemplateSchema =
 
 @Schema({ _id: false })
 class GenerationParams {
-  @Prop({ type: String }) detectedLevel?: string;
+  @Prop({
+    type: String,
+    format: 'enum',
+    enum: ['absolute_beginner', 'beginner', 'intermediate', 'advanced'],
+  })
+  detectedLevel?: string;
   @Prop({ type: [String] }) weakSkills: string[];
   @Prop({ type: [String] }) strongSkills: string[];
-  @Prop({ type: String, enum: ['slow', 'medium', 'fast'] })
+  @Prop({
+    type: String,
+    format: 'enum',
+    enum: ['slow', 'medium', 'fast'],
+  })
   pacePreference?: string;
 }
 
