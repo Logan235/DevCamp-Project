@@ -29,18 +29,23 @@ import {
   createExerciseApi,
   updateExerciseApi,
   deleteExerciseApi,
-  getTestCasesByChallengeApi
+  getTestCasesByChallengeApi,
+  getAllCategoriesApi,
 } from "../api";
+
+interface CategoryData {
+  _id: string;
+  name: string;
+}
 
 interface ChallengeData {
   _id?: string;
   title: string;
   description: string;
   module?: number;
-  topic: string;
+  topic: string; 
   difficulty: "easy" | "medium" | "hard";
   challengeType: "coding" | "multiple_choice";
-  optimalPattern: string;
   testcases: TestCase[];
 }
 
@@ -65,9 +70,10 @@ interface JsonFileStructure {
 }
 
 const DashboardContent: React.FC = () => {
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
 
   const [data, setData] = useState<ChallengeData[]>([]);
+  const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
   const [editing, setEditing] = useState<ChallengeData | null>(null);
@@ -81,40 +87,41 @@ const DashboardContent: React.FC = () => {
   const [editingTestCase, setEditingTestCase] = useState<TestCase | null>(null);
   const [subForm] = Form.useForm();
 
-  const fetchChallenges = async () => {
+  const initData = async () => {
     setLoading(true);
     try {
-      const response = await getAllExercisesApi();
+      const [exerciseRes, categoryRes] = await Promise.all([
+        getAllExercisesApi(),
+        getAllCategoriesApi(),
+      ]);
 
-      const rawList = Array.isArray(response.data)
-        ? response.data
-        : response.data && Array.isArray(response.data.data)
-          ? response.data.data
+      if (Array.isArray(categoryRes.data)) {
+        setCategories(categoryRes.data);
+      }
+
+      const rawList = Array.isArray(exerciseRes.data)
+        ? exerciseRes.data
+        : exerciseRes.data && Array.isArray(exerciseRes.data.data)
+          ? exerciseRes.data.data
           : [];
 
       const mappedData = rawList.map((item: any) => ({
         ...item,
-        topic:
-          item.patternGroup ||
-          item.topic ||
-          item.categoryId ||
-          "Chưa phân loại",
-        optimalPattern:
-          item.patternGroup || item.optimalPattern || "Chưa thiết lập",
+        topic: item.categoryId || item.patternGroup || item.topic || "",
         testcases: item.testcases || item.test_cases || [],
       }));
 
       setData(mappedData);
     } catch (err: any) {
-      message.error("Không thể lấy danh sách challenge!");
-      console.error("Lỗi Fetch API:", err);
+      message.error("Không thể tải dữ liệu hệ thống!");
+      console.error("Lỗi Init API:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchChallenges();
+    initData();
   }, []);
 
   const handleSubmit = (): void => {
@@ -146,7 +153,7 @@ const DashboardContent: React.FC = () => {
       try {
         if (editing && editing._id) {
           await updateExerciseApi(editing._id, payload);
-          message.success("Cập nhật challenge thành công!");
+          message.success("Cập nhật thử thách thành công!");
         } else {
           const tempSlug = formValues.title
             .toLowerCase()
@@ -158,10 +165,10 @@ const DashboardContent: React.FC = () => {
             ...payload,
             slug: tempSlug,
           });
-          message.success("Thêm challenge thành công!");
+          message.success("Thêm thử thách thành công!");
         }
 
-        fetchChallenges();
+        initData();
         setOpen(false);
         setEditing(null);
         form.resetFields();
@@ -177,6 +184,7 @@ const DashboardContent: React.FC = () => {
     setOpen(true);
     form.setFieldsValue({
       ...record,
+      topic: record.topic,
       difficulty: record.difficulty || "easy",
     });
   };
@@ -184,10 +192,10 @@ const DashboardContent: React.FC = () => {
   const handleDelete = async (id: string): Promise<void> => {
     try {
       await deleteExerciseApi(id);
-      message.success("Đã xóa challenge thành công!");
-      fetchChallenges();
+      message.success("Đã xóa thử thách thành công!");
+      initData();
     } catch (err) {
-      message.error("Xoá challenge thất bại!");
+      message.error("Xoá thử thách thất bại!");
     }
   };
 
@@ -201,7 +209,7 @@ const DashboardContent: React.FC = () => {
         const dbTestCases = Array.isArray(response.data) ? response.data : [];
 
         const formattedTestCases = dbTestCases.map((tc: any) => ({
-          id: tc._id, 
+          id: tc._id,
           type: tc.type || "sample",
           input: tc.input || "",
           expected_output: tc.expectedOutput || tc.expected_output || "",
@@ -286,7 +294,6 @@ const DashboardContent: React.FC = () => {
     if (!currentChallenge) return;
     let newImportedTestCases: TestCase[] = [];
     let completedFiles = 0;
-    let successFilesCount = 0;
 
     fileList.forEach((file: RcFile) => {
       const reader = new FileReader();
@@ -305,7 +312,6 @@ const DashboardContent: React.FC = () => {
               }),
             );
             newImportedTestCases = [...newImportedTestCases, ...parsedCases];
-            successFilesCount++;
             message.success(`Đọc thành công dữ liệu từ file: ${file.name}`);
           } else {
             message.error(
@@ -338,7 +344,6 @@ const DashboardContent: React.FC = () => {
                 ...currentChallenge,
                 testcases: updatedTestCases,
               });
-
               message.success(
                 `🎉 Đã nạp thành công ${newImportedTestCases.length} testcase.`,
               );
@@ -355,19 +360,33 @@ const DashboardContent: React.FC = () => {
   };
 
   const columns: ColumnsType<ChallengeData> = [
-    { title: "Title", dataIndex: "title", key: "title", width: "15%" },
+    { title: "Title", dataIndex: "title", key: "title", width: "25%" },
     {
       title: "Description",
       dataIndex: "description",
       key: "description",
       ellipsis: true,
-      width: "25%",
+      width: "40%",
     },
-    { title: "Topic", dataIndex: "topic", key: "topic" },
+    {
+      title: "Topic (Chủ đề)",
+      dataIndex: "topic",
+      key: "topic",
+      width: "15%",
+      render: (categoryId: string) => {
+        const foundCategory = categories.find((cat) => cat._id === categoryId);
+        return (
+          <span className="font-semibold text-slate-300">
+            {foundCategory ? foundCategory.name : "Chưa phân loại"}
+          </span>
+        );
+      },
+    },
     {
       title: "Difficulty",
       dataIndex: "difficulty",
       key: "difficulty",
+      width: "10%",
       render: (text: string) => {
         const lowerText = text?.toLowerCase();
         let color = "green";
@@ -384,15 +403,10 @@ const DashboardContent: React.FC = () => {
       },
     },
     {
-      title: "Optimal Pattern",
-      dataIndex: "optimalPattern",
-      key: "optimalPattern",
-      width: "20%",
-    },
-    {
       title: "Actions",
       key: "action",
       align: "center",
+      width: "10%",
       render: (_, record) => (
         <Space size="middle">
           <Badge
@@ -474,14 +488,21 @@ const DashboardContent: React.FC = () => {
           <div className="flex gap-4">
             <Form.Item
               name="topic"
-              label="Chủ đề"
+              label="Chủ đề (Topic)"
               rules={[
-                { required: true, message: "Chủ đề không được để trống" },
+                { required: true, message: "Vui lòng chọn danh mục chủ đề" },
               ]}
               className="flex-1"
             >
-              <Input />
+              <Select placeholder="Chọn chủ đề từ danh sách">
+                {categories.map((cat) => (
+                  <Select.Option key={cat._id} value={cat._id}>
+                    {cat.name}
+                  </Select.Option>
+                ))}
+              </Select>
             </Form.Item>
+
             <Form.Item
               name="difficulty"
               label="Độ khó"
@@ -496,25 +517,13 @@ const DashboardContent: React.FC = () => {
             </Form.Item>
           </div>
           <Form.Item
-            name="optimalPattern"
-            label="Cấu trúc tối ưu"
-            rules={[
-              {
-                required: true,
-                message: "Vui lòng nhập mô hình tối ưu bạn muốn hướng tới",
-              },
-            ]}
-          >
-            <Input placeholder="VD: hash map lookup, Kadane's Algorithm" />
-          </Form.Item>
-          <Form.Item
             name="description"
             label="Nội dung chi tiết"
             rules={[
               { required: true, message: "Nội dung không được để trống" },
             ]}
           >
-            <Input.TextArea rows={4} />
+            <Input.TextArea rows={6} />
           </Form.Item>
         </Form>
       </Modal>

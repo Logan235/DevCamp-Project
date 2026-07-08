@@ -16,12 +16,13 @@ import {
 import { TestCase, TestCaseSchema } from '../test/test.schemas';
 import { CodeExecutionModule } from '../code-execution/code-execution.module';
 import { R2Service } from '../shared/r2.service';
+import { Category, CategorySchema } from '../categories/categories.schemas';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Challenge.name, schema: ChallengeSchema },
-
+      { name: Category.name, schema: CategorySchema },
       { name: UserRoadmap.name, schema: UserRoadmapSchema },
       { name: RoadmapTemplate.name, schema: RoadmapTemplateSchema },
       { name: TestCase.name, schema: TestCaseSchema },

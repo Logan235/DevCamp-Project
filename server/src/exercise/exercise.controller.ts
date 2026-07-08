@@ -41,6 +41,11 @@ export class ExerciseController {
     return this.exerciseService.getExercises(userId);
   }
 
+  @Get('categories')
+  async getAllCategories() {
+    return await this.exerciseService.getAllCategories();
+  }
+  
   @Get(':id')
   getExerciseById(@Param('id') id: string) {
     return this.exerciseService.getExerciseById(id);

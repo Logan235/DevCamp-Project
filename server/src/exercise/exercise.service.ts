@@ -16,17 +16,25 @@ import {
 } from './dto/submit.dto';
 import { R2Service } from '../shared/r2.service';
 import { TestCase } from 'src/test/test.schemas';
+import { Category } from '../categories/categories.schemas';
 
 @Injectable()
 export class ExerciseService {
   constructor(
-    @InjectModel(Challenge.name) private challengeModel: Model<Challenge>,
-    @InjectModel(UserRoadmap.name) private userRoadmapModel: Model<UserRoadmap>,
+    @InjectModel(Challenge.name)
+    private challengeModel: Model<Challenge>,
+
+    @InjectModel(UserRoadmap.name)
+    private userRoadmapModel: Model<UserRoadmap>,
+
     @InjectModel(RoadmapTemplate.name)
     private templateModel: Model<RoadmapTemplate>,
-    // 1. Sửa lỗi: Inject thêm TestCase model vào đây
     @InjectModel(TestCase.name)
     private readonly testCaseModel: Model<TestCase>,
+
+    @InjectModel(Category.name)
+    private readonly categoryModel: Model<Category>, 
+
     private readonly codeExecutionService: CodeExecutionService,
     private readonly r2Service: R2Service,
   ) {}
@@ -320,5 +328,9 @@ export class ExerciseService {
     return this.testCaseModel
       .find({ challengeId: new Types.ObjectId(challengeId) })
       .exec();
+  }
+
+  async getAllCategories() {
+    return await this.categoryModel.find({}, '_id name').exec();
   }
 }

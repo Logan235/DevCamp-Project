@@ -1,10 +1,9 @@
 import axios from "axios";
 
-const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:3000/exercises";
-
+const API_URL = import.meta.env.BACKEND_URL || "http://localhost:3000";
+const EXERCISE_URL = `${API_URL}/exercises`;
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: EXERCISE_URL,
 });
 
 api.interceptors.request.use(
@@ -29,4 +28,6 @@ export const updateExerciseApi = (id: string, data: any) =>
 export const deleteExerciseApi = (id: string) => api.delete(`/${id}`);
 
 export const getTestCasesByChallengeApi = (challengeId: string) =>
-  api.get(`http://localhost:3000/exercises/${challengeId}/testcases`);
+  api.get(`/${challengeId}/testcases`);
+
+export const getAllCategoriesApi = () => api.get("/categories");
