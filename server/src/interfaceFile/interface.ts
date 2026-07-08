@@ -71,3 +71,38 @@ export interface Judge0Response {
   memory?: number | null;
   token?: string;
 }
+
+export interface AnalysisSkillProfile {
+  userId: string;
+  analysis: Record<string, any>;
+}
+
+export interface AssessmentDetail {
+  // tuỳ theo cấu trúc thật, ví dụ:
+  questionId?: string;
+  correct?: boolean;
+  [key: string]: unknown;
+}
+
+export interface AssessmentResult {
+  score: number;
+  detectedLevel: 'absolute_beginner' | 'beginner' | 'intermediate' | 'advanced';
+  strongSkills: string[];
+  weakSkills: string[];
+  details?: AssessmentDetail[];
+}
+
+export interface CreateRoadmapArgs {
+  title: string;
+  challengeIds: string[];
+  detectedLevel: 'absolute_beginner' | 'beginner' | 'intermediate' | 'advanced';
+  weakSkills: string[];
+  strongSkills: string[];
+  pacePreference: 'slow' | 'medium' | 'fast';
+}
+
+export interface UpdateRoadmapDto {
+  status?: string;
+  completedNodes?: number;
+  // ... các field khác cho phép update
+}
