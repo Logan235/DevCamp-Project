@@ -135,7 +135,9 @@ export class ExerciseService {
       return [];
     }
 
-    const challengeIds = template.nodes.map((node) => node.challengeId);
+    const challengeIds = template.nodes.flatMap(
+      (node) => node.challengeIds || [],
+    );
 
     return this.challengeModel.find({ _id: { $in: challengeIds } }).exec();
   }

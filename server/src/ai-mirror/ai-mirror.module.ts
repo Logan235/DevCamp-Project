@@ -14,6 +14,7 @@ import {
   Submission,
   SubmissionSchema,
 } from '../code-execution/schema/submission.schema';
+import { AiRoadmapService } from './ai-roadmap.service';
 
 @Module({
   imports: [
@@ -33,7 +34,7 @@ import {
     ]),
   ],
   controllers: [AiMirrorController],
-  providers: [AiMirrorService],
-  exports: [AiMirrorService],
+  providers: [AiMirrorService, AiRoadmapService],
+  exports: [AiMirrorService, AiRoadmapService],
 })
 export class AiMirrorModule {}

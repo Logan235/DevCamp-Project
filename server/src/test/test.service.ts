@@ -11,6 +11,7 @@ import {
   Assessment,
   AssessmentSubmission,
 } from './test.schemas';
+import { RoadmapService } from '../roadmap/roadmap.service';
 
 @Injectable()
 export class TestService {
@@ -25,6 +26,8 @@ export class TestService {
 
     @InjectModel(AssessmentSubmission.name)
     private readonly assessmentSubmissionModel: Model<AssessmentSubmission>,
+
+    private readonly roadmapService: RoadmapService,
   ) {}
 
   // Return list of questions for a given challengeId, only including those that are active and of displayable types (sample, multiple-choice, essay)
@@ -159,8 +162,8 @@ export class TestService {
       status: 'Completed',
     });
 
-    return {
-      assessmentId: assessment._id,
+    const assessmentResult = {
+      assessmentId: assessment._id.toString(),
       status: scorePercentage === 100 ? 'Accepted' : 'Completed',
       score: scorePercentage,
       detectedLevel,
@@ -168,6 +171,18 @@ export class TestService {
       weakSkills: uniqueWeakSkills,
       passed: `${passedCount}/${questions.length}`,
       details,
+    };
+
+    const roadmap = userId
+      ? await this.roadmapService.generateFromAssessment(
+          userId,
+          assessmentResult,
+        )
+      : null;
+
+    return {
+      assessment: assessmentResult,
+      roadmap,
     };
   }
 

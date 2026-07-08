@@ -12,9 +12,11 @@ import {
   AssessmentSubmission,
   AssessmentSubmissionSchema,
 } from './test.schemas';
+import { RoadmapModule } from '../roadmap/roadmap.module';
 
 @Module({
   imports: [
+    RoadmapModule,
     MongooseModule.forFeature([
       { name: TestCase.name, schema: TestCaseSchema },
       { name: TestSubmission.name, schema: TestSubmissionSchema },

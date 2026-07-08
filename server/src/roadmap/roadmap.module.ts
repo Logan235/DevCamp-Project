@@ -9,12 +9,15 @@ import {
   UserRoadmapSchema,
 } from './roadmap.schemas';
 import { Challenge, ChallengeSchema } from '../exercise/exercise.schemas';
+import { AiMirrorModule } from '../ai-mirror/ai-mirror.module';
 
 @Module({
   imports: [
+    AiMirrorModule,
     MongooseModule.forFeature([
       { name: RoadmapTemplate.name, schema: RoadmapTemplateSchema },
       { name: UserRoadmap.name, schema: UserRoadmapSchema },
+
       { name: Challenge.name, schema: ChallengeSchema },
     ]),
   ],

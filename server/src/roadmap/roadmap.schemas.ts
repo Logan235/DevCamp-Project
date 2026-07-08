@@ -3,6 +3,7 @@ import { Document, Types } from 'mongoose';
 
 @Schema({ _id: false })
 class ChallengeSnapshot {
+  @Prop({ type: Types.ObjectId, ref: 'Challenge' }) challengeId: Types.ObjectId;
   @Prop({ type: String }) title: string;
   @Prop({ type: String }) slug: string;
   @Prop({ type: String }) difficulty: string;
@@ -13,10 +14,15 @@ class ChallengeSnapshot {
 @Schema({ _id: false })
 class RoadmapNode {
   @Prop({ type: Number, required: true }) order: number;
-  @Prop({ type: Types.ObjectId, ref: 'Challenge', required: true })
-  challengeId: Types.ObjectId;
-  @Prop({ type: String, enum: ['challenge', 'checkpoint'] }) nodeType: string;
-  @Prop({ type: ChallengeSnapshot }) challengesSnapshot?: ChallengeSnapshot;
+  @Prop({ type: String, required: true }) title: string;
+  @Prop({ type: String }) objective?: string;
+  @Prop({ type: String }) skillSlug?: string;
+  @Prop({ type: String, enum: ['practice', 'checkpoint'], default: 'practice' })
+  nodeType: string;
+  @Prop({ type: [Types.ObjectId], ref: 'Challenge', default: [] })
+  challengeIds: Types.ObjectId[];
+  @Prop({ type: [ChallengeSnapshot], default: [] })
+  challengesSnapshot?: ChallengeSnapshot[];
 }
 
 @Schema({ timestamps: true })
@@ -52,7 +58,16 @@ class GenerationParams {
     format: 'enum',
     enum: ['slow', 'medium', 'fast'],
   })
+  @Prop({ type: String })
+  detectedLevel?: string;
+  @Prop({ type: [String], default: [] }) weakSkills: string[];
+  @Prop({ type: [String], default: [] }) strongSkills: string[];
+  @Prop({ type: String, enum: ['slow', 'medium', 'fast'] })
   pacePreference?: string;
+  @Prop({ type: [String], default: [] }) skillOrder?: string[];
+  @Prop({ type: [String], default: [] }) difficulties?: string[];
+  @Prop({ type: String }) reason?: string;
+  @Prop({ type: String }) assessmentId?: string;
 }
 
 @Schema({ timestamps: true })

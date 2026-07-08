@@ -14,6 +14,38 @@ import type {
   CreateRoadmapArgs,
   UpdateRoadmapDto,
 } from '../interfaceFile/interface';
+import { Challenge, ChallengeDifficulty } from '../exercise/exercise.schemas';
+import {
+  AiRoadmapPlan,
+  AiRoadmapService,
+} from '../ai-mirror/ai-roadmap.service';
+
+type AssessmentDetail = {
+  questionOrder?: number;
+  status?: string;
+  category?: string;
+  level?: string;
+  input?: string;
+  expected?: string;
+  actual?: string;
+};
+
+type AssessmentRoadmapResult = {
+  assessmentId: string;
+  score: number;
+  detectedLevel: string;
+  strongSkills: string[];
+  weakSkills: string[];
+  details?: AssessmentDetail[];
+};
+
+type LeanChallenge = {
+  _id: Types.ObjectId;
+  title?: string;
+  slug?: string;
+  difficulty?: ChallengeDifficulty;
+  skillSlug?: string[];
+};
 
 @Injectable()
 export class RoadmapService {
@@ -30,6 +62,16 @@ export class RoadmapService {
       this.configService.getOrThrow<string>('GEMINI_API_KEY'),
     );
   }
+    private readonly templateModel: Model<RoadmapTemplate>,
+
+    @InjectModel(UserRoadmap.name)
+    private readonly userRoadmapModel: Model<UserRoadmap>,
+
+    @InjectModel(Challenge.name)
+    private readonly challengeModel: Model<Challenge>,
+
+    private readonly aiRoadmapService: AiRoadmapService,
+  ) {}
 
   private toObjectId(value: string, fieldName: string): Types.ObjectId {
     if (!Types.ObjectId.isValid(value)) {
@@ -317,5 +359,218 @@ Vui lòng thực hiện việc lấy danh sách bài tập hiện có và tạo 
     }
 
     return populatedRoadmap;
+  async generateFromAssessment(
+    userId: string,
+    assessmentResult: AssessmentRoadmapResult,
+  ) {
+    const userObjectId = this.toObjectId(userId, 'userId');
+
+    const plan = await this.aiRoadmapService.generatePlan({
+      assessmentId: assessmentResult.assessmentId,
+      detectedLevel: assessmentResult.detectedLevel,
+      strongSkills: assessmentResult.strongSkills,
+      weakSkills: assessmentResult.weakSkills,
+      score: assessmentResult.score,
+      details: assessmentResult.details,
+    });
+
+    const difficulties = plan.difficulties as ChallengeDifficulty[];
+
+    const challenges = await this.challengeModel
+      .find({
+        isActive: true,
+        skillSlug: { $in: plan.skillOrder },
+        difficulty: { $in: difficulties },
+      })
+      .limit(plan.targetNodeCount * 5)
+      .lean<LeanChallenge[]>();
+
+    const sortedChallenges = this.sortChallengesByAiPlan(challenges, plan);
+    const nodes = this.buildRoadmapNodes(sortedChallenges, plan);
+
+    if (nodes.length === 0) {
+      throw new BadRequestException(
+        'Cannot generate roadmap because no matching challenges were found',
+      );
+    }
+
+    const template = await this.templateModel.create({
+      title: `Roadmap cá nhân hóa - ${assessmentResult.detectedLevel}`,
+      slug: `personal-${userId}-${Date.now()}`,
+      description: `Roadmap được tạo từ assessment ${assessmentResult.assessmentId}`,
+      targetLevel: assessmentResult.detectedLevel,
+      nodes,
+      isActive: true,
+    });
+
+    await this.userRoadmapModel.updateMany(
+      { userId: userObjectId, status: 'active' },
+      { status: 'archived' },
+    );
+
+    return this.userRoadmapModel.create({
+      userId: userObjectId,
+      templateId: template._id,
+      title: template.title,
+      status: 'active',
+      totalNodes: template.nodes.length,
+      completedNodes: 0,
+      generationParams: {
+        detectedLevel: assessmentResult.detectedLevel,
+        weakSkills: assessmentResult.weakSkills,
+        strongSkills: assessmentResult.strongSkills,
+        pacePreference: plan.pacePreference,
+        skillOrder: plan.skillOrder,
+        difficulties: plan.difficulties,
+        reason: plan.reason,
+        assessmentId: assessmentResult.assessmentId,
+      },
+    });
+  }
+
+  private buildRoadmapNodes(challenges: LeanChallenge[], plan: AiRoadmapPlan) {
+    const usedChallengeIds = new Set<string>();
+    const nodes: Array<{
+      order: number;
+      title: string;
+      objective: string;
+      skillSlug: string;
+      nodeType: 'practice';
+      challengeIds: Types.ObjectId[];
+      challengesSnapshot: Array<{
+        challengeId: Types.ObjectId;
+        title?: string;
+        slug?: string;
+        difficulty?: string;
+        skillSlugs: string[];
+        xpReward: number;
+      }>;
+    }> = [];
+
+    for (const skillSlug of plan.skillOrder) {
+      if (nodes.length >= plan.targetNodeCount) {
+        break;
+      }
+
+      const nodeChallenges = challenges
+        .filter((challenge) => {
+          const challengeId = challenge._id.toString();
+
+          return (
+            !usedChallengeIds.has(challengeId) &&
+            (challenge.skillSlug || []).includes(skillSlug)
+          );
+        })
+        .slice(0, this.getExerciseCountPerNode(plan.pacePreference));
+
+      if (nodeChallenges.length === 0) {
+        continue;
+      }
+
+      nodeChallenges.forEach((challenge) => {
+        usedChallengeIds.add(challenge._id.toString());
+      });
+
+      nodes.push({
+        order: nodes.length + 1,
+        title: `Luyện tập ${skillSlug}`,
+        objective: `Củng cố kỹ năng ${skillSlug} dựa trên kết quả assessment`,
+        skillSlug,
+        nodeType: 'practice',
+        challengeIds: nodeChallenges.map((challenge) => challenge._id),
+        challengesSnapshot: nodeChallenges.map((challenge) => ({
+          challengeId: challenge._id,
+          title: challenge.title,
+          slug: challenge.slug,
+          difficulty: challenge.difficulty,
+          skillSlugs: challenge.skillSlug || [],
+          xpReward: this.getXpReward(challenge.difficulty),
+        })),
+      });
+    }
+
+    return nodes;
+  }
+
+  private sortChallengesByAiPlan(
+    challenges: LeanChallenge[],
+    plan: AiRoadmapPlan,
+  ): LeanChallenge[] {
+    const skillRank = new Map(
+      plan.skillOrder.map((skill, index) => [skill, index]),
+    );
+
+    const difficultyRank = new Map<ChallengeDifficulty, number>(
+      (plan.difficulties as ChallengeDifficulty[]).map((difficulty, index) => [
+        difficulty,
+        index,
+      ]),
+    );
+
+    return [...challenges].sort((left, right) => {
+      const leftSkillRank = this.getBestSkillRank(
+        left.skillSlug || [],
+        skillRank,
+      );
+      const rightSkillRank = this.getBestSkillRank(
+        right.skillSlug || [],
+        skillRank,
+      );
+
+      if (leftSkillRank !== rightSkillRank) {
+        return leftSkillRank - rightSkillRank;
+      }
+
+      const leftDifficultyRank = left.difficulty
+        ? (difficultyRank.get(left.difficulty) ?? Number.MAX_SAFE_INTEGER)
+        : Number.MAX_SAFE_INTEGER;
+
+      const rightDifficultyRank = right.difficulty
+        ? (difficultyRank.get(right.difficulty) ?? Number.MAX_SAFE_INTEGER)
+        : Number.MAX_SAFE_INTEGER;
+
+      return leftDifficultyRank - rightDifficultyRank;
+    });
+  }
+
+  private getBestSkillRank(
+    skillSlugs: string[],
+    skillRank: Map<string, number>,
+  ): number {
+    return skillSlugs.reduce((bestRank, skill) => {
+      const rank = skillRank.get(skill);
+
+      if (rank === undefined) {
+        return bestRank;
+      }
+
+      return Math.min(bestRank, rank);
+    }, Number.MAX_SAFE_INTEGER);
+  }
+
+  private getExerciseCountPerNode(
+    pacePreference: 'slow' | 'medium' | 'fast',
+  ): number {
+    if (pacePreference === 'fast') {
+      return 2;
+    }
+
+    if (pacePreference === 'slow') {
+      return 4;
+    }
+
+    return 3;
+  }
+
+  private getXpReward(difficulty?: string): number {
+    if (difficulty === 'hard') {
+      return 200;
+    }
+
+    if (difficulty === 'medium') {
+      return 150;
+    }
+
+    return 100;
   }
 }
