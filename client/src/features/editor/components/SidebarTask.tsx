@@ -236,12 +236,6 @@ export const SidebarTask: React.FC<SidebarTaskProps> = ({
           <h2 className="text-xl font-bold tracking-tight text-zinc-100">
             {learningTask.topic}
           </h2>
-
-          {exercise?._id && (
-            <p className="font-mono text-[11px] text-zinc-600">
-              ID: {exercise._id}
-            </p>
-          )}
         </div>
 
         <div className="rounded-xl border border-zinc-800/60 bg-zinc-900/40 p-4 text-xs leading-relaxed text-zinc-300">
