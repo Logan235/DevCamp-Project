@@ -82,6 +82,10 @@ export class CreateChallengeDto {
   challengeType!: 'coding' | 'multiple_choice';
 
   @IsOptional()
+  @IsString()
+  patternGroup?: string;
+
+  @IsOptional()
   @IsArray()
   @ArrayMinSize(0)
   @ValidateNested({ each: true })
