@@ -20,7 +20,7 @@ return (
         className="
         h-full
         rounded-full
-        bg-gradient-to-r
+        bg-linear-to-r
         from-[#22c55e]
         to-[#4ade80]
         transition-all

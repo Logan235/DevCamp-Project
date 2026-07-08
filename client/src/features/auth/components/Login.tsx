@@ -32,7 +32,7 @@ export function Login() {
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
       dispatch(setCredentials(data.user));
-
+      alert("Login successfully!")
       navigate("/assessment");
     } catch (err: any) {
       setError(
@@ -71,6 +71,9 @@ export function Login() {
               className="w-full pl-10 pr-4 py-3 rounded-lg bg-[#0b1220] border border-gray-700 focus:outline-none focus:border-blue-500"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) =>
+                e.key === "Enter" && !isLoading && handleLogin()
+              }
             />
           </div>
         </div>

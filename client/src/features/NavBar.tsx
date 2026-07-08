@@ -9,6 +9,7 @@ import {
   Save,
 } from "lucide-react";
 import ProgressBar from "./assessment/Progressbar";
+import { useSelector } from "react-redux";
 
 interface NavBarProps {
   isLoggedIn?: boolean;

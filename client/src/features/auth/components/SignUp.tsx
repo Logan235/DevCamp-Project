@@ -57,7 +57,7 @@ export function SignUp() {
         password,
         displayName,
       });
-
+      alert("Đăng ký tài khoản thành công! Vui lòng đăng nhập.");
       navigate("/login");
     } catch (err: any) {
       const backendMessage = err.response?.data?.message;
