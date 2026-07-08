@@ -17,9 +17,17 @@ export function OAuthCallback() {
       return;
     }
 
+    const user = searchParams.get("user");
+    const parsedUser = user ? JSON.parse(decodeURIComponent(user)) : null;
+
     localStorage.setItem("accessToken", accessToken);
     localStorage.setItem("refreshToken", refreshToken);
-    localStorage.setItem("user", JSON.stringify({ loggedInViaOAuth: true }));
+
+    if (parsedUser) {
+      localStorage.setItem("user", JSON.stringify(parsedUser));
+    } else {
+      localStorage.setItem("user", JSON.stringify({ loggedInViaOAuth: true }));
+    }
 
     navigate("/assessment", { replace: true });
   }, [searchParams, navigate]);

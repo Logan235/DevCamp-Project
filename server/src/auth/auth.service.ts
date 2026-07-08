@@ -20,23 +20,32 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
   // Register controller with traditional email/password login
-  async register(registerDto: RegisterDto): Promise<UserDocument> {
+  async register(registerDto: RegisterDto) {
     const { email } = registerDto;
     const existingUser = await this.userModel.findOne({ email });
+
     if (existingUser) {
       throw new ConflictException({
         message: 'User with this email already exists',
       });
     }
-    const hashedPass = await bcrypt.hash(registerDto.password, 10); // Hash password with 10 salt
-    const autoDisplayName = email.split('@')[0]; // split email by @ and take the first part as display name
+
+    const hashedPass = await bcrypt.hash(registerDto.password, 10);
+    const autoDisplayName = registerDto.displayName || email.split('@')[0];
+
     const createdUser = new this.userModel({
-      ...registerDto,
+      email,
       passHash: hashedPass,
       displayName: autoDisplayName,
     });
 
-    return await createdUser.save(); // save() is a method of Mongoose Model that saves the document to the database
+    const savedUser = await createdUser.save();
+    const result = savedUser.toObject() as Partial<User>;
+
+    delete result.passHash;
+    delete result.refreshToken;
+
+    return result;
   }
 
   async validateUser(loginDto: LoginDto): Promise<Partial<User>> {

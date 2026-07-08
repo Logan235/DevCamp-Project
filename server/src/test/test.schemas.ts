@@ -19,6 +19,77 @@ class StorageRef {
   outputUrl?: string;
 }
 
+@Schema({ _id: false })
+class OptionItem {
+  @Prop({ type: String, required: true })
+  id!: string;
+
+  @Prop({ type: String, required: true })
+  text!: string;
+}
+
+@Schema({ _id: false })
+class AssessmentOption {
+  @Prop({ type: String, required: true })
+  id!: string;
+
+  @Prop({ type: String, required: true })
+  text!: string;
+}
+
+@Schema({ _id: false })
+class AssessmentQuestion {
+  @Prop({ type: Number })
+  order?: number;
+
+  @Prop({ type: String, default: 'Dễ' })
+  level?: string;
+
+  @Prop({ type: String })
+  category?: string;
+
+  @Prop({ type: String, required: true })
+  title!: string;
+
+  @Prop({ type: String })
+  code?: string;
+
+  @Prop({
+    type: String,
+    enum: ['multiple-choice', 'essay'],
+    default: 'multiple-choice',
+  })
+  type!: 'multiple-choice' | 'essay';
+
+  @Prop({ type: [AssessmentOption], default: [] })
+  options?: AssessmentOption[];
+
+  @Prop({ type: String })
+  answer?: string;
+}
+
+@Schema({ collection: 'assessments', timestamps: true })
+export class Assessment extends Document {
+  declare _id: Types.ObjectId;
+
+  @Prop({ type: String, required: true })
+  title!: string;
+
+  @Prop({ type: String, required: true, unique: true, sparse: true })
+  slug!: string;
+
+  @Prop({ type: String })
+  description?: string;
+
+  @Prop({ type: [AssessmentQuestion], default: [] })
+  questions!: AssessmentQuestion[];
+
+  @Prop({ type: Boolean, default: true })
+  isActive!: boolean;
+}
+
+export const AssessmentSchema = SchemaFactory.createForClass(Assessment);
+
 @Schema({ timestamps: true })
 export class TestCase extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Challenge', required: true })
@@ -38,8 +109,8 @@ export class TestCase extends Document {
   })
   type: string;
 
-  @Prop({ type: [String] }) // Multiple options for multiple-choice questions (if type is 'multiple-choice')
-  options?: string[];
+  @Prop({ type: [OptionItem], default: [] })
+  options?: OptionItem[];
 
   @Prop({ type: GeneratedFor })
   generatedFor?: GeneratedFor;
@@ -73,3 +144,33 @@ export class TestSubmission extends Document {
 
 export const TestSubmissionSchema =
   SchemaFactory.createForClass(TestSubmission);
+
+@Schema({ collection: 'assessmentsubmissions', timestamps: true })
+export class AssessmentSubmission extends Document {
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  userId?: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'Assessment', required: true })
+  assessmentId!: Types.ObjectId;
+
+  @Prop({ type: [String], required: true })
+  userAnswers!: string[];
+
+  @Prop({ type: Number, required: true })
+  score!: number;
+
+  @Prop({ type: String })
+  detectedLevel?: string;
+
+  @Prop({ type: [String], default: [] })
+  strongSkills?: string[];
+
+  @Prop({ type: [String], default: [] })
+  weakSkills?: string[];
+
+  @Prop({ type: String, default: 'Completed' })
+  status!: string;
+}
+
+export const AssessmentSubmissionSchema =
+  SchemaFactory.createForClass(AssessmentSubmission);

@@ -7,6 +7,10 @@ import {
   TestCaseSchema,
   TestSubmission,
   TestSubmissionSchema,
+  Assessment,
+  AssessmentSchema,
+  AssessmentSubmission,
+  AssessmentSubmissionSchema,
 } from './test.schemas';
 
 @Module({
@@ -14,6 +18,8 @@ import {
     MongooseModule.forFeature([
       { name: TestCase.name, schema: TestCaseSchema },
       { name: TestSubmission.name, schema: TestSubmissionSchema },
+      { name: Assessment.name, schema: AssessmentSchema },
+      { name: AssessmentSubmission.name, schema: AssessmentSubmissionSchema },
     ]),
   ],
   controllers: [TestController],
