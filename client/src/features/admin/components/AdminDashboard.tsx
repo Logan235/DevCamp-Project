@@ -85,7 +85,6 @@ const DashboardContent: React.FC = () => {
     try {
       const response = await getAllExercisesApi();
 
-      // Kiểm tra xem dữ liệu thực sự nằm ở response.data hay là response.data.data
       const rawList = Array.isArray(response.data)
         ? response.data
         : response.data && Array.isArray(response.data.data)
@@ -94,7 +93,6 @@ const DashboardContent: React.FC = () => {
 
       const mappedData = rawList.map((item: any) => ({
         ...item,
-        // Đảm bảo map thêm trường categoryId phòng trường hợp Backend dùng categoryId thay vì topic
         topic:
           item.patternGroup ||
           item.topic ||
@@ -102,13 +100,12 @@ const DashboardContent: React.FC = () => {
           "Chưa phân loại",
         optimalPattern:
           item.patternGroup || item.optimalPattern || "Chưa thiết lập",
-        // Chuyển đổi test_cases từ DB sang testcases của component phòng khi lệch tên trường
         testcases: item.testcases || item.test_cases || [],
       }));
 
       setData(mappedData);
     } catch (err: any) {
-      message.error("Không thể lấy danh sách thử thách từ DB!");
+      message.error("Không thể lấy danh sách challenge!");
       console.error("Lỗi Fetch API:", err);
     } finally {
       setLoading(false);
@@ -121,35 +118,55 @@ const DashboardContent: React.FC = () => {
 
   const handleSubmit = (): void => {
     form.validateFields().then(async (formValues) => {
+      const rawTestcases = editing
+        ? editing.testcases || []
+        : currentChallenge?.testcases || [];
+      const formattedTestCases = rawTestcases.map((tc: any, index: number) => {
+        const numericId =
+          parseInt(String(tc.id).replace(/[^\d]/g, ""), 10) || index + 1;
+        return {
+          id: numericId,
+          type: tc.type || "sample",
+          input: tc.input || "",
+          expected_output: tc.expected_output || "",
+          explanation: "",
+        };
+      });
+
       const payload = {
-        ...formValues,
+        problem_name: formValues.title,
+        description: formValues.description,
+        difficulty: formValues.difficulty,
         challengeType: "coding",
-        patternGroup: formValues.topic,
+        categoryId: formValues.topic,
+        test_cases: formattedTestCases,
       };
 
       try {
         if (editing && editing._id) {
           await updateExerciseApi(editing._id, payload);
-          message.success("Cập nhật thử thách thành công!");
+          message.success("Cập nhật challenge thành công!");
         } else {
           const tempSlug = formValues.title
             .toLowerCase()
             .trim()
             .replace(/[\s_]+/g, "-")
             .replace(/[^\w\-]+/g, "");
+
           await createExerciseApi({
             ...payload,
             slug: tempSlug,
-            testcases: [],
           });
-          message.success("Thêm thử thách mới vào DB thành công!");
+          message.success("Thêm challenge thành công!");
         }
+
         fetchChallenges();
         setOpen(false);
         setEditing(null);
         form.resetFields();
       } catch (err: any) {
-        message.error("Lưu dữ liệu vào MongoDB thất bại!");
+        message.error("Thao tác thất bại!");
+        console.error("Lỗi Response từ Backend:", err.response?.data);
       }
     });
   };
@@ -166,10 +183,10 @@ const DashboardContent: React.FC = () => {
   const handleDelete = async (id: string): Promise<void> => {
     try {
       await deleteExerciseApi(id);
-      message.success("Đã xóa thử thách khỏi DB thành công!");
+      message.success("Đã xóa challenge thành công!");
       fetchChallenges();
     } catch (err) {
-      message.error("Xoá thử thách thất bại!");
+      message.error("Xoá challenge thất bại!");
     }
   };
 

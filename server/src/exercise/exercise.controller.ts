@@ -7,6 +7,8 @@ import {
   Post,
   Body,
   HttpCode,
+  Put,
+  Delete
 } from '@nestjs/common';
 import { ExerciseService } from './exercise.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
@@ -67,5 +69,22 @@ export class ExerciseController {
   ) {
     const userId = req.user.userId;
     return this.exerciseService.handleSubmit(userId, id, submitCodeDto);
+  }
+
+  @Put(':id')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles('admin')
+  async updateChallenge(
+    @Param('id') id: string,
+    @Body() updateChallengeDto: CreateChallengeDto, 
+  ) {
+    return await this.exerciseService.updateChallenge(id, updateChallengeDto);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles('admin')
+  async deleteChallenge(@Param('id') id: string) {
+    return await this.exerciseService.deleteChallenge(id);
   }
 }

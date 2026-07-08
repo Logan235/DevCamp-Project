@@ -235,4 +235,81 @@ export class ExerciseService {
       testCaseSubmissionIds: submissionIds,
     };
   }
+  async updateChallenge(id: string, dto: CreateChallengeDto) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('Định dạng ID bài tập không hợp lệ');
+    }
+
+    const challenge = await this.challengeModel.findById(id).exec();
+    if (!challenge) {
+      throw new NotFoundException('Không tìm thấy bài tập cần cập nhật');
+    }
+
+    try {
+      const fileName = `challenge/${challenge.slug}.json`;
+      const jsonBuffer = Buffer.from(JSON.stringify(dto, null, 2), 'utf-8');
+      await this.r2Service.uploadFile(jsonBuffer, fileName, 'application/json');
+    } catch (error) {
+      console.error('Lỗi cập nhật R2 backup:', error);
+    }
+
+    const examples = dto.test_cases
+      ? dto.test_cases
+          .filter((tc) => tc.type === 'sample')
+          .map((tc) => ({
+            input: tc.input,
+            output: tc.expected_output,
+            explanation: tc.explanation || '',
+          }))
+      : [];
+
+    challenge.title = dto.problem_name;
+    challenge.categoryId = new Types.ObjectId(dto.categoryId) as any;
+    challenge.difficulty = dto.difficulty as any;
+    challenge.description = dto.description;
+    challenge.challengeType = dto.challengeType;
+    challenge.examples = examples;
+    await challenge.save();
+
+    await this.testCaseModel.deleteMany({ challengeId: challenge._id }).exec();
+
+    if (dto.test_cases && dto.test_cases.length > 0) {
+      const testCaseDocs = dto.test_cases.map((tc) => ({
+        challengeId: challenge._id,
+        type: tc.type,
+        input: tc.input,
+        expectedOutput: tc.expected_output,
+        explanation: tc.explanation,
+        storageRef: {
+          inputUrl: '',
+          outputUrl: '',
+        },
+      }));
+      await this.testCaseModel.insertMany(testCaseDocs);
+    }
+
+    return challenge;
+  }
+
+  async deleteChallenge(id: string) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('Định dạng ID bài tập không hợp lệ');
+    }
+
+    const deletedChallenge = await this.challengeModel
+      .findByIdAndDelete(id)
+      .exec();
+    if (!deletedChallenge) {
+      throw new NotFoundException('Không tìm thấy bài tập để xóa');
+    }
+
+    await this.testCaseModel
+      .deleteMany({ challengeId: new Types.ObjectId(id) })
+      .exec();
+
+    return {
+      success: true,
+      message: `Đã xóa thành công bài tập "${deletedChallenge.title}" cùng các testcases liên quan.`,
+    };
+  }
 }
