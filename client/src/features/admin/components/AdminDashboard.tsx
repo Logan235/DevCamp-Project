@@ -126,28 +126,12 @@ const DashboardContent: React.FC = () => {
 
   const handleSubmit = (): void => {
     form.validateFields().then(async (formValues) => {
-      const rawTestcases = editing
-        ? editing.testcases || []
-        : currentChallenge?.testcases || [];
-      const formattedTestCases = rawTestcases.map((tc: any, index: number) => {
-        const numericId =
-          parseInt(String(tc.id).replace(/[^\d]/g, ""), 10) || index + 1;
-        return {
-          id: numericId,
-          type: tc.type || "sample",
-          input: tc.input || "",
-          expected_output: tc.expected_output || "",
-          explanation: "",
-        };
-      });
-
-      const payload = {
+      const payload: any = {
         problem_name: formValues.title,
         description: formValues.description,
         difficulty: formValues.difficulty,
         challengeType: "coding",
         categoryId: formValues.topic,
-        test_cases: formattedTestCases,
       };
 
       try {
@@ -164,6 +148,7 @@ const DashboardContent: React.FC = () => {
           await createExerciseApi({
             ...payload,
             slug: tempSlug,
+            test_cases: [],
           });
           message.success("Thêm thử thách thành công!");
         }
@@ -246,48 +231,111 @@ const DashboardContent: React.FC = () => {
     setIsSubFormOpen(true);
   };
 
+  const saveTestCasesToBackend = async (
+    challenge: ChallengeData,
+    testcases: TestCase[],
+  ): Promise<boolean> => {
+    if (!challenge._id) return false;
+    setLoading(true);
+
+    const formattedTestCases = testcases.map((tc: any, index: number) => {
+      const numericId =
+        parseInt(String(tc.id).replace(/[^\d]/g, ""), 10) || index + 1;
+      return {
+        id: numericId,
+        type: tc.type || "sample",
+        input: tc.input || "",
+        expected_output: tc.expected_output || "",
+        explanation: tc.explanation || "",
+      };
+    });
+
+    const payload = {
+      problem_name: challenge.title,
+      description: challenge.description,
+      difficulty: challenge.difficulty,
+      challengeType: challenge.challengeType || "coding",
+      categoryId: challenge.topic,
+      test_cases: formattedTestCases,
+    };
+
+    try {
+      await updateExerciseApi(challenge._id, payload);
+
+      const response = await getTestCasesByChallengeApi(challenge._id);
+      const dbTestCases = Array.isArray(response.data) ? response.data : [];
+
+      const reloadedFormatted = dbTestCases.map((tc: any) => ({
+        id: tc._id,
+        type: tc.type || "sample",
+        input: tc.input || "",
+        expected_output: tc.expectedOutput || tc.expected_output || "",
+        explanation: tc.explanation || "",
+      }));
+
+      setCurrentChallenge({ ...challenge, testcases: reloadedFormatted });
+      setData((prevData) =>
+        prevData.map((item) =>
+          item._id === challenge._id
+            ? { ...item, testcases: reloadedFormatted }
+            : item,
+        ),
+      );
+      return true;
+    } catch (error) {
+      console.error("Failed to save test cases:", error);
+      message.error("Không thể lưu testcase lên server!");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubFormSubmit = (): void => {
-    subForm.validateFields().then((formValues) => {
+    subForm.validateFields().then(async (formValues) => {
       if (!currentChallenge) return;
       let updatedTestCases = [...(currentChallenge.testcases || [])];
       if (editingTestCase) {
         updatedTestCases = updatedTestCases.map((tc) =>
           tc.id === editingTestCase.id ? { ...tc, ...formValues } : tc,
         );
-        message.success("Cập nhật testcase thành công!");
       } else {
         const newTestCase: TestCase = {
           id: "tc_" + Date.now(),
           ...formValues,
         };
         updatedTestCases.push(newTestCase);
-        message.success("Thêm testcase thành công!");
       }
-      const updatedData = data.map((item) =>
-        item._id === currentChallenge._id
-          ? { ...item, testcases: updatedTestCases }
-          : item,
+
+      const success = await saveTestCasesToBackend(
+        currentChallenge,
+        updatedTestCases,
       );
-      setData(updatedData);
-      setCurrentChallenge({ ...currentChallenge, testcases: updatedTestCases });
+      if (success) {
+        message.success(
+          editingTestCase
+            ? "Cập nhật testcase thành công!"
+            : "Thêm testcase thành công!",
+        );
+      }
       setIsSubFormOpen(false);
       subForm.resetFields();
     });
   };
 
-  const handleDeleteTestCase = (testCaseId: string): void => {
+  const handleDeleteTestCase = async (testCaseId: string): Promise<void> => {
     if (!currentChallenge) return;
     const updatedTestCases = (currentChallenge.testcases || []).filter(
       (tc) => tc.id !== testCaseId,
     );
-    const updatedData = data.map((item) =>
-      item._id === currentChallenge._id
-        ? { ...item, testcases: updatedTestCases }
-        : item,
+
+    const success = await saveTestCasesToBackend(
+      currentChallenge,
+      updatedTestCases,
     );
-    setData(updatedData);
-    setCurrentChallenge({ ...currentChallenge, testcases: updatedTestCases });
-    message.success("Đã xóa testcase!");
+    if (success) {
+      message.success("Đã xóa testcase!");
+    }
   };
 
   const handleImportJsonFiles = (fileList: RcFile[]): void => {
@@ -334,18 +382,14 @@ const DashboardContent: React.FC = () => {
                 ...(currentChallenge.testcases || []),
                 ...newImportedTestCases,
               ];
-              const updatedData = data.map((item) =>
-                item._id === currentChallenge._id
-                  ? { ...item, testcases: updatedTestCases }
-                  : item,
-              );
-              setData(updatedData);
-              setCurrentChallenge({
-                ...currentChallenge,
-                testcases: updatedTestCases,
-              });
-              message.success(
-                `🎉 Đã nạp thành công ${newImportedTestCases.length} testcase.`,
+              void saveTestCasesToBackend(currentChallenge, updatedTestCases).then(
+                (success) => {
+                  if (success) {
+                    message.success(
+                      `🎉 Đã nạp thành công ${newImportedTestCases.length} testcase.`,
+                    );
+                  }
+                },
               );
             }
           }
