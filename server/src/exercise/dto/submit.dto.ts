@@ -81,9 +81,10 @@ export class CreateChallengeDto {
   @IsIn(['coding', 'multiple_choice'])
   challengeType!: 'coding' | 'multiple_choice';
 
+  @IsOptional()
   @IsArray()
   @ArrayMinSize(0)
   @ValidateNested({ each: true })
   @Type(() => TestCaseDto)
-  test_cases!: TestCaseDto[];
+  test_cases?: TestCaseDto[];
 }
