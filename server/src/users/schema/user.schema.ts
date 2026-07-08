@@ -15,7 +15,7 @@ export class User extends Document {
 
   @Prop({ default: 'user' })
   role?: string;
-  
+
   @Prop()
   avatarUrl?: string;
 
