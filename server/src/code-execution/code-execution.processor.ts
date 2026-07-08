@@ -37,6 +37,7 @@ export class CodeExecutionProcessor extends WorkerHost {
     private readonly judgeService: JudgeService,
   ) {
     super();
+    this.logger.log('[CodeExecution] Processor initialized');
   }
 
   async process(job: Job<CodeExecutionJob>): Promise<void> {

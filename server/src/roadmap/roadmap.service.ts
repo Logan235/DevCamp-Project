@@ -35,6 +35,7 @@ type LeanChallenge = {
   slug?: string;
   difficulty?: ChallengeDifficulty;
   skillSlug?: string[];
+  patternGroup?: string;
   challengeType?: 'coding' | 'multiple_choice';
 };
 
@@ -43,6 +44,7 @@ type RoadmapNodePayload = {
   title: string;
   objective: string;
   skillSlug: string;
+  patternGroup: string;
   nodeType: 'practice';
   challengeIds: Types.ObjectId[];
   challengesSnapshot: Array<{
@@ -251,53 +253,54 @@ export class RoadmapService {
     challenges: LeanChallenge[],
     plan: AiRoadmapPlan,
   ): RoadmapNodePayload[] {
-    const exerciseCountPerNode = this.getExerciseCountPerNode(
+    const maxExercisesPerNode = this.getExerciseCountPerNode(
       plan.pacePreference,
     );
     const usedChallengeIds = new Set<string>();
     const nodes: RoadmapNodePayload[] = [];
 
-    const pushNode = (
-      objectivePrefix: string,
-      skillSlug: string,
-      nodeChallenges: LeanChallenge[],
-    ) => {
-      const uniqueChallenges = nodeChallenges.filter((challenge) => {
-        const challengeId = challenge._id.toString();
+    const groupedChallenges = this.groupChallengesByPattern(challenges, plan);
 
-        if (usedChallengeIds.has(challengeId)) {
-          return false;
-        }
-
-        usedChallengeIds.add(challengeId);
-        return true;
-      });
-
-      if (uniqueChallenges.length === 0) {
-        return;
+    for (const group of groupedChallenges) {
+      if (nodes.length >= plan.targetNodeCount) {
+        break;
       }
 
-      const firstChallenge = uniqueChallenges[0];
+      const nodeChallenges = group.challenges
+        .filter((challenge) => {
+          const challengeId = challenge._id.toString();
+
+          if (usedChallengeIds.has(challengeId)) {
+            return false;
+          }
+
+          usedChallengeIds.add(challengeId);
+          return true;
+        })
+        .slice(0, maxExercisesPerNode);
+
+      if (nodeChallenges.length === 0) {
+        continue;
+      }
+
+      const firstChallenge = nodeChallenges[0];
       const primarySkill =
-        skillSlug || firstChallenge?.skillSlug?.[0] || 'general';
-      const difficultyLabel = firstChallenge?.difficulty || 'mixed';
-      const firstChallengeTitle = firstChallenge?.title || 'bài luyện tập';
+        group.skillSlug || firstChallenge.skillSlug?.[0] || 'general';
       const nodeNumber = nodes.length + 1;
-      const skillDisplayName = this.getSkillDisplayName(primarySkill);
-      const difficultyDisplayName =
-        this.getDifficultyDisplayName(difficultyLabel);
 
       nodes.push({
         order: nodeNumber,
-        title: `${nodeNumber}. ${skillDisplayName} - ${difficultyDisplayName}`,
-        objective:
-          uniqueChallenges.length > 1
-            ? `${objectivePrefix}. Node này gồm ${uniqueChallenges.length} bài, bắt đầu với "${firstChallengeTitle}".`
-            : `${objectivePrefix}. Bắt đầu với bài "${firstChallengeTitle}".`,
+        title: `${nodeNumber}. ${this.getPatternDisplayName(group.patternGroup)}`,
+        objective: this.buildNodeObjective(
+          group.patternGroup,
+          primarySkill,
+          nodeChallenges,
+        ),
         skillSlug: primarySkill,
+        patternGroup: group.patternGroup,
         nodeType: 'practice',
-        challengeIds: uniqueChallenges.map((challenge) => challenge._id),
-        challengesSnapshot: uniqueChallenges.map((challenge) => ({
+        challengeIds: nodeChallenges.map((challenge) => challenge._id),
+        challengesSnapshot: nodeChallenges.map((challenge) => ({
           challengeId: challenge._id,
           title: challenge.title,
           slug: challenge.slug,
@@ -306,63 +309,168 @@ export class RoadmapService {
           xpReward: this.getXpReward(challenge.difficulty),
         })),
       });
-    };
-
-    for (const skillSlug of plan.skillOrder) {
-      if (nodes.length >= plan.targetNodeCount) {
-        break;
-      }
-
-      const skillChallenges = challenges.filter((challenge) =>
-        (challenge.skillSlug || []).includes(skillSlug),
-      );
-
-      for (
-        let index = 0;
-        index < skillChallenges.length && nodes.length < plan.targetNodeCount;
-        index += exerciseCountPerNode
-      ) {
-        const nodeChallenges = skillChallenges.slice(
-          index,
-          index + exerciseCountPerNode,
-        );
-
-        pushNode(
-          `Củng cố kỹ năng ${this.getSkillDisplayName(skillSlug)} dựa trên kết quả assessment`,
-          skillSlug,
-          nodeChallenges,
-        );
-      }
-    }
-
-    if (nodes.length < plan.targetNodeCount) {
-      const remainingChallenges = challenges.filter(
-        (challenge) => !usedChallengeIds.has(challenge._id.toString()),
-      );
-
-      for (
-        let index = 0;
-        index < remainingChallenges.length &&
-        nodes.length < plan.targetNodeCount;
-        index += exerciseCountPerNode
-      ) {
-        const nodeChallenges = remainingChallenges.slice(
-          index,
-          index + exerciseCountPerNode,
-        );
-
-        const firstSkill =
-          nodeChallenges[0]?.skillSlug?.[0] || plan.skillOrder[0] || 'general';
-
-        pushNode(
-          'Luyện tập bổ sung để củng cố kiến thức phù hợp với kết quả assessment',
-          firstSkill,
-          nodeChallenges,
-        );
-      }
     }
 
     return nodes.slice(0, plan.targetNodeCount);
+  }
+
+  private groupChallengesByPattern(
+    challenges: LeanChallenge[],
+    plan: AiRoadmapPlan,
+  ): Array<{
+    patternGroup: string;
+    skillSlug: string;
+    challenges: LeanChallenge[];
+  }> {
+    const skillRank = new Map(
+      plan.skillOrder.map((skill, index) => [skill, index]),
+    );
+
+    const difficultyRank = new Map<ChallengeDifficulty, number>(
+      (plan.difficulties as ChallengeDifficulty[]).map((difficulty, index) => [
+        difficulty,
+        index,
+      ]),
+    );
+
+    const groups = new Map<
+      string,
+      {
+        patternGroup: string;
+        skillSlug: string;
+        challenges: LeanChallenge[];
+        bestSkillRank: number;
+        bestDifficultyRank: number;
+      }
+    >();
+
+    for (const challenge of challenges) {
+      const skillSlug = this.getBestChallengeSkill(challenge, skillRank);
+      const patternGroup =
+        challenge.patternGroup ||
+        skillSlug ||
+        challenge.skillSlug?.[0] ||
+        'general';
+
+      const groupKey = `${skillSlug || 'general'}:${patternGroup}`;
+
+      const challengeSkillRank = this.getBestSkillRank(
+        challenge.skillSlug || [],
+        skillRank,
+      );
+
+      const challengeDifficultyRank = challenge.difficulty
+        ? (difficultyRank.get(challenge.difficulty) ?? Number.MAX_SAFE_INTEGER)
+        : Number.MAX_SAFE_INTEGER;
+
+      const existingGroup = groups.get(groupKey);
+
+      if (!existingGroup) {
+        groups.set(groupKey, {
+          patternGroup,
+          skillSlug: skillSlug || challenge.skillSlug?.[0] || 'general',
+          challenges: [challenge],
+          bestSkillRank: challengeSkillRank,
+          bestDifficultyRank: challengeDifficultyRank,
+        });
+
+        continue;
+      }
+
+      existingGroup.challenges.push(challenge);
+      existingGroup.bestSkillRank = Math.min(
+        existingGroup.bestSkillRank,
+        challengeSkillRank,
+      );
+      existingGroup.bestDifficultyRank = Math.min(
+        existingGroup.bestDifficultyRank,
+        challengeDifficultyRank,
+      );
+    }
+
+    return Array.from(groups.values())
+      .map((group) => ({
+        ...group,
+        challenges: this.sortChallengesByAiPlan(group.challenges, plan),
+      }))
+      .sort((left, right) => {
+        if (left.bestSkillRank !== right.bestSkillRank) {
+          return left.bestSkillRank - right.bestSkillRank;
+        }
+
+        return left.bestDifficultyRank - right.bestDifficultyRank;
+      });
+  }
+
+  private getBestChallengeSkill(
+    challenge: LeanChallenge,
+    skillRank: Map<string, number>,
+  ): string {
+    const skillSlugs = challenge.skillSlug || [];
+
+    if (skillSlugs.length === 0) {
+      return '';
+    }
+
+    return skillSlugs.reduce((bestSkill, skill) => {
+      const currentRank = skillRank.get(skill) ?? Number.MAX_SAFE_INTEGER;
+      const bestRank = skillRank.get(bestSkill) ?? Number.MAX_SAFE_INTEGER;
+
+      return currentRank < bestRank ? skill : bestSkill;
+    }, skillSlugs[0]);
+  }
+
+  private getPatternDisplayName(patternGroup?: string): string {
+    if (!patternGroup) {
+      return 'Luyện tập nền tảng';
+    }
+
+    const patternMap: Record<string, string> = {
+      two_pointers: 'Two Pointers',
+      'two-pointers': 'Two Pointers',
+      sliding_window: 'Sliding Window',
+      'sliding-window': 'Sliding Window',
+      binary_search: 'Binary Search',
+      'binary-search': 'Binary Search',
+      prefix_sum: 'Prefix Sum',
+      'prefix-sum': 'Prefix Sum',
+      recursion: 'Đệ quy',
+      sorting: 'Sắp xếp',
+      hash_map: 'Hash Map',
+      'hash-map': 'Hash Map',
+      stack: 'Stack',
+      queue: 'Queue',
+      graph: 'Graph',
+      dynamic_programming: 'Dynamic Programming',
+      'dynamic-programming': 'Dynamic Programming',
+      general: 'Luyện tập nền tảng',
+    };
+
+    return (
+      patternMap[patternGroup] ||
+      patternGroup
+        .split(/[-_\s]+/)
+        .filter(Boolean)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ')
+    );
+  }
+
+  private buildNodeObjective(
+    patternGroup: string,
+    skillSlug: string,
+    challenges: LeanChallenge[],
+  ): string {
+    const patternName = this.getPatternDisplayName(patternGroup);
+    const skillName = this.getSkillDisplayName(skillSlug);
+    const firstChallengeTitle =
+      challenges[0]?.title || 'bài luyện tập đầu tiên';
+
+    if (challenges.length === 1) {
+      return `Củng cố ${skillName} thông qua chủ đề ${patternName}, bắt đầu với bài "${firstChallengeTitle}".`;
+    }
+
+    return `Củng cố ${skillName} thông qua chủ đề ${patternName} với ${challenges.length} bài luyện tập, bắt đầu với "${firstChallengeTitle}".`;
   }
 
   private sortChallengesByAiPlan(

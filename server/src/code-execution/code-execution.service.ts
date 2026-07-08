@@ -3,6 +3,7 @@ import {
   HttpException,
   HttpStatus,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -16,6 +17,7 @@ export class CodeExecutionService {
   constructor(
     @InjectModel(Submission.name)
     private submissionModel: Model<Submission>,
+
     @InjectQueue('code-execution')
     private codeExecutionQueue: Queue,
   ) {}
@@ -57,14 +59,18 @@ export class CodeExecutionService {
 
     try {
       // Add job to the queue
-      await this.codeExecutionQueue.add('execute', {
+      const job = await this.codeExecutionQueue.add('execute', {
         submissionId: submission._id.toString(),
         code,
         input,
-        expectedOutput, // add expectedOutput to job payload
+        expectedOutput,
         language,
         timeout,
       });
+
+      this.logger.log(
+        `[CodeExecution] Queued job ${job.id} for submission ${submission._id.toString()}`,
+      );
 
       return submission;
     } catch {
@@ -78,6 +84,8 @@ export class CodeExecutionService {
       );
     }
   }
+
+  private readonly logger = new Logger(CodeExecutionService.name);
 
   /**
    * Get user submissions for a challenge

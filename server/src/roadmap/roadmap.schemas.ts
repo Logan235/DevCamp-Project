@@ -17,6 +17,7 @@ class RoadmapNode {
   @Prop({ type: String, required: true }) title: string;
   @Prop({ type: String }) objective?: string;
   @Prop({ type: String }) skillSlug?: string;
+  @Prop({ type: String }) patternGroup?: string;
   @Prop({ type: String, enum: ['practice', 'checkpoint'], default: 'practice' })
   nodeType: string;
   @Prop({ type: [Types.ObjectId], ref: 'Challenge', default: [] })

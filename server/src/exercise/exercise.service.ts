@@ -117,6 +117,32 @@ export class ExerciseService {
     return newChallenge;
   }
 
+  private async filterChallengesWithTestCases<
+    T extends { _id: Types.ObjectId },
+  >(challenges: T[]): Promise<T[]> {
+    if (challenges.length === 0) {
+      return [];
+    }
+
+    const challengeIds = challenges.map((challenge) => challenge._id);
+
+    const testCases = await this.testCaseModel
+      .find({
+        challengeId: { $in: challengeIds },
+        isActive: { $ne: false },
+      })
+      .select('challengeId')
+      .lean();
+
+    const challengeIdsWithTestCases = new Set(
+      testCases.map((testCase: any) => testCase.challengeId.toString()),
+    );
+
+    return challenges.filter((challenge) =>
+      challengeIdsWithTestCases.has(challenge._id.toString()),
+    );
+  }
+
   // GET all the exercises for the active roadmap of the user
   async getExercises(userId: string) {
     const activeRoadmap = await this.userRoadmapModel
@@ -124,7 +150,14 @@ export class ExerciseService {
       .exec();
 
     if (!activeRoadmap) {
-      return this.challengeModel.find().exec();
+      const challenges = await this.challengeModel
+        .find({
+          isActive: { $ne: false },
+          challengeType: 'coding',
+        })
+        .lean();
+
+      return this.filterChallengesWithTestCases(challenges);
     }
 
     const template = await this.templateModel
