@@ -112,6 +112,10 @@ function getLevelFromDifficulty(difficulty?: string): LessonLevel {
 function getLessonTitle(exercise?: ExerciseData | null) {
   if (!exercise?._id && !exercise?.slug) return DEFAULT_TASK.lessonTitle;
 
+  if (exercise.patternGroup) {
+    return `Pattern: ${exercise.patternGroup}`;
+  }
+
   if (exercise.slug) {
     return `Challenge: ${exercise.slug}`;
   }
