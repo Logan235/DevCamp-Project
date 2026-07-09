@@ -93,6 +93,7 @@ export class ExerciseService {
       difficulty: dto.difficulty,
       description: dto.description,
       challengeType: dto.challengeType,
+      patternGroup: dto.patternGroup,
       examples: examples,
       testcasePath: r2Path,
     });
@@ -385,6 +386,7 @@ export class ExerciseService {
     challenge.difficulty = dto.difficulty as Challenge['difficulty'];
     challenge.description = dto.description;
     challenge.challengeType = dto.challengeType;
+    challenge.patternGroup = dto.patternGroup;
     challenge.examples = examples;
     await challenge.save();
 
