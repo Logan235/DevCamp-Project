@@ -1,6 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { Badge } from "../../../components/common/Badge";
-import { Button } from "../../../components/common/Button";
 
 type LessonLevel = "info" | "warning" | "success" | "error";
 
@@ -191,8 +190,6 @@ export const SidebarTask: React.FC<SidebarTaskProps> = ({
   isLoading = false,
   error,
 }) => {
-  const [showHint, setShowHint] = useState(false);
-
   const learningTask = useMemo(() => buildLearningTask(exercise), [exercise]);
 
   if (isLoading) {

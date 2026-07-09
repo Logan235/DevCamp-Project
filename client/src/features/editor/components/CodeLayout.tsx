@@ -87,7 +87,7 @@ export const CodeLayout: React.FC = () => {
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [isPassed, setIsPassed] = useState<boolean>(false);
   const [latestSubmissionId, setLatestSubmissionId] = useState<string>();
-  const [submissionStatus, setSubmissionStatus] = useState<SubmissionStatus>();
+  const [, setSubmissionStatus] = useState<SubmissionStatus>();
   const [aiInput, setAiInput] = useState<string>("");
   const [isAiThinking, setIsAiThinking] = useState<boolean>(false);
   const [exercise, setExercise] = useState<any>(null);
@@ -97,7 +97,7 @@ export const CodeLayout: React.FC = () => {
   const [roadmapCompletion, setRoadmapCompletion] =
     useState<RoadmapCompletion | null>(null);
 
-  const [hasRunCode, setHasRunCode] = useState<boolean>(false);
+  const [, setHasRunCode] = useState<boolean>(false);
   const [aiMessages, setAiMessages] = useState<AiMirrorMessage[]>([
     {
       role: "assistant",

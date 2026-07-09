@@ -7,6 +7,7 @@ interface UserProfile {
   email: string;
   displayName: string;
   createdAt?: string;
+  password?: string;
 }
 
 export default function Profile() {
