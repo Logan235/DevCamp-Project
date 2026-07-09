@@ -278,7 +278,7 @@ export const SidebarTask: React.FC<SidebarTaskProps> = ({
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 sticky">
           <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-400">
             Kết quả kiểm tra
           </h3>
@@ -311,52 +311,6 @@ export const SidebarTask: React.FC<SidebarTaskProps> = ({
             )}
           </div>
         </div>
-      </div>
-
-      <div className="mt-6 border-t border-zinc-800/80 pt-4">
-        {!showHint ? (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setShowHint(true)}
-            className="w-full gap-1.5 border-amber-500/20 bg-amber-500/5 text-xs text-amber-400 transition-colors hover:bg-amber-500/10"
-          >
-            <svg
-              className="h-3.5 w-3.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-              />
-            </svg>
-            Hint gợi ý
-          </Button>
-        ) : (
-          <div className="animate-fadeIn space-y-2 rounded-xl border border-amber-500/10 bg-amber-500/5 p-4">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1 text-xs font-bold text-amber-400">
-                Gợi ý tư duy
-              </span>
-
-              <button
-                type="button"
-                onClick={() => setShowHint(false)}
-                className="font-mono text-xs text-zinc-500 transition-colors hover:text-zinc-300"
-              >
-                [Hide]
-              </button>
-            </div>
-
-            <pre className="whitespace-pre-wrap rounded border border-zinc-900 bg-[#050816]/40 p-2.5 font-mono text-[11px] leading-relaxed text-zinc-400">
-              {learningTask.syntaxHint}
-            </pre>
-          </div>
-        )}
       </div>
     </div>
   );

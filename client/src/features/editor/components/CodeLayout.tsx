@@ -14,6 +14,8 @@ import {
   completeRoadmapChallengeApi,
 } from "../api";
 import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 
 type SubmissionStatus = "pending" | "running" | "success" | "error" | string;
 
@@ -606,7 +608,12 @@ export const CodeLayout: React.FC = () => {
           [&_strong]:text-emerald-400 [&_strong]:font-bold
           [&_ul]:list-disc [&_ul]:ml-4 [&_li]:mt-1"
                   >
-                    <ReactMarkdown>{message.content || ""}</ReactMarkdown>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkMath]}
+                      rehypePlugins={[rehypeKatex]}
+                    >
+                      {message.content || ""}
+                    </ReactMarkdown>
                   </div>
                 )}
               </div>
