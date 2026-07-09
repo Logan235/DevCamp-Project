@@ -90,6 +90,7 @@ export class RoadmapService {
   getRoadmaps(userId: string) {
     return this.userRoadmapModel
       .find({ userId: this.toObjectId(userId, 'userId') })
+      .sort({ updatedAt: -1, createdAt: -1 })
       .populate('templateId')
       .exec();
   }
@@ -488,7 +489,7 @@ export class RoadmapService {
         challenge.skillSlug?.[0] ||
         'general';
 
-      const groupKey = `${skillSlug || 'general'}:${patternGroup}`;
+      const groupKey = skillSlug || challenge.skillSlug?.[0] || 'general';
 
       const challengeSkillRank = this.getBestSkillRank(
         challenge.skillSlug || [],
@@ -669,14 +670,14 @@ export class RoadmapService {
     pacePreference: 'slow' | 'medium' | 'fast',
   ): number {
     if (pacePreference === 'fast') {
-      return 2;
+      return 3;
     }
 
     if (pacePreference === 'slow') {
-      return 4;
+      return 5;
     }
 
-    return 3;
+    return 4;
   }
 
   private getSkillDisplayName(skillSlug?: string): string {

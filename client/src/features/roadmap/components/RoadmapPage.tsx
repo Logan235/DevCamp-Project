@@ -253,7 +253,7 @@ export default function RoadmapPage() {
   const activeRoadmap = useMemo(() => {
     return (
       roadmaps.find((roadmap) => roadmap.status === "active") ||
-      roadmaps[0] ||
+      roadmaps.find((roadmap) => roadmap.status === "completed") ||
       null
     );
   }, [roadmaps]);

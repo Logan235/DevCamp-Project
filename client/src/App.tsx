@@ -102,9 +102,41 @@ function App() {
           </ProtectedRoute>
         }
       />
-      <Route path="/assessment" element={<Asssessment />} />
-      <Route path="/assessment/:challengeId" element={<Asssessment />} />
-      <Route path="/result" element={<Result />} />
+      <Route
+        path="/assessment"
+        element={
+          <ProtectedRoute>
+            <Asssessment />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/assessment/:challengeId"
+        element={
+          <ProtectedRoute>
+            <Asssessment />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/result"
+        element={
+          <ProtectedRoute>
+            <Result />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/lesson/:id"
+        element={
+          <ProtectedRoute>
+            <LessonPage />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/dashboard"
         element={

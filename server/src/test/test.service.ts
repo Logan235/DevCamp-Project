@@ -16,7 +16,8 @@ import { RoadmapService } from '../roadmap/roadmap.service';
 @Injectable()
 export class TestService {
   constructor(
-    @InjectModel(TestCase.name) private readonly testCaseModel: Model<TestCase>,
+    @InjectModel(TestCase.name)
+    private readonly testCaseModel: Model<TestCase>,
 
     @InjectModel(TestSubmission.name)
     private readonly testSubmissionModel: Model<TestSubmission>,
@@ -30,7 +31,14 @@ export class TestService {
     private readonly roadmapService: RoadmapService,
   ) {}
 
-  // Return list of questions for a given challengeId, only including those that are active and of displayable types (sample, multiple-choice, essay)
+  private toObjectId(value: string, fieldName: string): Types.ObjectId {
+    if (!Types.ObjectId.isValid(value)) {
+      throw new BadRequestException(`${fieldName} is invalid`);
+    }
+
+    return new Types.ObjectId(value);
+  }
+
   async getQuestions(assessmentId?: string) {
     let assessment;
 
@@ -97,15 +105,48 @@ export class TestService {
     return normalizedSelectedText === normalizedExpectedAnswer;
   }
 
-  // Process user submissions for a given challengeId, compare with expected outputs, calculate score, and save the submission record
+  private getDetectedLevel(scorePercentage: number): string {
+    if (scorePercentage >= 80) {
+      return 'advanced';
+    }
+
+    if (scorePercentage >= 50) {
+      return 'intermediate';
+    }
+
+    return 'beginner';
+  }
+
+  private getUniqueSkills(values: Array<string | undefined>): string[] {
+    return Array.from(
+      new Set(
+        values
+          .filter((value): value is string => typeof value === 'string')
+          .map((value) => value.trim())
+          .filter(Boolean),
+      ),
+    );
+  }
+
+  private async getExistingUserRoadmap(userId: string) {
+    const roadmaps = await this.roadmapService.getRoadmaps(userId);
+
+    return (
+      roadmaps.find((roadmap: any) => roadmap.status === 'active') ||
+      roadmaps.find((roadmap: any) => roadmap.status === 'completed') ||
+      null
+    );
+  }
+
   async postSubmissions(body: {
     assessmentId?: string;
     challengeId?: string;
     userId?: string;
     userCodeOutput: string[];
+    forceRegenerateRoadmap?: boolean;
   }) {
     const assessmentId = body.assessmentId || body.challengeId;
-    const { userId, userCodeOutput } = body;
+    const { userId, userCodeOutput, forceRegenerateRoadmap } = body;
 
     if (!userCodeOutput || !Array.isArray(userCodeOutput)) {
       throw new BadRequestException(
@@ -171,30 +212,22 @@ export class TestService {
     const scorePercentage =
       totalToDivide > 0 ? Math.round((passedCount / totalToDivide) * 100) : 0;
 
-    const weakSkills: string[] = details
-      .filter(
-        (item) => item.status === 'Failed' && typeof item.category === 'string',
-      )
-      .map((item) => item.category as string);
+    const uniqueWeakSkills = this.getUniqueSkills(
+      details
+        .filter((item) => item.status === 'Failed')
+        .map((item) => item.category),
+    );
 
-    const strongSkills: string[] = details
-      .filter(
-        (item) => item.status === 'Passed' && typeof item.category === 'string',
-      )
-      .map((item) => item.category as string);
+    const uniqueStrongSkills = this.getUniqueSkills(
+      details
+        .filter((item) => item.status === 'Passed')
+        .map((item) => item.category),
+    );
 
-    const uniqueStrongSkills: string[] = [...new Set<string>(strongSkills)];
-    const uniqueWeakSkills: string[] = [...new Set<string>(weakSkills)];
+    const detectedLevel = this.getDetectedLevel(scorePercentage);
 
-    const detectedLevel =
-      scorePercentage >= 80
-        ? 'advanced'
-        : scorePercentage >= 50
-          ? 'intermediate'
-          : 'beginner';
-
-    await this.assessmentSubmissionModel.create({
-      userId: userId ? new Types.ObjectId(userId) : undefined,
+    const assessmentSubmission = await this.assessmentSubmissionModel.create({
+      userId: userId ? this.toObjectId(userId, 'userId') : undefined,
       assessmentId: assessment._id,
       userAnswers: userCodeOutput,
       score: scorePercentage,
@@ -206,6 +239,7 @@ export class TestService {
 
     const assessmentResult = {
       assessmentId: assessment._id.toString(),
+      assessmentSubmissionId: assessmentSubmission._id.toString(),
       status: scorePercentage === 100 ? 'Accepted' : 'Completed',
       score: scorePercentage,
       detectedLevel,
@@ -221,22 +255,31 @@ export class TestService {
 
     if (userId) {
       try {
-        roadmap = await this.roadmapService.generateFromAssessment(
-          userId,
-          assessmentResult,
-        );
+        const existingRoadmap = forceRegenerateRoadmap
+          ? null
+          : await this.getExistingUserRoadmap(userId);
+
+        roadmap =
+          existingRoadmap ||
+          (await this.roadmapService.generateFromAssessment(
+            userId,
+            assessmentResult,
+          ));
       } catch (error) {
-        console.warn('Failed to generate roadmap from assessment:', error);
+        console.warn(
+          'Failed to get or generate roadmap from assessment:',
+          error,
+        );
       }
     }
 
     return {
       ...assessmentResult,
       roadmap,
+      hasExistingRoadmap: roadmap !== null && !forceRegenerateRoadmap,
     };
   }
 
-  // Return summary of test cases for a given challengeId, grouped by type (sample, hidden, stress, generated, multiple-choice, essay) and count of each type
   async getResults(challengeId: string) {
     if (!Types.ObjectId.isValid(challengeId)) {
       throw new BadRequestException('Invalid challengeId format');

@@ -9,6 +9,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router";
 import { Badge } from "../../components/common/Badge";
 import type { QuestionItem, OptionItem } from "./Question";
 import { getAssessmentQuestionsApi, submitAssessmentApi } from "./api";
+import { getMyRoadmapsApi } from "../roadmap/api";
 
 const optionLabels = ["A", "B", "C", "D", "E", "F"];
 
@@ -170,6 +171,22 @@ export default function Asssessment() {
         setLoading(true);
         setLoadError(false);
         setLoadErrorMessage("");
+
+        if (!routeAssessmentId) {
+          const roadmaps = await getMyRoadmapsApi();
+
+          const existingRoadmap = Array.isArray(roadmaps)
+            ? roadmaps.find(
+                (roadmap: any) =>
+                  roadmap.status === "active" || roadmap.status === "completed",
+              )
+            : null;
+
+          if (existingRoadmap) {
+            navigate("/roadmap", { replace: true });
+            return;
+          }
+        }
 
         const data = routeAssessmentId
           ? await getAssessmentQuestionsApi(routeAssessmentId)
