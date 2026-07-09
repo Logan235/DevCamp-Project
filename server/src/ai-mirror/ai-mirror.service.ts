@@ -102,7 +102,7 @@ export class AiMirrorService {
 
     // 2. Khởi tạo model với system prompt và tools
     const modelName =
-      this.configService.get<string>('GEMINI_MODEL') || 'gemini-1.5-flash';
+      this.configService.get<string>('GEMINI_MODEL') || 'gemini-flash-latest';
 
     const model = this.genAI.getGenerativeModel({
       model: modelName,
