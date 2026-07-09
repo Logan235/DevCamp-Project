@@ -8,7 +8,7 @@ import {
   Body,
   HttpCode,
   Put,
-  Delete
+  Delete,
 } from '@nestjs/common';
 import { ExerciseService } from './exercise.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
@@ -45,7 +45,7 @@ export class ExerciseController {
   async getAllCategories() {
     return await this.exerciseService.getAllCategories();
   }
-  
+
   @Get(':id')
   getExerciseById(@Param('id') id: string) {
     return this.exerciseService.getExerciseById(id);
@@ -65,8 +65,7 @@ export class ExerciseController {
 
   // id is the challengeId
   @Post(':id/submit')
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles('user')
+  @UseGuards(JwtAuthGuard)
   submitCode(
     @Param('id') id: string,
     @Request() req: RequestWithUser,

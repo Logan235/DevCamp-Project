@@ -176,7 +176,9 @@ export const CodeLayout: React.FC = () => {
       );
     }
 
-    return null;
+    throw new Error(
+      `Submission ${submissionId} is still processing after ${MAX_POLL_ATTEMPTS} attempts.`,
+    );
   };
 
   const handleSubmitCode = async () => {
@@ -201,16 +203,44 @@ export const CodeLayout: React.FC = () => {
       setSubmissionStatus("pending");
       setOutput("Submitting code to all test cases...");
 
-      const result = await submitExerciseApi(challengeId, {
-        language,
-        code,
-      });
+      let result;
+
+      try {
+        result = await submitExerciseApi(challengeId, {
+          language,
+          code,
+        });
+      } catch (submitError: any) {
+        console.error("Submit request failed:", {
+          status: submitError.response?.status,
+          data: submitError.response?.data,
+          message: submitError.message,
+        });
+
+        throw new Error(
+          [
+            "Submit request failed.",
+            submitError.response?.status
+              ? `HTTP status: ${submitError.response.status}`
+              : "",
+            submitError.response?.data?.message ||
+              submitError.response?.data?.error ||
+              submitError.message,
+          ]
+            .filter(Boolean)
+            .join("\n"),
+        );
+      }
 
       const submissionIds = (result.testCaseSubmissionIds || []).map(String);
       const firstSubmissionId = submissionIds[0];
 
       if (!firstSubmissionId) {
-        throw new Error("No submission IDs returned from backend");
+        throw new Error(
+          `Backend did not return testCaseSubmissionIds. Response: ${JSON.stringify(
+            result,
+          )}`,
+        );
       }
 
       setLatestSubmissionId(firstSubmissionId);
@@ -220,11 +250,35 @@ export const CodeLayout: React.FC = () => {
         `Submit queued.\nTest cases: ${submissionIds.length}\nFirst submission ID: ${firstSubmissionId}\n\nWaiting for results...`,
       );
 
-      const results = await Promise.all(
-        submissionIds.map((submissionId: string) =>
-          pollSubmissionResult(submissionId, { silent: true }),
-        ),
-      );
+      let results;
+
+      try {
+        results = await Promise.all(
+          submissionIds.map((submissionId: string) =>
+            pollSubmissionResult(submissionId, { silent: true }),
+          ),
+        );
+      } catch (pollError: any) {
+        console.error("Polling submission failed:", {
+          status: pollError.response?.status,
+          data: pollError.response?.data,
+          message: pollError.message,
+        });
+
+        throw new Error(
+          [
+            "Submit was queued, but polling result failed.",
+            pollError.response?.status
+              ? `HTTP status: ${pollError.response.status}`
+              : "",
+            pollError.response?.data?.message ||
+              pollError.response?.data?.error ||
+              pollError.message,
+          ]
+            .filter(Boolean)
+            .join("\n"),
+        );
+      }
 
       const completedResults = results.filter(Boolean) as SubmissionDetail[];
 
@@ -263,11 +317,13 @@ export const CodeLayout: React.FC = () => {
         ].join("\n"),
       );
     } catch (error: any) {
-      console.error(error);
+      console.error("Submit flow failed:", error);
+
       setOutput(
-        error.response?.data?.message ||
-          "Submit failed. Check token, challengeId, Redis, or backend /exercises/:id/submit.",
+        error.message ||
+          "Submit failed. Please check backend logs for submit or polling errors.",
       );
+
       setIsError(true);
       setIsPassed(false);
     } finally {
@@ -312,11 +368,28 @@ export const CodeLayout: React.FC = () => {
 
       await pollSubmissionResult(result.submissionId);
     } catch (error: any) {
-      console.error(error);
-      setOutput(
+      console.error("Submit error:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+
+      const backendMessage =
         error.response?.data?.message ||
-          "Run failed. Local engine error or invalid setup.",
+        error.response?.data?.error ||
+        error.message;
+
+      setOutput(
+        [
+          "Submit failed.",
+          backendMessage ? `Reason: ${backendMessage}` : "",
+          error.response?.status ? `HTTP status: ${error.response.status}` : "",
+          "Please check backend console for /exercises/:id/submit.",
+        ]
+          .filter(Boolean)
+          .join("\n"),
       );
+
       setIsError(true);
       setIsPassed(false);
     } finally {
@@ -381,15 +454,24 @@ export const CodeLayout: React.FC = () => {
           content: `${result.reply}${analysisSummary}`,
         },
       ]);
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error("AI Mirror request failed:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+
+      const backendMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "AI Mirror chưa phản hồi được.";
 
       setAiMessages((currentMessages) => [
         ...currentMessages,
         {
           role: "assistant",
-          content:
-            "AI Mirror chưa phản hồi được. Hãy kiểm tra token, GEMINI_API_KEY hoặc backend /ai-mirror/chat.",
+          content: `AI Mirror chưa phản hồi được.\n\nLý do: ${backendMessage}`,
         },
       ]);
     } finally {

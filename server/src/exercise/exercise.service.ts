@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -20,6 +21,8 @@ import { Category } from '../categories/categories.schemas';
 
 @Injectable()
 export class ExerciseService {
+  private readonly logger = new Logger(ExerciseService.name);
+
   constructor(
     @InjectModel(Challenge.name)
     private challengeModel: Model<Challenge>,
@@ -172,7 +175,15 @@ export class ExerciseService {
       (node) => node.challengeIds || [],
     );
 
-    return this.challengeModel.find({ _id: { $in: challengeIds } }).exec();
+    const challenges = await this.challengeModel
+      .find({
+        _id: { $in: challengeIds },
+        isActive: { $ne: false },
+        challengeType: 'coding',
+      })
+      .lean();
+
+    return this.filterChallengesWithTestCases(challenges);
   }
 
   // GET details of a specific exercise by its ID
@@ -180,10 +191,24 @@ export class ExerciseService {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException('Định dạng ID bài tập không hợp lệ');
     }
+
     const exercise = await this.challengeModel.findById(id).exec();
+
     if (!exercise) {
       throw new NotFoundException('Không tìm thấy bài tập yêu cầu');
     }
+
+    const activeTestCaseCount = await this.testCaseModel.countDocuments({
+      challengeId: new Types.ObjectId(id),
+      isActive: { $ne: false },
+    });
+
+    if (activeTestCaseCount === 0) {
+      throw new BadRequestException(
+        'Bài tập này chưa có active testcase nên chưa thể luyện tập.',
+      );
+    }
+
     return exercise;
   }
 
@@ -236,10 +261,20 @@ export class ExerciseService {
     const { language, code } = submitExerciseDto;
 
     const testCases = await this.testCaseModel
-      .find({ challengeId: new Types.ObjectId(challengeId) })
+      .find({
+        challengeId: new Types.ObjectId(challengeId),
+        isActive: { $ne: false },
+      })
       .exec();
+
+    this.logger.log(
+      `[Submit] userId=${userId}, challengeId=${challengeId}, testCases=${testCases.length}`,
+    );
+
     if (!testCases || testCases.length === 0) {
-      throw new NotFoundException('No test cases found for this challenge.');
+      throw new BadRequestException(
+        'Challenge này chưa có active testcase nên chưa thể submit code.',
+      );
     }
 
     // Luồng xử lý lấy dữ liệu và map sang promises song song
@@ -258,6 +293,10 @@ export class ExerciseService {
         ? await this.r2Service.getFileContent(testCase.storageRef.outputUrl)
         : testCase.expectedOutput || ''; // Đảm bảo không bao giờ là undefined
 
+      this.logger.log(
+        `[Submit] Queueing testcase=${testCase._id?.toString()} for challenge=${challengeId}`,
+      );
+
       const job = await this.codeExecutionService.executeCode(userId, {
         challengeId,
         language,
@@ -266,12 +305,31 @@ export class ExerciseService {
         expectedOutput: expectedOutput, // Send expected output to the code execution service
       });
 
+      this.logger.log(
+        `[Submit] Queued submission=${job._id.toString()} for testcase=${testCase._id?.toString()}`,
+      );
+
       // Return the ID of the submission created for this test case
       return job._id;
     });
 
     // Wait for all submissions to be processed and collect their IDs
-    const submissionIds = await Promise.all(submissionPromises);
+    let submissionIds: Types.ObjectId[];
+
+    try {
+      submissionIds = await Promise.all(submissionPromises);
+    } catch (error) {
+      this.logger.error(
+        `[Submit] Failed to queue submissions for challenge=${challengeId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+
+      throw new BadRequestException(
+        error instanceof Error
+          ? error.message
+          : 'Không thể submit code cho các testcase.',
+      );
+    }
 
     return {
       message: 'Submission received and is being processed.',
