@@ -28,7 +28,6 @@ export const AIChatbot: React.FC<AIChatbotProps> = ({ hasRunCode }) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
 
-    // Add user message
     const newMessages = [
       ...messages,
       { role: "user" as const, text: inputValue },
@@ -36,7 +35,6 @@ export const AIChatbot: React.FC<AIChatbotProps> = ({ hasRunCode }) => {
     setMessages(newMessages);
     setInputValue("");
 
-    // Giả lập AI phản hồi sau 1 giây
     setTimeout(() => {
       setMessages((prev) => [
         ...prev,
