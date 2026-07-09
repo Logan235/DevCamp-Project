@@ -65,7 +65,8 @@ export class AiRoadmapService {
     try {
       const response = await this.ai.models.generateContent({
         model:
-          this.configService.get<string>('GEMINI_MODEL') || 'gemini-2.5-flash',
+          this.configService.get<string>('GEMINI_MODEL') ||
+          'gemini-flash-latest',
         contents: this.buildPrompt(input),
         config: {
           temperature: 0.2,
