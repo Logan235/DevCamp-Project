@@ -14,6 +14,7 @@ type NodeStatus = "completed" | "current" | "locked";
 type DifficultyVariant = "success" | "warning" | "error" | "info";
 
 type ChallengeSnapshot = {
+  challengeId?: string | { _id?: string };
   title?: string;
   slug?: string;
   difficulty?: string;
@@ -23,9 +24,14 @@ type ChallengeSnapshot = {
 
 type RoadmapTemplateNode = {
   order?: number;
-  challengeId?: string | { _id?: string; title?: string; slug?: string };
-  nodeType?: "challenge" | "checkpoint";
-  challengesSnapshot?: ChallengeSnapshot;
+  title?: string;
+  objective?: string;
+  skillSlug?: string;
+  challengeIds?: Array<
+    string | { _id?: string; title?: string; slug?: string }
+  >;
+  nodeType?: "practice" | "checkpoint" | "challenge";
+  challengesSnapshot?: ChallengeSnapshot[];
 };
 
 type RoadmapTemplate = {
@@ -48,11 +54,13 @@ type UserRoadmap = {
     pacePreference?: "slow" | "medium" | "fast";
   };
   templateId?: string | RoadmapTemplate;
+  completedChallengeIds?: Array<string | { _id?: string }>;
 };
 
 type RoadmapViewNode = {
   id: string;
   challengeId: string;
+  firstChallengeId: string;
   title: string;
   desc: string;
   xp: number;
@@ -62,6 +70,7 @@ type RoadmapViewNode = {
   concept: string;
   x: number;
   y: number;
+  exerciseCount?: number;
 };
 
 const NODE_POSITIONS = [
@@ -75,14 +84,33 @@ const NODE_POSITIONS = [
   { x: 95, y: 35 },
 ];
 
-function getChallengeId(node: RoadmapTemplateNode): string {
-  if (!node.challengeId) return "";
+function getChallengeId(value?: string | { _id?: string }): string {
+  if (!value) return "";
+  return typeof value === "string" ? value : value._id || "";
+}
 
-  if (typeof node.challengeId === "string") {
-    return node.challengeId;
+function getFirstChallengeId(node: RoadmapTemplateNode): string {
+  const firstSnapshot = node.challengesSnapshot?.[0];
+
+  if (firstSnapshot?.challengeId) {
+    if (typeof firstSnapshot.challengeId === "string") {
+      return firstSnapshot.challengeId;
+    }
+
+    return firstSnapshot.challengeId._id || "";
   }
 
-  return node.challengeId._id || "";
+  const firstChallengeId = node.challengeIds?.[0];
+
+  if (!firstChallengeId) {
+    return "";
+  }
+
+  if (typeof firstChallengeId === "string") {
+    return firstChallengeId;
+  }
+
+  return firstChallengeId._id || "";
 }
 
 function mapDifficultyToVariant(difficulty?: string): DifficultyVariant {
@@ -112,11 +140,39 @@ function buildRoadmapNodes(
 
   const completedNodes = activeRoadmap?.completedNodes || 0;
 
+  const completedChallengeIds = new Set(
+    (activeRoadmap?.completedChallengeIds || [])
+      .map((challengeId) => getChallengeId(challengeId))
+      .filter(Boolean),
+  );
+
   return templateNodes
     .map((node, index) => {
-      const challengeId = getChallengeId(node);
-      const snapshot = node.challengesSnapshot || {};
-      const position = NODE_POSITIONS[index % NODE_POSITIONS.length];
+      const allChallengeIds = (node.challengeIds || [])
+        .map((challengeId) => getChallengeId(challengeId))
+        .filter(Boolean);
+
+      const firstIncompleteChallengeId = allChallengeIds.find(
+        (challengeId) => !completedChallengeIds.has(challengeId),
+      );
+
+      const firstChallengeId = getFirstChallengeId(node);
+      const challengeId = firstIncompleteChallengeId || firstChallengeId;
+      const firstSnapshot = node.challengesSnapshot?.[0];
+      const allSnapshots = node.challengesSnapshot || [];
+
+      // Calculate dynamic positions if there are more than 8 nodes to prevent overlapping
+      const totalNodes = templateNodes.length;
+      let x = 8;
+      let y = 50;
+      if (totalNodes <= NODE_POSITIONS.length) {
+        const position = NODE_POSITIONS[index];
+        x = position.x;
+        y = position.y;
+      } else {
+        x = 8 + (87 * index) / (totalNodes - 1);
+        y = index % 2 === 0 ? 65 : 35;
+      }
 
       let status: NodeStatus = "locked";
 
@@ -126,33 +182,44 @@ function buildRoadmapNodes(
         status = "current";
       }
 
+      const skillSlugs =
+        firstSnapshot?.skillSlugs && firstSnapshot.skillSlugs.length > 0
+          ? firstSnapshot.skillSlugs
+          : node.skillSlug
+            ? [node.skillSlug]
+            : [];
+
+      const totalXp = allSnapshots.reduce(
+        (sum, snapshot) => sum + (snapshot.xpReward || 0),
+        0,
+      );
+
       return {
         id: `${node.order ?? index + 1}`,
         challengeId,
-        title:
-          snapshot.title ||
-          (typeof node.challengeId === "object"
-            ? node.challengeId.title
-            : "") ||
-          `Bài học ${index + 1}`,
+        firstChallengeId,
+        title: node.title || firstSnapshot?.title || `Bài học ${index + 1}`,
         desc:
-          snapshot.skillSlugs && snapshot.skillSlugs.length > 0
-            ? `Chủ đề: ${snapshot.skillSlugs.join(", ")}`
+          node.objective ||
+          (skillSlugs.length > 0
+            ? `Chủ đề: ${skillSlugs.join(", ")}`
             : template?.description ||
-              "Bài tập trong lộ trình cá nhân hóa của bạn.",
-        xp: snapshot.xpReward || 100,
+              "Bài tập trong lộ trình cá nhân hóa của bạn."),
+        xp: totalXp || firstSnapshot?.xpReward || 100,
         status,
-        difficulty: mapDifficultyToVariant(snapshot.difficulty),
+        difficulty: mapDifficultyToVariant(firstSnapshot?.difficulty),
         syntaxSnippet:
-          snapshot.slug ||
-          (typeof node.challengeId === "object" ? node.challengeId.slug : "") ||
-          "Mở bài để xem chi tiết",
+          firstSnapshot?.slug ||
+          `${allSnapshots.length || node.challengeIds?.length || 0} bài luyện tập`,
         concept:
-          snapshot.skillSlugs && snapshot.skillSlugs.length > 0
-            ? `Bài này giúp bạn luyện nhóm kỹ năng: ${snapshot.skillSlugs.join(", ")}.`
-            : "Bài tập được chọn từ roadmap dựa trên kết quả assessment của bạn.",
-        x: position.x,
-        y: position.y,
+          allSnapshots.length > 1
+            ? `Node này gồm ${allSnapshots.length} bài luyện tập để củng cố kỹ năng ${skillSlugs.join(", ") || "nền tảng"}.`
+            : skillSlugs.length > 0
+              ? `Bài này giúp bạn luyện nhóm kỹ năng: ${skillSlugs.join(", ")}.`
+              : "Bài tập được chọn từ roadmap dựa trên kết quả assessment của bạn.",
+        x,
+        y,
+        exerciseCount: allSnapshots.length || node.challengeIds?.length || 0,
       };
     })
     .filter((node) => Boolean(node.challengeId));
@@ -181,6 +248,7 @@ export default function RoadmapPage() {
 
         const data = await getMyRoadmapsApi();
         setRoadmaps(Array.isArray(data) ? data : []);
+        setActiveNodeId(null);
       } catch (error) {
         console.error(error);
         setLoadError(
@@ -197,7 +265,7 @@ export default function RoadmapPage() {
   const activeRoadmap = useMemo(() => {
     return (
       roadmaps.find((roadmap) => roadmap.status === "active") ||
-      roadmaps[0] ||
+      roadmaps.find((roadmap) => roadmap.status === "completed") ||
       null
     );
   }, [roadmaps]);
@@ -208,10 +276,16 @@ export default function RoadmapPage() {
   );
 
   useEffect(() => {
-    if (!activeNodeId && stepsData.length > 0) {
-      const currentNode =
-        stepsData.find((node) => node.status === "current") || stepsData[0];
+    if (stepsData.length === 0) return;
 
+    const currentNode =
+      stepsData.find((node) => node.status === "current") || stepsData[0];
+
+    const activeNodeStillExists = stepsData.some(
+      (node) => node.id === activeNodeId,
+    );
+
+    if (!activeNodeId || !activeNodeStillExists) {
       setActiveNodeId(currentNode.id);
     }
   }, [activeNodeId, stepsData]);
@@ -235,7 +309,9 @@ export default function RoadmapPage() {
     if (step.status === "locked") return;
 
     setActiveNodeId(step.id);
-    navigate(`/lesson/${step.challengeId}`);
+    navigate(
+      `/lesson/${step.status === "completed" ? step.firstChallengeId : step.challengeId}`,
+    );
   };
 
   return (
