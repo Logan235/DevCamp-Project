@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import SidebarTask from "./SidebarTask";
 import CodeEditor from "./CodeEditor";
 import ConsoleOutput from "./ConsoleOutput";
@@ -11,8 +11,10 @@ import {
   runExerciseApi,
   submitExerciseApi,
   getExerciseByIdApi,
+  completeRoadmapChallengeApi,
 } from "../api";
 import ReactMarkdown from "react-markdown";
+
 type SubmissionStatus = "pending" | "running" | "success" | "error" | string;
 
 type SubmissionDetail = {
@@ -27,6 +29,18 @@ type SubmissionDetail = {
 type AiMirrorMessage = {
   role: "user" | "assistant";
   content: string;
+};
+
+type RoadmapCompletion = {
+  completedNodes?: number;
+  totalNodes?: number;
+  isRoadmapCompleted?: boolean;
+  currentNode?: {
+    title?: string;
+    isCompleted?: boolean;
+  };
+  nextChallengeInNodeId?: string;
+  nextNodeChallengeId?: string;
 };
 
 const FINAL_SUBMISSION_STATUSES = new Set([
@@ -62,6 +76,7 @@ function isMongoObjectId(value?: string) {
 export const CodeLayout: React.FC = () => {
   const { challengeId } = useParams();
   const isValidChallengeId = isMongoObjectId(challengeId);
+  const navigate = useNavigate();
 
   const [language, setLanguage] = useState<string>("cpp");
   const [code, setCode] = useState<string>(INITIAL_CODE.cpp);
@@ -76,6 +91,9 @@ export const CodeLayout: React.FC = () => {
   const [exercise, setExercise] = useState<any>(null);
   const [exerciseLoading, setExerciseLoading] = useState(false);
   const [exerciseError, setExerciseError] = useState("");
+
+  const [roadmapCompletion, setRoadmapCompletion] =
+    useState<RoadmapCompletion | null>(null);
 
   const [hasRunCode, setHasRunCode] = useState<boolean>(false);
   const [aiMessages, setAiMessages] = useState<AiMirrorMessage[]>([
@@ -95,6 +113,7 @@ export const CodeLayout: React.FC = () => {
     setLatestSubmissionId(undefined);
     setSubmissionStatus(undefined);
     setHasRunCode(false);
+    setRoadmapCompletion(null);
 
     if (!challengeId) {
       setExerciseError("Thiếu challengeId trên URL.");
@@ -303,9 +322,30 @@ export const CodeLayout: React.FC = () => {
       setIsError(!allPassed);
       setSubmissionStatus(allPassed ? "success" : "wrong_answer");
 
+      let completion: RoadmapCompletion | null = null;
+
+      if (allPassed && isValidChallengeId && challengeId) {
+        try {
+          completion = await completeRoadmapChallengeApi(
+            challengeId,
+            submissionIds,
+          );
+          setRoadmapCompletion(completion);
+        } catch (completionError: any) {
+          console.error("Failed to update roadmap completion:", {
+            status: completionError.response?.status,
+            data: completionError.response?.data,
+            message: completionError.message,
+          });
+        }
+      }
+
       setOutput(
         [
           `Submit finished: ${passedCount}/${submissionIds.length} test cases passed.`,
+          allPassed && completion
+            ? `Roadmap updated: ${completion.completedNodes || 0}/${completion.totalNodes || 0} node completed.`
+            : "",
           "",
           ...completedResults.map(
             (submission, index) =>
@@ -479,6 +519,22 @@ export const CodeLayout: React.FC = () => {
     }
   };
 
+  const nextExerciseId =
+    roadmapCompletion?.nextChallengeInNodeId ||
+    roadmapCompletion?.nextNodeChallengeId;
+
+  const completionMessage = roadmapCompletion
+    ? roadmapCompletion.isRoadmapCompleted
+      ? "Bạn đã hoàn thành toàn bộ roadmap này."
+      : roadmapCompletion.currentNode?.isCompleted
+        ? "Node hiện tại đã hoàn thành. Roadmap đã mở node tiếp theo."
+        : "Bài này đã hoàn thành. Bạn có thể làm bài tiếp theo trong cùng node."
+    : undefined;
+
+  const nextExerciseLabel = roadmapCompletion?.nextChallengeInNodeId
+    ? "Làm bài tiếp theo trong node"
+    : "Đến bài đầu tiên của node tiếp theo";
+
   return (
     <div className="h-screen w-full flex flex-col bg-[#050816] overflow-hidden relative">
       <CodeHeader />
@@ -512,6 +568,14 @@ export const CodeLayout: React.FC = () => {
               isPassed={isPassed}
               onRunCode={handleRunCode}
               onSubmitCode={handleSubmitCode}
+              onBackToRoadmap={() => navigate("/roadmap")}
+              onNextExercise={
+                nextExerciseId
+                  ? () => navigate(`/lesson/${nextExerciseId}`)
+                  : undefined
+              }
+              nextExerciseLabel={nextExerciseLabel}
+              completionMessage={completionMessage}
             />
           </div>
         </div>

@@ -6,6 +6,7 @@ import {
   Body,
   Request,
   UseGuards,
+  Param,
 } from '@nestjs/common';
 import { RoadmapService } from './roadmap.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
@@ -39,6 +40,20 @@ export class RoadmapController {
     return this.roadmapService.generateFromAssessment(
       userId,
       body.assessmentResult,
+    );
+  }
+
+  @Post('me/challenges/:challengeId/complete')
+  completeChallenge(
+    @Request() req: RequestWithUser,
+    @Param('challengeId') challengeId: string,
+    @Body() body: { submissionIds?: string[] },
+  ) {
+    const userId = req.user.userId;
+    return this.roadmapService.completeChallenge(
+      userId,
+      challengeId,
+      body.submissionIds,
     );
   }
 }

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  BadGatewayException,
   Injectable,
   NotFoundException,
   Logger,
@@ -123,12 +124,14 @@ ${submissionContext}
         ...executionGrade,
       };
 
+      const fallbackChallengeId = dto.challengeId
+        ? this.toObjectId(dto.challengeId, 'challengeId')
+        : undefined;
+
       const savedSession = await this.reflectionSessionModel.create({
         userId: this.toObjectId(userId, 'userId'),
         submissionId: submission?._id,
-        challengeId:
-          submission?.challengeId ||
-          this.toObjectId(dto.challengeId!, 'challengeId'),
+        challengeId: submission?.challengeId || fallbackChallengeId,
         userMessage: dto.message,
         aiReply: reply,
         thinkingScore: thinkingAnalysis.thinkingScore,
@@ -145,7 +148,17 @@ ${submissionContext}
       };
     } catch (error) {
       this.logger.error('AI Mirror chat failed', error);
-      throw error;
+
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+
+      const message =
+        error instanceof Error ? error.message : 'Unknown AI error';
+      throw new BadGatewayException(`AI Mirror request failed: ${message}`);
     }
   }
 }

@@ -86,6 +86,10 @@ export class UserRoadmap extends Document {
   status: string;
   @Prop({ type: Number }) totalNodes?: number;
   @Prop({ type: Number }) completedNodes?: number;
+
+  @Prop({ type: [Types.ObjectId], ref: 'Challenge', default: [] })
+  completedChallengeIds?: Types.ObjectId[];
+
   @Prop({ type: GenerationParams }) generationParams?: GenerationParams;
 }
 export const UserRoadmapSchema = SchemaFactory.createForClass(UserRoadmap);

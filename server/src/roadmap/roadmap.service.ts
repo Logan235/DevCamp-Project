@@ -9,6 +9,7 @@ import {
   AiRoadmapService,
 } from '../ai-mirror/ai-roadmap.service';
 import type { UpdateRoadmapDto } from '../interfaceFile/interface';
+import { Submission } from '../code-execution/schema/submission.schema';
 
 type AssessmentDetail = {
   questionOrder?: number;
@@ -73,6 +74,9 @@ export class RoadmapService {
     private readonly testCaseModel: Model<TestCase>,
 
     private readonly aiRoadmapService: AiRoadmapService,
+
+    @InjectModel(Submission.name)
+    private readonly submissionModel: Model<Submission>,
   ) {}
 
   private toObjectId(value: string, fieldName: string): Types.ObjectId {
@@ -101,6 +105,138 @@ export class RoadmapService {
         { new: true },
       )
       .exec();
+  }
+
+  async completeChallenge(
+    userId: string,
+    challengeId: string,
+    submissionIds?: string[],
+  ) {
+    const userObjectId = this.toObjectId(userId, 'userId');
+    const challengeObjectId = this.toObjectId(challengeId, 'challengeId');
+
+    const activeTestCaseCount = await this.testCaseModel.countDocuments({
+      challengeId: challengeObjectId,
+      isActive: { $ne: false },
+    });
+
+    const submissionObjectIds = (submissionIds || []).map((submissionId) =>
+      this.toObjectId(submissionId, 'submissionId'),
+    );
+
+    const successfulSubmissionCount = submissionObjectIds.length
+      ? await this.submissionModel.countDocuments({
+          _id: { $in: submissionObjectIds },
+          userId: userObjectId,
+          challengeId: challengeObjectId,
+          status: 'success',
+        })
+      : await this.submissionModel.countDocuments({
+          userId: userObjectId,
+          challengeId: challengeObjectId,
+          status: 'success',
+        });
+
+    if (
+      activeTestCaseCount === 0 ||
+      (submissionObjectIds.length > 0 &&
+        submissionObjectIds.length !== activeTestCaseCount) ||
+      successfulSubmissionCount < activeTestCaseCount
+    ) {
+      throw new BadRequestException(
+        'Challenge is not fully passed yet. Submit code and pass all active test cases first.',
+      );
+    }
+
+    const roadmap = await this.userRoadmapModel
+      .findOne({ userId: userObjectId, status: 'active' })
+      .populate('templateId')
+      .exec();
+
+    if (!roadmap) {
+      throw new BadRequestException('Active roadmap not found');
+    }
+
+    const template = roadmap.templateId as any;
+    const nodes = [...(template.nodes || [])].sort(
+      (left, right) => (left.order || 0) - (right.order || 0),
+    );
+
+    const nodeIndex = nodes.findIndex((node) =>
+      (node.challengeIds || []).some((id) => id.equals(challengeObjectId)),
+    );
+
+    if (nodeIndex === -1) {
+      throw new BadRequestException(
+        'Challenge is not part of the active roadmap',
+      );
+    }
+
+    const completedChallengeIds = new Set(
+      (roadmap.completedChallengeIds || []).map((id) => id.toString()),
+    );
+
+    completedChallengeIds.add(challengeObjectId.toString());
+
+    let completedNodes = 0;
+
+    for (const node of nodes) {
+      const nodeChallengeIds = (node.challengeIds || []).map((id) =>
+        id.toString(),
+      );
+
+      if (
+        nodeChallengeIds.length > 0 &&
+        nodeChallengeIds.every((id) => completedChallengeIds.has(id))
+      ) {
+        completedNodes += 1;
+        continue;
+      }
+
+      break;
+    }
+
+    const currentNode = nodes[nodeIndex];
+    const currentNodeChallengeIds = (currentNode.challengeIds || []).map((id) =>
+      id.toString(),
+    );
+
+    const nextChallengeInNodeId = currentNodeChallengeIds.find(
+      (id) => !completedChallengeIds.has(id),
+    );
+
+    const nextNode = nodes[completedNodes];
+    const nextNodeChallengeId = nextNode?.challengeIds?.[0]?.toString();
+
+    const totalNodes = roadmap.totalNodes || nodes.length;
+    const status = completedNodes >= totalNodes ? 'completed' : roadmap.status;
+
+    roadmap.completedChallengeIds = Array.from(completedChallengeIds).map(
+      (id) => new Types.ObjectId(id),
+    );
+    roadmap.completedNodes = completedNodes;
+    roadmap.totalNodes = totalNodes;
+    roadmap.status = status;
+
+    await roadmap.save();
+
+    return {
+      roadmapId: roadmap._id,
+      completedChallengeId: challengeObjectId,
+      completedChallengeIds: roadmap.completedChallengeIds,
+      completedNodes,
+      totalNodes,
+      isRoadmapCompleted: status === 'completed',
+      currentNode: {
+        order: currentNode.order,
+        title: currentNode.title,
+        isCompleted: currentNodeChallengeIds.every((id) =>
+          completedChallengeIds.has(id),
+        ),
+      },
+      nextChallengeInNodeId,
+      nextNodeChallengeId,
+    };
   }
 
   generateRoadmap(userId: string, assessmentResult: AssessmentRoadmapResult) {

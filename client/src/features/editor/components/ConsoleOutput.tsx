@@ -8,12 +8,20 @@ interface ConsoleOutputProps {
   onSubmitCode: () => void;
   isRunning: boolean;
   isPassed: boolean;
+  onBackToRoadmap?: () => void;
+  onNextExercise?: () => void;
+  nextExerciseLabel?: string;
+  completionMessage?: string;
 }
 
 export const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
   output,
   isError,
   isPassed,
+  onBackToRoadmap,
+  onNextExercise,
+  nextExerciseLabel = "Bài tiếp theo",
+  completionMessage,
 }) => {
   return (
     <div className="h-full bg-[#050816] border-t border-zinc-800/80 flex flex-col justify-between">
@@ -34,14 +42,34 @@ export const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
                 {output}
               </pre>
               {isPassed && (
-                <div className="pt-2 animate-fadeIn">
-                  <a
-                    href="/roadmap"
-                    className="inline-flex items-center gap-1.5 font-sans text-xs font-semibold text-orange-400 hover:text-orange-300 border border-orange-500/20 bg-orange-500/5 px-3 py-1.5 rounded transition-colors group"
-                  >
-                    Quay lại Roadmap
-                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                  </a>
+                <div className="space-y-2 pt-2 animate-fadeIn font-sans">
+                  {completionMessage && (
+                    <p className="text-xs text-emerald-300">
+                      {completionMessage}
+                    </p>
+                  )}
+
+                  <div className="flex flex-wrap gap-2">
+                    {onNextExercise && (
+                      <button
+                        type="button"
+                        onClick={onNextExercise}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-300 hover:text-emerald-200 border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 rounded transition-colors group"
+                      >
+                        {nextExerciseLabel}
+                        <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={onBackToRoadmap}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-400 hover:text-orange-300 border border-orange-500/20 bg-orange-500/5 px-3 py-1.5 rounded transition-colors group"
+                    >
+                      Quay lại Roadmap
+                      <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

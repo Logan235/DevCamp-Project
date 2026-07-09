@@ -54,11 +54,13 @@ type UserRoadmap = {
     pacePreference?: "slow" | "medium" | "fast";
   };
   templateId?: string | RoadmapTemplate;
+  completedChallengeIds?: Array<string | { _id?: string }>;
 };
 
 type RoadmapViewNode = {
   id: string;
   challengeId: string;
+  firstChallengeId: string;
   title: string;
   desc: string;
   xp: number;
@@ -81,6 +83,11 @@ const NODE_POSITIONS = [
   { x: 86, y: 55 },
   { x: 95, y: 35 },
 ];
+
+function getChallengeId(value?: string | { _id?: string }): string {
+  if (!value) return "";
+  return typeof value === "string" ? value : value._id || "";
+}
 
 function getFirstChallengeId(node: RoadmapTemplateNode): string {
   const firstSnapshot = node.challengesSnapshot?.[0];
@@ -133,9 +140,24 @@ function buildRoadmapNodes(
 
   const completedNodes = activeRoadmap?.completedNodes || 0;
 
+  const completedChallengeIds = new Set(
+    (activeRoadmap?.completedChallengeIds || [])
+      .map((challengeId) => getChallengeId(challengeId))
+      .filter(Boolean),
+  );
+
   return templateNodes
     .map((node, index) => {
-      const challengeId = getFirstChallengeId(node);
+      const allChallengeIds = (node.challengeIds || [])
+        .map((challengeId) => getChallengeId(challengeId))
+        .filter(Boolean);
+
+      const firstIncompleteChallengeId = allChallengeIds.find(
+        (challengeId) => !completedChallengeIds.has(challengeId),
+      );
+
+      const firstChallengeId = getFirstChallengeId(node);
+      const challengeId = firstIncompleteChallengeId || firstChallengeId;
       const firstSnapshot = node.challengesSnapshot?.[0];
       const allSnapshots = node.challengesSnapshot || [];
       const position = NODE_POSITIONS[index % NODE_POSITIONS.length];
@@ -163,6 +185,7 @@ function buildRoadmapNodes(
       return {
         id: `${node.order ?? index + 1}`,
         challengeId,
+        firstChallengeId,
         title: node.title || firstSnapshot?.title || `Bài học ${index + 1}`,
         desc:
           node.objective ||
@@ -213,6 +236,7 @@ export default function RoadmapPage() {
 
         const data = await getMyRoadmapsApi();
         setRoadmaps(Array.isArray(data) ? data : []);
+        setActiveNodeId(null);
       } catch (error) {
         console.error(error);
         setLoadError(
@@ -240,10 +264,16 @@ export default function RoadmapPage() {
   );
 
   useEffect(() => {
-    if (!activeNodeId && stepsData.length > 0) {
-      const currentNode =
-        stepsData.find((node) => node.status === "current") || stepsData[0];
+    if (stepsData.length === 0) return;
 
+    const currentNode =
+      stepsData.find((node) => node.status === "current") || stepsData[0];
+
+    const activeNodeStillExists = stepsData.some(
+      (node) => node.id === activeNodeId,
+    );
+
+    if (!activeNodeId || !activeNodeStillExists) {
       setActiveNodeId(currentNode.id);
     }
   }, [activeNodeId, stepsData]);
@@ -267,7 +297,9 @@ export default function RoadmapPage() {
     if (step.status === "locked") return;
 
     setActiveNodeId(step.id);
-    navigate(`/lesson/${step.challengeId}`);
+    navigate(
+      `/lesson/${step.status === "completed" ? step.firstChallengeId : step.challengeId}`,
+    );
   };
 
   return (

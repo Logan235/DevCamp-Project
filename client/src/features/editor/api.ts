@@ -47,3 +47,15 @@ export async function submitExerciseApi(
   const response = await apiClient.post(`/exercises/${id}/submit`, payload);
   return response.data;
 }
+
+export async function completeRoadmapChallengeApi(
+  challengeId: string,
+  submissionIds: string[],
+) {
+  const response = await apiClient.post(
+    `/roadmaps/me/challenges/${challengeId}/complete`,
+    { submissionIds },
+  );
+
+  return response.data;
+}
