@@ -73,17 +73,6 @@ type RoadmapViewNode = {
   exerciseCount?: number;
 };
 
-const NODE_POSITIONS = [
-  { x: 8, y: 70 },
-  { x: 20, y: 40 },
-  { x: 34, y: 65 },
-  { x: 48, y: 35 },
-  { x: 62, y: 60 },
-  { x: 74, y: 30 },
-  { x: 86, y: 55 },
-  { x: 95, y: 35 },
-];
-
 function getChallengeId(value?: string | { _id?: string }): string {
   if (!value) return "";
   return typeof value === "string" ? value : value._id || "";
@@ -160,7 +149,10 @@ function buildRoadmapNodes(
       const challengeId = firstIncompleteChallengeId || firstChallengeId;
       const firstSnapshot = node.challengesSnapshot?.[0];
       const allSnapshots = node.challengesSnapshot || [];
-      const position = NODE_POSITIONS[index % NODE_POSITIONS.length];
+      const totalNodes = templateNodes.length;
+      const x = totalNodes <= 1 ? 50 : 8 + (index * (95 - 8)) / (totalNodes - 1);
+      const y = index % 2 === 0 ? 65 : 35;
+      const position = { x, y };
 
       let status: NodeStatus = "locked";
 
