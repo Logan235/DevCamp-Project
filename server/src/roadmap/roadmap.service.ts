@@ -158,7 +158,7 @@ export class RoadmapService {
       throw new BadRequestException('Active roadmap not found');
     }
 
-    const template = roadmap.templateId as any;
+    const template = roadmap.templateId as unknown as RoadmapTemplate;
     const nodes = [...(template.nodes || [])].sort(
       (left, right) => (left.order || 0) - (right.order || 0),
     );
@@ -378,7 +378,9 @@ export class RoadmapService {
       .lean();
 
     const challengeIdsWithTestCases = new Set(
-      testCases.map((testCase: any) => testCase.challengeId.toString()),
+      testCases.map((testCase: { challengeId: Types.ObjectId }) =>
+        testCase.challengeId.toString(),
+      ),
     );
 
     return challenges.filter((challenge) =>
@@ -403,49 +405,58 @@ export class RoadmapService {
         break;
       }
 
-      const nodeChallenges = group.challenges
-        .filter((challenge) => {
-          const challengeId = challenge._id.toString();
-
-          if (usedChallengeIds.has(challengeId)) {
-            return false;
-          }
-
-          usedChallengeIds.add(challengeId);
-          return true;
-        })
-        .slice(0, maxExercisesPerNode);
-
-      if (nodeChallenges.length === 0) {
-        continue;
-      }
-
-      const firstChallenge = nodeChallenges[0];
-      const primarySkill =
-        group.skillSlug || firstChallenge.skillSlug?.[0] || 'general';
-      const nodeNumber = nodes.length + 1;
-
-      nodes.push({
-        order: nodeNumber,
-        title: `${nodeNumber}. ${this.getPatternDisplayName(group.patternGroup)}`,
-        objective: this.buildNodeObjective(
-          group.patternGroup,
-          primarySkill,
-          nodeChallenges,
-        ),
-        skillSlug: primarySkill,
-        patternGroup: group.patternGroup,
-        nodeType: 'practice',
-        challengeIds: nodeChallenges.map((challenge) => challenge._id),
-        challengesSnapshot: nodeChallenges.map((challenge) => ({
-          challengeId: challenge._id,
-          title: challenge.title,
-          slug: challenge.slug,
-          difficulty: challenge.difficulty,
-          skillSlugs: challenge.skillSlug || [],
-          xpReward: this.getXpReward(challenge.difficulty),
-        })),
+      const unusedGroupChallenges = group.challenges.filter((challenge) => {
+        const challengeId = challenge._id.toString();
+        if (usedChallengeIds.has(challengeId)) {
+          return false;
+        }
+        usedChallengeIds.add(challengeId);
+        return true;
       });
+
+      let offset = 0;
+      while (offset < unusedGroupChallenges.length) {
+        if (nodes.length >= plan.targetNodeCount) {
+          break;
+        }
+
+        const nodeChallenges = unusedGroupChallenges.slice(
+          offset,
+          offset + maxExercisesPerNode,
+        );
+        offset += maxExercisesPerNode;
+
+        if (nodeChallenges.length === 0) {
+          continue;
+        }
+
+        const firstChallenge = nodeChallenges[0];
+        const primarySkill =
+          group.skillSlug || firstChallenge.skillSlug?.[0] || 'general';
+        const nodeNumber = nodes.length + 1;
+
+        nodes.push({
+          order: nodeNumber,
+          title: `${nodeNumber}. ${this.getPatternDisplayName(group.patternGroup)}`,
+          objective: this.buildNodeObjective(
+            group.patternGroup,
+            primarySkill,
+            nodeChallenges,
+          ),
+          skillSlug: primarySkill,
+          patternGroup: group.patternGroup,
+          nodeType: 'practice',
+          challengeIds: nodeChallenges.map((challenge) => challenge._id),
+          challengesSnapshot: nodeChallenges.map((challenge) => ({
+            challengeId: challenge._id,
+            title: challenge.title,
+            slug: challenge.slug,
+            difficulty: challenge.difficulty,
+            skillSlugs: challenge.skillSlug || [],
+            xpReward: this.getXpReward(challenge.difficulty),
+          })),
+        });
+      }
     }
 
     return nodes.slice(0, plan.targetNodeCount);
@@ -489,7 +500,8 @@ export class RoadmapService {
         challenge.skillSlug?.[0] ||
         'general';
 
-      const groupKey = skillSlug || challenge.skillSlug?.[0] || 'general';
+      // Group by patternGroup instead of skillSlug
+      const groupKey = patternGroup;
 
       const challengeSkillRank = this.getBestSkillRank(
         challenge.skillSlug || [],
