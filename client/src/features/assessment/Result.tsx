@@ -29,6 +29,7 @@ interface AssessmentDetail {
 
 interface AssessmentResultState {
   assessmentId?: string;
+  roadmap?: RoadmapItem;
   assessmentTitle?: string;
   status?: string;
   score?: number;
@@ -119,6 +120,11 @@ export default function Result() {
   }, [details]);
 
   useEffect(() => {
+    if (result.roadmap) {
+      setActiveRoadmap(result.roadmap);
+      return;
+    }
+
     const fetchRoadmap = async () => {
       try {
         setLoadingRoadmap(true);
@@ -142,7 +148,7 @@ export default function Result() {
     };
 
     void fetchRoadmap();
-  }, []);
+  }, [result.roadmap]);
 
   const displayLevel =
     activeRoadmap?.generationParams?.detectedLevel || detectedLevel;

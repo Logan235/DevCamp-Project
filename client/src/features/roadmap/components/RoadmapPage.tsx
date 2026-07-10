@@ -150,7 +150,8 @@ function buildRoadmapNodes(
       const firstSnapshot = node.challengesSnapshot?.[0];
       const allSnapshots = node.challengesSnapshot || [];
       const totalNodes = templateNodes.length;
-      const x = totalNodes <= 1 ? 50 : 8 + (index * (95 - 8)) / (totalNodes - 1);
+      const x =
+        totalNodes <= 1 ? 50 : 8 + (index * (95 - 8)) / (totalNodes - 1);
       const y = index % 2 === 0 ? 65 : 35;
       const position = { x, y };
 
@@ -243,11 +244,7 @@ export default function RoadmapPage() {
   }, []);
 
   const activeRoadmap = useMemo(() => {
-    return (
-      roadmaps.find((roadmap) => roadmap.status === "active") ||
-      roadmaps.find((roadmap) => roadmap.status === "completed") ||
-      null
-    );
+    return roadmaps.find((roadmap) => roadmap.status === "active") || null;
   }, [roadmaps]);
 
   const stepsData = useMemo(

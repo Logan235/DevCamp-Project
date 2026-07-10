@@ -128,25 +128,14 @@ export class TestService {
     );
   }
 
-  private async getExistingUserRoadmap(userId: string) {
-    const roadmaps = await this.roadmapService.getRoadmaps(userId);
-
-    return (
-      roadmaps.find((roadmap: any) => roadmap.status === 'active') ||
-      roadmaps.find((roadmap: any) => roadmap.status === 'completed') ||
-      null
-    );
-  }
-
   async postSubmissions(body: {
     assessmentId?: string;
     challengeId?: string;
     userId?: string;
     userCodeOutput: string[];
-    forceRegenerateRoadmap?: boolean;
   }) {
     const assessmentId = body.assessmentId || body.challengeId;
-    const { userId, userCodeOutput, forceRegenerateRoadmap } = body;
+    const { userId, userCodeOutput } = body;
 
     if (!userCodeOutput || !Array.isArray(userCodeOutput)) {
       throw new BadRequestException(
@@ -255,16 +244,10 @@ export class TestService {
 
     if (userId) {
       try {
-        const existingRoadmap = forceRegenerateRoadmap
-          ? null
-          : await this.getExistingUserRoadmap(userId);
-
-        roadmap =
-          existingRoadmap ||
-          (await this.roadmapService.generateFromAssessment(
-            userId,
-            assessmentResult,
-          ));
+        roadmap = await this.roadmapService.generateFromAssessment(
+          userId,
+          assessmentResult,
+        );
       } catch (error) {
         console.warn(
           'Failed to get or generate roadmap from assessment:',
@@ -276,7 +259,7 @@ export class TestService {
     return {
       ...assessmentResult,
       roadmap,
-      hasExistingRoadmap: roadmap !== null && !forceRegenerateRoadmap,
+      hasExistingRoadmap: false,
     };
   }
 

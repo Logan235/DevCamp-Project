@@ -23,6 +23,7 @@ type AssessmentDetail = {
 
 type AssessmentRoadmapResult = {
   assessmentId?: string;
+  assessmentSubmissionId?: string;
   score: number;
   detectedLevel: string;
   strongSkills: string[];
@@ -308,6 +309,7 @@ export class RoadmapService {
         difficulties: plan.difficulties,
         reason: plan.reason,
         assessmentId,
+        assessmentSubmissionId: assessmentResult.assessmentSubmissionId,
       },
     });
   }
