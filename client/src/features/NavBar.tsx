@@ -9,7 +9,6 @@ import {
   Save,
 } from "lucide-react";
 import ProgressBar from "./assessment/Progressbar";
-import { useSelector } from "react-redux";
 
 interface NavBarProps {
   isLoggedIn?: boolean;
@@ -17,7 +16,7 @@ interface NavBarProps {
   userAvatar?: string;
   role?: "user" | "admin";
   currentLevel?: number;
-  xpTotal?: number; 
+  xpTotal?: number;
   variant?: "default" | "editor" | "quiz";
   showProgressBar?: boolean;
   showSave?: boolean;
