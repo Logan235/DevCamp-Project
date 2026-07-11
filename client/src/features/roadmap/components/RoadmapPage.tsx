@@ -295,99 +295,101 @@ export default function RoadmapPage() {
     <div className="bg-[#0b0f19] min-h-screen text-zinc-300 font-sans antialiased overflow-x-hidden">
       <RoadmapHeader />
 
-      <main className="max-w-7xl mx-auto p-6 md:p-8 grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-        <div className="lg:col-span-3 bg-[#111625]/40 border border-zinc-800/60 rounded-xl p-6 overflow-x-auto scrollbar-thin scrollbar-thumb-zinc-800 relative isolation">
+      <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-4 sm:px-6 sm:py-6 lg:grid lg:grid-cols-4 lg:gap-8 lg:items-start lg:px-8">
+        <div className="relative isolation overflow-hidden rounded-xl border border-zinc-800/60 bg-[#111625]/40 p-4 sm:p-6 lg:col-span-3">
           <div
             className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center"
             style={{ backgroundImage: `url(${bg})` }}
           />
           <div className="fixed inset-0 bg-zinc-950/70 backdrop-blur-[2px] pointer-events-none z-0" />
 
-          <div className="w-350 h-112.5 relative mt-10 z-10">
-            <div className="absolute -top-7.5 left-2">
-              <h2 className="text-2xl font-semibold text-white tracking-tight">
+          <div className="relative z-10 mt-2 w-full overflow-x-auto overflow-y-hidden pb-3 sm:mt-4 sm:pb-4">
+            <div className="mb-4 px-1 sm:mb-6">
+              <h2 className="text-xl font-semibold tracking-tight text-white sm:text-2xl">
                 {activeRoadmap?.title || "Lộ trình học cá nhân hóa"}
               </h2>
             </div>
 
-            {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center text-sm text-zinc-400">
-                Đang tải roadmap...
-              </div>
-            )}
+            <div className="relative min-h-105 min-w-160 sm:min-h-125 md:min-h-140 lg:min-h-155">
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center text-sm text-zinc-400">
+                  Đang tải roadmap...
+                </div>
+              )}
 
-            {!isLoading && loadError && (
-              <div className="absolute inset-0 flex items-center justify-center text-sm text-red-400">
-                {loadError}
-              </div>
-            )}
+              {!isLoading && loadError && (
+                <div className="absolute inset-0 flex items-center justify-center text-sm text-red-400">
+                  {loadError}
+                </div>
+              )}
 
-            {!isLoading && !loadError && stepsData.length === 0 && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <p className="text-sm text-zinc-400">
-                  Chưa có roadmap active hoặc roadmap chưa có node bài tập.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => navigate("/assessment")}
-                  className="mt-4 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold"
+              {!isLoading && !loadError && stepsData.length === 0 && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                  <p className="text-sm text-zinc-400">
+                    Chưa có roadmap active hoặc roadmap chưa có node bài tập.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/assessment")}
+                    className="mt-4 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold"
+                  >
+                    Làm assessment để tạo roadmap
+                  </button>
+                </div>
+              )}
+
+              {stepsData.map((step, index) => {
+                if (index === stepsData.length - 1) return null;
+
+                const nextStep = stepsData[index + 1];
+
+                return (
+                  <Connector
+                    key={`line-${step.id}-${nextStep.id}`}
+                    status={nextStep.status}
+                    x1={step.x}
+                    y1={step.y}
+                    x2={nextStep.x}
+                    y2={nextStep.y}
+                  />
+                );
+              })}
+
+              {stepsData.map((step) => (
+                <div
+                  key={step.challengeId}
+                  className="absolute -translate-x-1/2 -translate-y-1/2"
+                  style={{ left: `${step.x}%`, top: `${step.y}%` }}
                 >
-                  Làm assessment để tạo roadmap
-                </button>
-              </div>
-            )}
-
-            {stepsData.map((step, index) => {
-              if (index === stepsData.length - 1) return null;
-
-              const nextStep = stepsData[index + 1];
-
-              return (
-                <Connector
-                  key={`line-${step.id}-${nextStep.id}`}
-                  status={nextStep.status}
-                  x1={step.x}
-                  y1={step.y}
-                  x2={nextStep.x}
-                  y2={nextStep.y}
-                />
-              );
-            })}
-
-            {stepsData.map((step) => (
-              <div
-                key={step.challengeId}
-                className="absolute -translate-x-1/2 -translate-y-1/2"
-                style={{ left: `${step.x}%`, top: `${step.y}%` }}
-              >
-                <Node
-                  title={step.title}
-                  xp={step.xp}
-                  status={step.status}
-                  isActive={activeNodeId === step.id}
-                  onClick={() => handleOpenNode(step)}
-                  onMouseEnter={(e) => {
-                    setPreviewData({
-                      title: step.title,
-                      concept: step.concept,
-                      difficulty: step.difficulty,
-                    });
-                    setMousePos({ x: e.clientX, y: e.clientY });
-                    setShowPreview(true);
-                  }}
-                  onMouseMove={(e) => {
-                    setMousePos({ x: e.clientX, y: e.clientY });
-                  }}
-                  onMouseLeave={() => {
-                    setShowPreview(false);
-                  }}
-                />
-              </div>
-            ))}
+                  <Node
+                    title={step.title}
+                    xp={step.xp}
+                    status={step.status}
+                    isActive={activeNodeId === step.id}
+                    onClick={() => handleOpenNode(step)}
+                    onMouseEnter={(e) => {
+                      setPreviewData({
+                        title: step.title,
+                        concept: step.concept,
+                        difficulty: step.difficulty,
+                      });
+                      setMousePos({ x: e.clientX, y: e.clientY });
+                      setShowPreview(true);
+                    }}
+                    onMouseMove={(e) => {
+                      setMousePos({ x: e.clientX, y: e.clientY });
+                    }}
+                    onMouseLeave={() => {
+                      setShowPreview(false);
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="lg:col-span-1 lg:sticky lg:top-24">
+        <div className="w-full lg:col-span-1 lg:sticky lg:top-24">
           <RoadmapSidebar node={activeNode} />
         </div>
       </main>
@@ -403,7 +405,7 @@ export default function RoadmapPage() {
         />
       )}
 
-      <footer className="max-w-7xl mx-auto px-6 md:px-8 pb-10 grid grid-cols-1 sm:grid-cols-3 gap-5">
+      <footer className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-5 px-4 pb-8 sm:grid-cols-2 sm:px-6 md:px-8 lg:grid-cols-3">
         <StatCard
           variant="solved"
           icon={<CheckCircle2 fill="currentColor" />}

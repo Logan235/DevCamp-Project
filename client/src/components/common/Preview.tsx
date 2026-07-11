@@ -25,13 +25,28 @@ export const Preview: React.FC<PreviewProps> = ({
     return words.slice(0, 10).join(" ") + "...";
   };
 
+  const tooltipWidth = 224;
+  const tooltipHeight = 160;
+  const viewportWidth =
+    typeof window !== "undefined" ? window.innerWidth : 1024;
+  const viewportHeight =
+    typeof window !== "undefined" ? window.innerHeight : 768;
+  const safeX = Math.min(
+    Math.max(x + 15, 12),
+    Math.max(12, viewportWidth - tooltipWidth - 12),
+  );
+  const safeY = Math.min(
+    Math.max(y + 15, 12),
+    Math.max(12, viewportHeight - tooltipHeight - 12),
+  );
+
   return (
     <div
       className={`fixed z-50 pointer-events-none bg-[#111625]/95 border border-zinc-800/80 rounded-lg p-3 w-56 shadow-2xl backdrop-blur-md transition-all duration-200 ease-out font-sans
         ${visible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-2"}`}
       style={{
-        left: `${x + 15}px`,
-        top: `${y + 15}px`,
+        left: `${safeX}px`,
+        top: `${safeY}px`,
       }}
     >
       <div className="flex items-center justify-between mb-1.5">

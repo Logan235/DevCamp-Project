@@ -141,8 +141,8 @@ export default function Profile() {
         xpTotal={userlog.xpTotal || 0}
         userAvatar={userlog.avatar}
       />
-      <main className="min-h-screen bg-background text-foreground flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-lg rounded-2xl border border-[#1e2227] overflow-hidden bg-zinc-1010">
+      <main className="flex min-h-screen items-center justify-center bg-background px-4 py-6 text-foreground sm:px-6 sm:py-8 md:px-8 md:py-12">
+        <div className="w-full max-w-lg overflow-hidden rounded-2xl border border-[#1e2227] bg-zinc-1010">
           {message && (
             <div
               className={`p-3 rounded-lg mb-4 text-sm ${
@@ -155,14 +155,11 @@ export default function Profile() {
             </div>
           )}
           <div className="flex flex-col items-center">
-            {/* 1. Nền xanh lá (Banner): Phủ ở phần trên card */}
-            <div className="w-full h-44 bg-linear-to-r from-emerald-600 via-emerald-500 to-teal-600 shadow-[0_0_25px_rgba(16,185,129,0.25)] relative overflow-hidden">
-              {/* Họa tiết lưới mờ Deep Tech trang trí */}
+            <div className="relative h-40 w-full overflow-hidden bg-linear-to-r from-emerald-600 via-emerald-500 to-teal-600 shadow-[0_0_25px_rgba(16,185,129,0.25)] sm:h-44 md:h-48">
               <div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] bg-size-[16px_16px] opacity-15" />
             </div>
 
-            {/* 2. Avatar: Kéo ngược lên trên bằng margin âm (-mt-[135px]) để trượt 3/4 vào vùng xanh */}
-            <div className="relative -mt-33.75 mb-2 w-45 h-45 rounded-2xl border-4 border-zinc-950 shadow-xl overflow-hidden bg-zinc-800 z-10">
+            <div className="relative z-10 mb-2 h-24 w-24 -mt-12 overflow-hidden rounded-2xl border-4 border-zinc-950 bg-zinc-800 shadow-xl sm:-mt-16 sm:h-28 sm:w-28 md:h-32 md:w-32 lg:h-40 lg:w-40">
               <img
                 src={userlog.avatar}
                 className="w-full h-full object-cover"
@@ -171,21 +168,21 @@ export default function Profile() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-6 p-5">
+          <div className="flex flex-col gap-6 p-4 sm:p-5 md:p-6">
             <div className="border-t border-[#1e2227] mx-6" />
-            <div className="flex flex-col gap-3">
-              <span className="uppercase tracking-widest text-muted-foreground mb-0.5 text-zinc-400">
+            <div className="flex flex-col gap-3 text-center sm:text-left">
+              <span className="mb-0.5 uppercase tracking-widest text-zinc-400 text-muted-foreground">
                 EMAIL
               </span>
-              <div className="font-medium truncate">
+              <div className="font-medium wrap-break-word">
                 {user.email}
                 <span className="text-[10px] ml-2 text-zinc-600">
                   (Không thể chỉnh sửa)
                 </span>
               </div>
             </div>
-            <div className="flex flex-col gap-3">
-              <span className="uppercase tracking-widest text-muted-foreground mb-0.5 text-zinc-400">
+            <div className="flex flex-col gap-3 text-center sm:text-left">
+              <span className="mb-0.5 uppercase tracking-widest text-zinc-400 text-muted-foreground">
                 HỌ VÀ TÊN
               </span>
               {isEditing ? (
@@ -201,14 +198,14 @@ export default function Profile() {
                 <span className="font-medium truncate">{user.displayName}</span>
               )}
             </div>
-            <div className="flex flex-col gap-3">
-              <span className="uppercase tracking-widest text-muted-foreground mb-0.5 text-zinc-400">
+            <div className="flex flex-col gap-3 text-center sm:text-left">
+              <span className="mb-0.5 uppercase tracking-widest text-zinc-400 text-muted-foreground">
                 NGÀY BẮT ĐẦU
               </span>
-              <span className="font-medium truncate">{user.createdAt}</span>
+              <span className="font-medium wrap-break-word">{user.createdAt}</span>
             </div>
-            <div className="border-t border-[#1e2227] mx-6" />
-            <div className="flex justify-end gap-3">
+            <div className="mx-4 border-t border-[#1e2227] sm:mx-6" />
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               {!isEditing ? (
                 <Button variant="secondary" onClick={() => setIsEditing(true)}>
                   Chỉnh sửa hồ sơ

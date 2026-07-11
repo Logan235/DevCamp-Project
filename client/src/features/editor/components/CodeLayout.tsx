@@ -541,18 +541,20 @@ export const CodeLayout: React.FC = () => {
     : "Đến bài đầu tiên của node tiếp theo";
 
   return (
-    <div className="h-screen w-full flex flex-col bg-[#050816] overflow-hidden relative">
+    <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#050816]">
       <CodeHeader />
-      <div className="flex-1 grid grid-cols-1 xl:grid-cols-14 overflow-hidden p-2 gap-2">
-        <div className="xl:col-span-3 bg-[#050816] border border-zinc-900 rounded-xl overflow-hidden flex flex-col h-full">
+
+      <div className="flex-1 flex flex-col gap-3 p-2 md:p-3 lg:grid lg:grid-cols-14 lg:gap-2 overflow-y-auto lg:overflow-hidden">
+        <div className="w-full flex flex-col overflow-hidden rounded-xl border border-zinc-900 bg-[#050816] min-h-62.5 max-h-[40vh] lg:max-h-none lg:col-span-3 lg:h-full">
           <SidebarTask
             exercise={exercise}
             isLoading={exerciseLoading}
             error={exerciseError}
           />
         </div>
-        <div className="xl:col-span-8 flex flex-col h-full overflow-hidden gap-2">
-          <div className="flex-1 min-h-0">
+
+        <div className="w-full flex flex-col gap-3 lg:gap-2 overflow-hidden lg:col-span-8 lg:h-full">
+          <div className="flex-1 min-h-87.5 lg:min-h-0">
             <CodeEditor
               language={language}
               code={code}
@@ -565,7 +567,7 @@ export const CodeLayout: React.FC = () => {
             />
           </div>
 
-          <div className="h-56 shrink-0 border border-[#050816] rounded-xl overflow-hidden">
+          <div className="h-56 sm:h-64 lg:h-56 shrink-0 overflow-hidden rounded-xl border border-[#050816]">
             <ConsoleOutput
               output={output}
               isError={isError}
@@ -584,50 +586,39 @@ export const CodeLayout: React.FC = () => {
             />
           </div>
         </div>
-        <aside className="xl:col-span-3 bg-[#090d16] border border-zinc-900 rounded-xl overflow-hidden flex flex-col min-h-0">
-          <div className="h-12 px-4 border-b border-zinc-800 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-zinc-100">AI Mirror</h2>
 
+        <aside className="w-full flex flex-col overflow-hidden rounded-xl border border-zinc-900 bg-[#090d16] min-h-75 max-h-[50vh] lg:max-h-none lg:col-span-3 lg:h-full">
+          <div className="h-12 px-4 border-b border-zinc-800 flex items-center justify-between shrink-0">
+            <h2 className="text-sm font-bold text-zinc-100">AI Mirror</h2>
             <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">
               Mirror
             </span>
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
-            {aiMessages.map((message, index) => {
-              console.log("Message content:", message.content);
-
-              return (
-                <div
-                  key={`${message.role}-${index}`}
-                  className={`rounded-xl px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap ${
-                    message.role === "user"
-                      ? "ml-6 bg-blue-500/15 border border-blue-500/20 text-blue-100"
-                      : "mr-6 bg-zinc-900/80 border border-zinc-800 text-zinc-200"
-                  }`}
-                >
-                  {message.role === "user" ? (
-                    message.content
-                  ) : (
-                    <div
-                      className="prose prose-invert prose-xs max-w-none
-              [&_strong]:text-emerald-400
-              [&_strong]:font-bold
-              [&_ul]:list-disc
-              [&_ul]:ml-4
-              [&_li]:mt-1"
+            {aiMessages.map((message, index) => (
+              <div
+                key={`${message.role}-${index}`}
+                className={`rounded-xl px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap ${
+                  message.role === "user"
+                    ? "ml-6 bg-blue-500/15 border border-blue-500/20 text-blue-100"
+                    : "mr-6 bg-zinc-900/80 border border-zinc-800 text-zinc-200"
+                }`}
+              >
+                {message.role === "user" ? (
+                  message.content
+                ) : (
+                  <div className="prose prose-invert prose-xs max-w-none [&_strong]:text-emerald-400 [&_strong]:font-bold [&_ul]:list-disc [&_ul]:ml-4 [&_li]:mt-1">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkMath]}
+                      rehypePlugins={[rehypeKatex]}
                     >
-                      <ReactMarkdown
-                        remarkPlugins={[remarkMath]}
-                        rehypePlugins={[rehypeKatex]}
-                      >
-                        {message.content || ""}
-                      </ReactMarkdown>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                      {message.content || ""}
+                    </ReactMarkdown>
+                  </div>
+                )}
+              </div>
+            ))}
 
             {isAiThinking && (
               <div className="mr-6 rounded-xl px-3 py-2 text-xs text-zinc-400 bg-zinc-900/80 border border-zinc-800">
@@ -636,11 +627,10 @@ export const CodeLayout: React.FC = () => {
             )}
           </div>
 
-          <div className="border-t border-zinc-800 p-3 space-y-2">
+          <div className="border-t border-zinc-800 p-3 space-y-2 shrink-0 bg-[#090d16]">
             {!latestSubmissionId && (
               <p className="text-[11px] text-amber-300/80">
-                Nên submit code trước để AI Mirror có đủ code, output và lỗi khi
-                phân tích.
+                Nên submit code trước để AI Mirror có đủ dữ liệu phân tích.
               </p>
             )}
 
@@ -654,7 +644,7 @@ export const CodeLayout: React.FC = () => {
                 }
               }}
               placeholder="Nhập câu hỏi cho AI Mirror..."
-              className="h-20 w-full resize-none rounded-lg border border-zinc-800 bg-[#050816] p-2 text-xs text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-blue-500/60"
+              className="h-16 w-full resize-none rounded-lg border border-zinc-800 bg-[#050816] p-2 text-xs text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-blue-500/60"
               disabled={isAiThinking || !unlockAIMirror}
             />
 

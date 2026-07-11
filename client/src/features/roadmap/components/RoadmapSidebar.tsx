@@ -20,7 +20,7 @@ interface SidebarProps {
 export const RoadmapSidebar: React.FC<SidebarProps> = ({ node }) => {
   if (!node) {
     return (
-      <div className="bg-[#111625] border border-zinc-800/60 rounded-lg p-6 flex flex-col items-center justify-center text-center text-zinc-500 h-full min-h-87.5">
+      <div className="flex min-h-[220px] h-full flex-col items-center justify-center rounded-lg border border-zinc-800/60 bg-[#111625] p-6 text-center text-zinc-500">
         <Terminal className="w-8 h-8 mb-2 stroke-[1.5] text-zinc-600" />
         <p className="text-xs font-mono">
           Chọn một chặng học để xem trước cú pháp
@@ -30,7 +30,7 @@ export const RoadmapSidebar: React.FC<SidebarProps> = ({ node }) => {
   }
 
   return (
-    <div className="bg-[#111625] border border-zinc-800 rounded-lg p-5 flex flex-col justify-between h-full space-y-5 transition-all duration-200">
+    <div className="flex h-full w-full flex-col justify-between space-y-5 rounded-lg border border-zinc-800 bg-[#111625] p-5 transition-all duration-200">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <Badge variant={node.difficulty}>

@@ -265,67 +265,49 @@ export default function Asssessment() {
         answeredCount={answeredCount}
       />
 
-      <main className="max-w-6xl p-5 flex flex-col gap-11 m-auto items-center">
-        <div
-          className="
-            items-center
-            bg-[radial-gradient(circle_at_center,#0b2530_0%,#060f1d_100%)]
-            border border-[#18263d]
-            rounded-3xl
-            p-14
-            flex
-            gap-10
-            shadow-[0_0_60px_rgba(59,130,246,0.08)]
-          "
-        >
-          <div className="flex-1 text-left w-40%">
-            <h1 className="text-5xl font-extrabold tracking-tight leading-tight text-white mb-5">
+      <main className="m-auto flex w-full max-w-6xl flex-col gap-6 p-4 sm:p-5 lg:p-5">
+        <div className="flex flex-col gap-6 rounded-3xl border border-[#18263d] bg-[radial-gradient(circle_at_center,#0b2530_0%,#060f1d_100%)] p-6 shadow-[0_0_60px_rgba(59,130,246,0.08)] sm:p-8 lg:flex-row lg:items-center lg:gap-10 lg:p-14">
+          <div className="w-full text-left lg:w-[55%]">
+            <h1 className="mb-5 text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
               Khám phá trình độ lập trình của bạn
             </h1>
-            <p className="text-lg leading-8 text-slate-300 max-w-2xl">
+            <p className="max-w-2xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
               {assessmentTitle ||
                 "Trả lời một vài câu hỏi DSA và giải thuật để nhận được một lộ trình học tập cá nhân tạo bởi AI."}
             </p>
           </div>
 
-          <div className="bg-[#0f172a] border border-[#1e293b] rounded-3xl p-5 min-w-47.5 hover:border-[#3b82f6] transition-all duration-300 shadow-lg">
-            <div className="w-12 h-12 rounded-2xl bg-[#13294b] flex items-center justify-center mb-4">
-              <Timer className="text-[#60a5fa]" />
+          <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3 lg:w-[45%] lg:grid-cols-1">
+            <div className="min-w-0 rounded-3xl border border-[#1e293b] bg-[#0f172a] p-5 shadow-lg transition-all duration-300 hover:border-[#3b82f6]">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#13294b]">
+                <Timer className="text-[#60a5fa]" />
+              </div>
+              <div className="text-2xl font-bold text-white">10-15</div>
+              <div className="text-sm text-slate-400">phút hoàn thành</div>
             </div>
-            <div className="text-2xl font-bold text-white">10-15</div>
-            <div className="text-slate-400 text-sm">phút hoàn thành</div>
-          </div>
 
-          <div className="bg-[#0f172a] border border-[#1e293b] rounded-3xl p-5 min-w-47.5 hover:border-[#c084fc] transition-all duration-300 shadow-lg">
-            <div className="w-12 h-12 rounded-2xl bg-[#2a163d] flex items-center justify-center mb-4">
-              <Target className="text-[#c084fc]" />
+            <div className="min-w-0 rounded-3xl border border-[#1e293b] bg-[#0f172a] p-5 shadow-lg transition-all duration-300 hover:border-[#c084fc]">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#2a163d]">
+                <Target className="text-[#c084fc]" />
+              </div>
+              <div className="text-2xl font-bold text-white">Adaptive</div>
+              <div className="text-sm text-slate-400">Độ khó thích ứng</div>
             </div>
-            <div className="text-2xl font-bold text-white">Adaptive</div>
-            <div className="text-slate-400 text-sm">Độ khó thích ứng</div>
-          </div>
 
-          <div
-            className="
-              bg-[#0f172a]
-              border border-[#1e3a2a]
-              rounded-3xl
-              p-5
-              min-w-47.5
-              hover:border-[#22c55e]
-              transition-all duration-300
-              shadow-lg
-            "
-          >
-            <div className="w-12 h-12 rounded-2xl bg-[#14532d] flex items-center justify-center mb-4">
-              <Zap className="text-[#22c55e]" />
+            <div className="min-w-0 rounded-3xl border border-[#1e3a2a] bg-[#0f172a] p-5 shadow-lg transition-all duration-300 hover:border-[#22c55e]">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#14532d]">
+                <Zap className="text-[#22c55e]" />
+              </div>
+              <div className="text-3xl font-bold text-[#4ade80]">+500 XP</div>
+              <div className="text-sm text-slate-400">
+                Phần thưởng hoàn thành
+              </div>
             </div>
-            <div className="text-3xl font-bold text-[#4ade80]">+500 XP</div>
-            <div className="text-slate-400 text-sm">Phần thưởng hoàn thành</div>
           </div>
         </div>
 
-        <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-6 w-full items-start">
-          <div className="lg:col-span-2 min-w-0 w-full pt-1 rounded-2xl bg-linear-to-r from-[#2783ff] to-[#1fc366]">
+        <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)] lg:items-start">
+          <div className="w-full min-w-0 rounded-2xl bg-linear-to-r from-[#2783ff] to-[#1fc366] pt-1">
             <div className="p-8 bg-[#0a101f] rounded-t-2xl flex flex-col gap-5">
               <Question
                 selectedAns={ans[activeQuest.id] || ""}
@@ -337,7 +319,7 @@ export default function Asssessment() {
                 setFlag={() => handleFlag(activeQuest.id)}
               />
 
-              <div className="flex justify-between pt-4">
+              <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-between">
                 <Button
                   variant="normal"
                   onClick={handlePrev}
