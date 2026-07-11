@@ -268,7 +268,7 @@ export const CodeLayout: React.FC = () => {
       setHasRunCode(true);
 
       setOutput(
-        `Submit queued.\nTest cases: ${submissionIds.length}\nFirst submission ID: ${firstSubmissionId}\n\nWaiting for results...`,
+        `Submit queued.\nTest cases: ${submissionIds.length}\nWaiting for results...`,
       );
 
       let results;
@@ -351,7 +351,7 @@ export const CodeLayout: React.FC = () => {
           "",
           ...completedResults.map(
             (submission, index) =>
-              `Test ${index + 1}: ${submission.status} (${submission._id})` +
+              `Test ${index + 1}: ${submission.status}` +
               (submission.error ? `\n${submission.error}` : ""),
           ),
           "",
