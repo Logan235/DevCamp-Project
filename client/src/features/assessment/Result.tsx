@@ -15,6 +15,7 @@ import { NavBar } from "../NavBar";
 import { Button } from "../../components/common/Button";
 import { TopicHeader } from "./TopicHeader";
 import { getMyRoadmapsApi } from "../roadmap/api";
+import { useSelector } from "react-redux";
 
 interface AssessmentDetail {
   questionOrder?: number;
@@ -91,6 +92,7 @@ function uniqueValues(values?: string[]) {
 }
 
 export default function Result() {
+  const { user, isLoggedIn } = useSelector((state: any) => state.auth);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -107,6 +109,19 @@ export default function Result() {
   const detectedLevel = result.detectedLevel || "beginner";
   const details = Array.isArray(result.details) ? result.details : [];
 
+  const mapLevelToNumber = (levelStr: string): number => {
+    switch (levelStr?.toLowerCase()) {
+      case "beginner":
+        return 1;
+      case "intermediate":
+        return 2;
+      case "advanced":
+        return 3;
+      default:
+        return 1;
+    }
+  };
+  
   const passedCount = useMemo(() => {
     return details.filter((item) => item.status === "Passed").length;
   }, [details]);
@@ -168,9 +183,23 @@ export default function Result() {
   const pacePreference =
     activeRoadmap?.generationParams?.pacePreference || "medium";
 
+  if (!isLoggedIn || !user) {
+    return <NavBar isLoggedIn={false} />;
+  }
+
   return (
     <div className="w-full mx-auto min-h-screen flex flex-col bg-[#050b17] text-slate-300">
-      <NavBar variant="quiz" showProgressBar={false} showSave={false} />
+      <NavBar 
+        variant="quiz" 
+        showProgressBar={false} 
+        showSave={false} 
+        isLoggedIn={true}
+        userName={user.displayName || user.email}
+        role={user.role}
+        currentLevel={mapLevelToNumber(user.currentLevel)}
+        xpTotal={user.xpTotal || 0}
+        userAvatar={user.avatar}
+      />
 
       <main className="w-full max-w-6xl p-5 flex flex-col gap-8 mx-auto">
         <section className="flex flex-col justify-center items-center gap-5 text-center pt-6">

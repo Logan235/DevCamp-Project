@@ -16,7 +16,7 @@ export default function Navigator({
   flag = [],
 }: NavigatorProps) {
   return (
-    <div className="grid grid-cols-5 gap-2 w-max justify-items-center">
+    <div className="flex flex-wrap gap-2">
       {[...Array(totalquest)].map((_, i) => {
         const questionNum = i + 1;
         let btnClass = "w-11 h-11 rounded-lg ";

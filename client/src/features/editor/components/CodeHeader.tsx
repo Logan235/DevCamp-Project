@@ -1,5 +1,5 @@
 import React from "react";
-import { useSelector } from "react-redux"; // Import hook từ react-redux
+import { useSelector } from "react-redux"; 
 import { NavBar } from "../../NavBar";
 
 export const CodeHeader: React.FC = () => {

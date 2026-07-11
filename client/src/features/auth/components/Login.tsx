@@ -13,7 +13,7 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
+  const [showSuccess, setShowSuccess] = useState(false);
   const dispatch = useDispatch();
 
   const handleLogin = async () => {
@@ -31,9 +31,10 @@ export function Login() {
 
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
-      dispatch(setCredentials(data.user));
-      alert("Login successfully!")
-      navigate("/assessment");
+      setShowSuccess(true);
+      setTimeout(() => {
+        navigate("/assessment");
+      }, 1500);
     } catch (err: any) {
       setError(
         err.response?.data?.message ||
@@ -46,6 +47,11 @@ export function Login() {
 
   return (
     <div className="min-h-screen bg-[#050816] flex items-center justify-center px-4">
+      {showSuccess && (
+        <div className="fixed top-5 right-5 bg-green-500 text-white px-6 py-3 rounded-lg shadow-2xl font-medium animate-bounce z-50">
+          Đăng nhập thành công!
+        </div>
+      )}
       <div className="w-full max-w-md bg-[#111827] border border-gray-800 rounded-2xl p-8 shadow-lg">
         {/* Logo */}
         <div className="text-center mb-8">
