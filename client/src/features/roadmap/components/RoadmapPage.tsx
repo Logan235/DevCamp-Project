@@ -296,11 +296,12 @@ export default function RoadmapPage() {
       <RoadmapHeader />
 
       <main className="max-w-7xl mx-auto p-6 md:p-8 grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-        <div
-          className="lg:col-span-3 bg-[#111625]/40 border border-zinc-800/60 rounded-xl p-6 overflow-x-auto scrollbar-thin scrollbar-thumb-zinc-800 relative"
-          style={{ backgroundImage: `url(${bg})` }}
-        >
-          <div className="absolute inset-0 bg-zinc-950/70 backdrop-blur-[2px] pointer-events-none z-0" />
+        <div className="lg:col-span-3 bg-[#111625]/40 border border-zinc-800/60 rounded-xl p-6 overflow-x-auto scrollbar-thin scrollbar-thumb-zinc-800 relative isolation">
+          <div
+            className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${bg})` }}
+          />
+          <div className="fixed inset-0 bg-zinc-950/70 backdrop-blur-[2px] pointer-events-none z-0" />
 
           <div className="w-350 h-112.5 relative mt-10 z-10">
             <div className="absolute -top-7.5 left-2">
