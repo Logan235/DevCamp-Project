@@ -28,9 +28,12 @@ export function Login() {
 
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
+      dispatch(setCredentials(data.user));
+
+      navigate("/roadmap");
+
       setShowSuccess(true);
       setTimeout(() => {
         navigate("/assessment");

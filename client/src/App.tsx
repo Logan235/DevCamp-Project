@@ -5,7 +5,6 @@ import { SignUp } from "./features/auth/components/SignUp";
 import { CodeLayout } from "./features/editor/components/CodeLayout";
 import { NavBar } from "./features/NavBar";
 import RoadmapPage from "./features/roadmap/components/RoadmapPage";
-import Dashboard from "./features/dashboard/components/Dashboard";
 import Asssessment from "./features/assessment/Assessment";
 import Result from "./features/assessment/Result";
 import LessonPage from "./features/roadmap/components/LessonPage";
@@ -22,7 +21,7 @@ function App() {
         element={
           <div className="min-h-screen bg-[#050816] text-white">
             {/* Navbar */}
-            <NavBar isLoggedIn={false} />
+            <NavBar />
 
             {/* Hero Section */}
             <section className="flex flex-col items-center justify-center text-center mt-28 px-6">
@@ -141,7 +140,7 @@ function App() {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <Dashboard />
+            <RoadmapPage />
           </ProtectedRoute>
         }
       />

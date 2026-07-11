@@ -1,10 +1,13 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 interface UserInfo {
-  email: string;
-  displayName: string;
+  email?: string;
+  displayName?: string;
   avatarUrl?: string;
+  avatar?: string;
+  role?: "user" | "admin" | string;
+  currentLevel?: string;
+  xpTotal?: number;
 }
 
 interface AuthState {
@@ -15,9 +18,23 @@ interface AuthState {
 const storedUser =
   typeof window !== "undefined" ? localStorage.getItem("user") : null;
 
+const storedAccessToken =
+  typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+
+function parseStoredUser(value: string | null): UserInfo | null {
+  if (!value) return null;
+
+  try {
+    return JSON.parse(value) as UserInfo;
+  } catch {
+    localStorage.removeItem("user");
+    return null;
+  }
+}
+
 const initialState: AuthState = {
-  user: storedUser ? JSON.parse(storedUser) : null,
-  isLoggedIn: !!storedUser,
+  user: parseStoredUser(storedUser),
+  isLoggedIn: Boolean(storedAccessToken),
 };
 
 const authSlice = createSlice({

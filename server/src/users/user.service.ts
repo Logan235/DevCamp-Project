@@ -28,9 +28,15 @@ export class UserService {
       throw new UnauthorizedException('Invalid user id');
     }
 
+    const updateData: Partial<UpdateProfile> = {};
+
+    if (updateProfileDto.displayName !== undefined) {
+      updateData.displayName = updateProfileDto.displayName.trim();
+    }
+
     const user = await this.userModel.findOneAndUpdate(
       { _id: new Types.ObjectId(userId) },
-      { $set: { displayName: updateProfileDto.displayName } },
+      { $set: updateData },
       { new: true },
     );
 

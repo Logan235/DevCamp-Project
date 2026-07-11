@@ -1,9 +1,12 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../slice";
 
 export function OAuthCallback() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const accessToken = searchParams.get("accessToken");
@@ -23,14 +26,13 @@ export function OAuthCallback() {
     localStorage.setItem("accessToken", accessToken);
     localStorage.setItem("refreshToken", refreshToken);
 
-    if (parsedUser) {
-      localStorage.setItem("user", JSON.stringify(parsedUser));
-    } else {
-      localStorage.setItem("user", JSON.stringify({ loggedInViaOAuth: true }));
-    }
+    const userToStore = parsedUser || { loggedInViaOAuth: true };
+
+    localStorage.setItem("user", JSON.stringify(userToStore));
+    dispatch(setCredentials(userToStore));
 
     navigate("/assessment", { replace: true });
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, dispatch]);
 
   return (
     <div className="min-h-screen bg-[#050816] text-white flex flex-col items-center justify-center">

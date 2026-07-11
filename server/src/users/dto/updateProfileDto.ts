@@ -1,8 +1,8 @@
-import { IsString, MinLength, IsEmail } from 'class-validator';
+import { IsOptional, IsString, MinLength } from 'class-validator';
+
 export class UpdateProfile {
-  @IsEmail()
-  email!: string;
+  @IsOptional()
   @IsString()
-  @MinLength(2)
-  displayName!: string;
+  @MinLength(1, { message: 'displayName should not be empty' })
+  displayName?: string;
 }
