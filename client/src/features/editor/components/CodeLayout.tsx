@@ -93,7 +93,7 @@ export const CodeLayout: React.FC = () => {
   const [exercise, setExercise] = useState<any>(null);
   const [exerciseLoading, setExerciseLoading] = useState(false);
   const [exerciseError, setExerciseError] = useState("");
-
+  const [unlockAIMirror, setUnlockAIMirror] = useState<boolean>(false);
   const [roadmapCompletion, setRoadmapCompletion] =
     useState<RoadmapCompletion | null>(null);
 
@@ -147,10 +147,9 @@ export const CodeLayout: React.FC = () => {
 
     void loadExercise();
   }, [challengeId, isValidChallengeId]);
-
   const canAskAi = useMemo(
-    () => Boolean(latestSubmissionId || isValidChallengeId),
-    [latestSubmissionId, isValidChallengeId],
+    () => unlockAIMirror && Boolean(latestSubmissionId),
+    [unlockAIMirror, latestSubmissionId],
   );
 
   const handleLanguageChange = (selectedLang: string) => {
@@ -164,6 +163,7 @@ export const CodeLayout: React.FC = () => {
     setIsError(false);
     setIsPassed(false);
     setSubmissionStatus(undefined);
+    setUnlockAIMirror(false);
   };
 
   const pollSubmissionResult = async (
@@ -401,6 +401,7 @@ export const CodeLayout: React.FC = () => {
         stdin: exercise?.examples?.[0]?.input || "",
       });
 
+      setUnlockAIMirror(true);
       setLatestSubmissionId(result.submissionId);
       setHasRunCode(true);
 
@@ -440,10 +441,12 @@ export const CodeLayout: React.FC = () => {
   };
 
   const handleSendAiMessage = async () => {
+    if (!unlockAIMirror) return;
     const message = aiInput.trim();
 
     if (!message || !canAskAi) return;
-
+    if (!unlockAIMirror) {
+    }
     try {
       setIsAiThinking(true);
       setAiInput("");
@@ -591,33 +594,40 @@ export const CodeLayout: React.FC = () => {
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
-            {aiMessages.map((message, index) => (
-              <div
-                key={`${message.role}-${index}`}
-                className={`rounded-xl px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap ${
-                  message.role === "user"
-                    ? "ml-6 bg-blue-500/15 border border-blue-500/20 text-blue-100"
-                    : "mr-6 bg-zinc-900/80 border border-zinc-800 text-zinc-200"
-                }`}
-              >
-                {message.role === "user" ? (
-                  message.content
-                ) : (
-                  <div
-                    className="prose prose-invert prose-xs max-w-none 
-          [&_strong]:text-emerald-400 [&_strong]:font-bold
-          [&_ul]:list-disc [&_ul]:ml-4 [&_li]:mt-1"
-                  >
-                    <ReactMarkdown
-                      remarkPlugins={[remarkMath]}
-                      rehypePlugins={[rehypeKatex]}
+            {aiMessages.map((message, index) => {
+              console.log("Message content:", message.content);
+
+              return (
+                <div
+                  key={`${message.role}-${index}`}
+                  className={`rounded-xl px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap ${
+                    message.role === "user"
+                      ? "ml-6 bg-blue-500/15 border border-blue-500/20 text-blue-100"
+                      : "mr-6 bg-zinc-900/80 border border-zinc-800 text-zinc-200"
+                  }`}
+                >
+                  {message.role === "user" ? (
+                    message.content
+                  ) : (
+                    <div
+                      className="prose prose-invert prose-xs max-w-none
+              [&_strong]:text-emerald-400
+              [&_strong]:font-bold
+              [&_ul]:list-disc
+              [&_ul]:ml-4
+              [&_li]:mt-1"
                     >
-                      {message.content || ""}
-                    </ReactMarkdown>
-                  </div>
-                )}
-              </div>
-            ))}
+                      <ReactMarkdown
+                        remarkPlugins={[remarkMath]}
+                        rehypePlugins={[rehypeKatex]}
+                      >
+                        {message.content || ""}
+                      </ReactMarkdown>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
             {isAiThinking && (
               <div className="mr-6 rounded-xl px-3 py-2 text-xs text-zinc-400 bg-zinc-900/80 border border-zinc-800">
@@ -645,13 +655,15 @@ export const CodeLayout: React.FC = () => {
               }}
               placeholder="Nhập câu hỏi cho AI Mirror..."
               className="h-20 w-full resize-none rounded-lg border border-zinc-800 bg-[#050816] p-2 text-xs text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-blue-500/60"
-              disabled={isAiThinking}
+              disabled={isAiThinking || !unlockAIMirror}
             />
 
             <button
               type="button"
               onClick={handleSendAiMessage}
-              disabled={!aiInput.trim() || isAiThinking || !canAskAi}
+              disabled={
+                !unlockAIMirror || !aiInput.trim() || isAiThinking || !canAskAi
+              }
               className="w-full rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
             >
               {isAiThinking ? "Đang hỏi AI..." : "Gửi"}
