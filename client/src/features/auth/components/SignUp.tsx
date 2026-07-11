@@ -12,7 +12,7 @@ export function SignUp() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
+  const [showSuccess, setShowSuccess] = useState(false);
   const renderErrorMessages = () => {
     if (!error) return null;
     let errorArray: string[] = [];
@@ -57,8 +57,10 @@ export function SignUp() {
         password,
         displayName,
       });
-      alert("Đăng ký tài khoản thành công! Vui lòng đăng nhập.");
-      navigate("/login");
+      setShowSuccess(true);
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
     } catch (err: any) {
       const backendMessage = err.response?.data?.message;
 
@@ -74,6 +76,11 @@ export function SignUp() {
 
   return (
     <div className="min-h-screen bg-[#050816] flex items-center justify-center px-4 py-12">
+      {showSuccess && (
+        <div className="fixed top-5 right-5 bg-green-500 text-white px-6 py-3 rounded-lg shadow-2xl font-medium animate-fade-in z-50 text-sm max-w-sm">
+          Đăng ký tài khoản thành công! Vui lòng đăng nhập.
+        </div>
+      )}
       <div className="w-full max-w-md bg-[#111827] border border-gray-800 rounded-2xl p-8 shadow-lg">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-blue-400">CodeQuest</h1>
