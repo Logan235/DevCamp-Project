@@ -69,6 +69,9 @@ class GenerationParams {
 
   @Prop({ type: String })
   assessmentId?: string;
+
+  @Prop({ type: String })
+  assessmentSubmissionId?: string;
 }
 
 @Schema({ timestamps: true })

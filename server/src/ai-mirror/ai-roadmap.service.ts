@@ -12,7 +12,7 @@ export type RoadmapLevel =
 export interface AssessmentRoadmapInput {
   assessmentId?: string;
   score: number;
-  detectedLevel: RoadmapLevel | string;
+  detectedLevel: string;
   strongSkills: string[];
   weakSkills: string[];
   details?: Array<{
@@ -138,9 +138,9 @@ Rules:
 4. If detectedLevel is "beginner", use easy tasks and a few medium tasks.
 5. If detectedLevel is "intermediate", use easy and medium tasks.
 6. If detectedLevel is "advanced", use medium and hard tasks.
-7. If score is below 40, targetNodeCount should be 8 to 12.
-8. If score is from 40 to 79, targetNodeCount should be 6 to 10.
-9. If score is 80 or above, targetNodeCount should be 4 to 8.
+7. If score is below 40, targetNodeCount should be 12 to 18.
+8. If score is from 40 to 79, targetNodeCount should be 8 to 14.
+9. If score is 80 or above, targetNodeCount should be 6 to 10.
 10. pacePreference must be one of: "slow", "medium", "fast".
 11. difficulties must only contain: "easy", "medium", "hard".
 12. skillOrder must be unique and must not contain empty strings.
@@ -162,30 +162,30 @@ Rules:
   }
 
   private normalizePlan(
-    value: any,
+    value: unknown,
     input: AssessmentRoadmapInput,
   ): AiRoadmapPlan {
     const fallbackPlan = this.buildFallbackPlan(input);
+    const record = this.isRecord(value) ? value : {};
+    const skillOrder = this.uniqueStrings(record.skillOrder);
 
-    const skillOrder = this.uniqueStrings(value?.skillOrder);
-
-    const difficulties = this.normalizeDifficulties(value?.difficulties);
+    const difficulties = this.normalizeDifficulties(record.difficulties);
 
     const targetNodeCount = this.clampNumber(
-      Number(value?.targetNodeCount),
+      Number(record.targetNodeCount),
       4,
-      12,
+      20,
       fallbackPlan.targetNodeCount,
     );
 
     const pacePreference = this.normalizePacePreference(
-      value?.pacePreference,
+      record.pacePreference,
       fallbackPlan.pacePreference,
     );
 
     const reason =
-      typeof value?.reason === 'string' && value.reason.trim()
-        ? value.reason.trim()
+      typeof record.reason === 'string' && record.reason.trim()
+        ? record.reason.trim()
         : fallbackPlan.reason;
 
     return {
@@ -223,12 +223,12 @@ Rules:
       pacePreference = input.score >= 80 ? 'fast' : 'medium';
     }
 
-    let targetNodeCount = 8;
+    let targetNodeCount = 10;
 
     if (input.score < 40) {
-      targetNodeCount = 10;
+      targetNodeCount = 14;
     } else if (input.score >= 80) {
-      targetNodeCount = 6;
+      targetNodeCount = 8;
     }
 
     return {
@@ -242,6 +242,10 @@ Rules:
       reason:
         'Fallback roadmap generated from assessment level, score, weak skills, and strong skills.',
     };
+  }
+
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
   }
 
   private uniqueStrings(values: unknown): string[] {
@@ -266,10 +270,13 @@ Rules:
       return [];
     }
 
+    const items: unknown[] = values;
+
     return Array.from(
       new Set(
-        values.filter((item): item is RoadmapDifficulty =>
-          allowed.includes(item),
+        items.filter(
+          (item): item is RoadmapDifficulty =>
+            typeof item === 'string' && (allowed as string[]).includes(item),
         ),
       ),
     );

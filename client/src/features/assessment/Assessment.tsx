@@ -122,9 +122,9 @@ export default function Asssessment() {
         userCodeOutput,
       };
 
-      const result = await submitAssessmentApi(payload);
-
       setshowConfirm(false);
+
+      const result = await submitAssessmentApi(payload);
 
       navigate("/result", {
         state: {

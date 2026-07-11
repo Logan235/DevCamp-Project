@@ -55,7 +55,7 @@ export class AuthController {
   @Redirect()
   async googleRedirect(@Request() req: any) {
     const authToken = await this.authService.login(req.user);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL;
     const redirectUrl = new URL('/oauth/callback', frontendUrl);
 
     redirectUrl.searchParams.set('accessToken', authToken.accessToken);
