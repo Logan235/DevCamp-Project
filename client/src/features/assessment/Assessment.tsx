@@ -10,6 +10,7 @@ import { Badge } from "../../components/common/Badge";
 import type { QuestionItem, OptionItem } from "./Question";
 import { getAssessmentQuestionsApi, submitAssessmentApi } from "./api";
 import { getMyRoadmapsApi } from "../roadmap/api";
+import { useSelector } from "react-redux";
 
 const optionLabels = ["A", "B", "C", "D", "E", "F"];
 
@@ -60,6 +61,7 @@ function getAnswerValue(question: QuestionItem, answer: string) {
 }
 
 export default function Asssessment() {
+  const { user, isLoggedIn } = useSelector((state: any) => state.auth);
   const navigate = useNavigate();
   const { challengeId: assessmentIdFromParams } = useParams();
   const [searchParams] = useSearchParams();
@@ -92,6 +94,19 @@ export default function Asssessment() {
   const activeQuest = quest[currentQuest - 1];
   const isCompleted = totalquest > 0 && answeredCount === totalquest;
 
+  const mapLevelToNumber = (levelStr: string): number => {
+    switch (levelStr?.toLowerCase()) {
+      case "beginner":
+        return 1;
+      case "intermediate":
+        return 2;
+      case "advanced":
+        return 3;
+      default:
+        return 1;
+    }
+  };
+  
   const handleFlag = (id: number) => {
     setFlag((prev) => {
       if (prev.includes(id)) {
@@ -257,12 +272,22 @@ export default function Asssessment() {
     );
   }
 
+  if (!isLoggedIn || !user) {
+    return <NavBar isLoggedIn={false} />;
+  }
+
   return (
     <div className="w-full mx-auto min-h-screen flex flex-col bg-[#050b17]">
       <NavBar
         variant="quiz"
         totalquest={totalquest}
         answeredCount={answeredCount}
+        isLoggedIn={true}
+        userName={user.displayName || user.email}
+        role={user.role}
+        currentLevel={mapLevelToNumber(user.currentLevel)}
+        xpTotal={user.xpTotal || 0}
+        userAvatar={user.avatar}
       />
 
       <main className="m-auto flex w-full max-w-6xl flex-col gap-6 p-4 sm:p-5 lg:p-5">
