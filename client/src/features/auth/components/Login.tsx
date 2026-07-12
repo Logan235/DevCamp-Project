@@ -35,9 +35,14 @@ export function Login() {
       navigate("/roadmap");
 
       setShowSuccess(true);
+      const isNewUser = !data.user?.currentLevel || data.user?.xpTotal === 0;
       setTimeout(() => {
-        navigate("/assessment");
-      }, 1500);
+        if (isNewUser) {
+          navigate("/assessment");
+        } else {
+          navigate("/roadmap");
+        }
+      }, 1000);
     } catch (err: any) {
       setError(
         err.response?.data?.message ||
