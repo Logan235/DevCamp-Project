@@ -6,6 +6,7 @@ import { Button } from "../components/common/Button";
 import { ThemeToggle } from "../components/ThemeToggle";
 import ProgressBar from "./assessment/Progressbar";
 import { logout } from "./auth/slice";
+import { ShieldAlert } from "lucide-react";
 
 interface NavBarProps {
   isLoggedIn?: boolean;
@@ -100,6 +101,15 @@ export const NavBar: React.FC<NavBarProps> = ({
               <Map className="w-3.5 h-3.5" style={{ color: "var(--text)" }} />
               Lộ trình
             </Link>
+            {effectiveRole === "admin" && (
+              <Link
+                to="/admin"
+                className="flex items-center gap-1.5 text-red-500 dark:text-red-400 font-bold hover:text-red-600 dark:hover:text-red-300 transition-colors border-red-500/20 px-2 py-0.5 rounded bg-red-500/5"
+              >
+                <ShieldAlert className="w-5 h-5" />
+                Admin
+              </Link>
+            )}
           </div>
         )}
       </div>
