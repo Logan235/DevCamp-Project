@@ -58,12 +58,13 @@ export function Login() {
       <div className="w-full max-w-md bg-gray-50 dark:bg-[#111827] border border-gray-200 dark:border-gray-800 rounded-2xl p-8 shadow-lg">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-blue-600 dark:text-blue-400">
-            CodeQuest
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            I Code, I Think, I Conquer
-          </p>
+          <Link
+            className="font-extrabold tracking-tight flex items-center gap-3 text-3xl justify-center"
+            to="/"
+          >
+            <span className="text-blue-600 dark:text-blue-500">&lt;/&gt;</span>
+            <span className="text-blue-500 dark:text-blue-400">CodeQuest</span>
+          </Link>
         </div>
 
         {/* Error */}
