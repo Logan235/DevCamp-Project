@@ -183,13 +183,34 @@ export class TestService {
         }
       }
 
+      // Change multiple choice answer from ABCD to text
+      let userAnswerText = userAnswer;
+      let expectedAnswerText = expectedAnswer;
+      if (question.type !== 'essay' && Array.isArray(question.options)) {
+        const selectedOption = question.options.find(
+          (option: any) =>
+            this.normalizeAssessmentAnswer(option.id) === this.normalizeAssessmentAnswer(userAnswer),
+        );
+        if (selectedOption) {
+          userAnswerText = selectedOption.text;
+        }
+
+        const correctOptions = question.options.find(
+          (option: any) =>
+            this.normalizeAssessmentAnswer(option.id) === this.normalizeAssessmentAnswer(expectedAnswer),
+        );
+
+        if (correctOptions) {
+          expectedAnswerText = correctOptions.text;
+        }
+      }
       return {
         questionOrder: question.order || index + 1,
         type: question.type,
         status,
         input: question.title,
-        expected: expectedAnswer,
-        actual: userAnswer,
+        expected: expectedAnswerText,
+        actual: userAnswerText,
         category: question.category,
         level: question.level,
       };
@@ -218,7 +239,7 @@ export class TestService {
     const assessmentSubmission = await this.assessmentSubmissionModel.create({
       userId: userId ? this.toObjectId(userId, 'userId') : undefined,
       assessmentId: assessment._id,
-      userAnswers: userCodeOutput,
+      userAnswers: details.map((detail) => detail.actual),
       score: scorePercentage,
       detectedLevel,
       strongSkills: uniqueStrongSkills,
