@@ -20,9 +20,18 @@ interface SidebarProps {
 export const RoadmapSidebar: React.FC<SidebarProps> = ({ node }) => {
   if (!node) {
     return (
-      <div className="bg-[#111625] border border-zinc-800/60 rounded-lg p-6 flex flex-col items-center justify-center text-center text-zinc-500 h-full min-h-87.5">
-        <Terminal className="w-8 h-8 mb-2 stroke-[1.5] text-zinc-600" />
-        <p className="text-xs font-mono">
+      <div
+        style={{
+          backgroundColor: "var(--card-bg)",
+          borderColor: "var(--border)",
+        }}
+        className="border rounded-lg p-6 flex flex-col items-center justify-center text-center h-full min-h-87.5"
+      >
+        <Terminal
+          className="w-8 h-8 mb-2 stroke-[1.5]"
+          style={{ color: "var(--text-h)" }}
+        />
+        <p className="text-xs font-mono" style={{ color: "var(--text-h)" }}>
           Chọn một chặng học để xem trước cú pháp
         </p>
       </div>
@@ -30,7 +39,13 @@ export const RoadmapSidebar: React.FC<SidebarProps> = ({ node }) => {
   }
 
   return (
-    <div className="bg-[#111625] border border-zinc-800 rounded-lg p-5 flex flex-col justify-between h-full space-y-5 transition-all duration-200">
+    <div
+      style={{
+        backgroundColor: "var(--card-bg)",
+        borderColor: "var(--border)",
+      }}
+      className="border rounded-lg p-5 flex flex-col justify-between h-full space-y-5 transition-all duration-200"
+    >
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <Badge variant={node.difficulty}>
@@ -48,16 +63,22 @@ export const RoadmapSidebar: React.FC<SidebarProps> = ({ node }) => {
         </div>
 
         <div>
-          <h3 className="text-base font-semibold text-white tracking-tight">
+          <h3
+            className="text-base font-bold tracking-tight"
+            style={{ color: "var(--text)" }}
+          >
             {node.title}
           </h3>
-          <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+          <p
+            className="text-xs mt-1 leading-relaxed"
+            style={{ color: "var(--text-h)" }}
+          >
             {node.desc}
           </p>
         </div>
 
-        <div className="bg-zinc-950 rounded border border-zinc-800/80 p-3 font-mono text-[11px] relative overflow-x-auto">
-          <pre className="text-sky-400/90 mt-2">
+        <div className="bg-zinc-950 dark:bg-black rounded border border-zinc-800 p-3 font-mono text-[11px] relative overflow-x-auto">
+          <pre className="text-sky-400 mt-2">
             <code>{node.syntaxSnippet}</code>
           </pre>
         </div>

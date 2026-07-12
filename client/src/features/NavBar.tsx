@@ -78,6 +78,7 @@ export const NavBar: React.FC<NavBarProps> = ({
     <nav
       className={`flex justify-between items-center border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0b0f19]/90 backdrop-blur sticky top-0 z-50 transition-all
         ${isEditor ? "px-4 py-2" : "px-6 md:px-10 py-4"}`}
+      style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}
     >
       <div className="flex items-center gap-6">
         <Link
@@ -96,7 +97,8 @@ export const NavBar: React.FC<NavBarProps> = ({
               to="/roadmap"
               className="flex items-center gap-1.5 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
-              <Map className="w-3.5 h-3.5" /> Lộ trình
+              <Map className="w-3.5 h-3.5" style={{ color: "var(--text)" }} />
+              Lộ trình
             </Link>
           </div>
         )}
@@ -141,7 +143,10 @@ export const NavBar: React.FC<NavBarProps> = ({
         {effectiveIsLoggedIn || isQuiz ? (
           <div className="flex items-center gap-3 group relative cursor-pointer py-2 selective-zone select-none">
             <div className="flex flex-col items-end pointer-events-none">
-              <span className="text-sm font-semibold text-gray-900 dark:text-white">
+              <span
+                className="text-sm font-semibold text-gray-900 dark:text-white"
+                style={{ color: "var(--text)" }}
+              >
                 {effectiveUserName}
               </span>
 

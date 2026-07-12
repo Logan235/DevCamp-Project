@@ -7,7 +7,7 @@ interface StatCardProps {
   subText: string;
   subColor?: string;
   progress?: number;
-  variant?: "streak" | "xp" | "level" | "solved"; 
+  variant?: "streak" | "xp" | "level" | "solved";
 }
 
 export default function StatCard({
@@ -29,8 +29,7 @@ export default function StatCard({
 
     if (isNaN(numericTarget)) return;
 
-    // let start = 0;
-    const duration = 1200; 
+    const duration = 1200;
     const startTime = performance.now();
 
     const animate = (currentTime: number) => {
@@ -57,23 +56,23 @@ export default function StatCard({
   const themeStyles = {
     streak: {
       border: "border-orange-500/30 hover:border-orange-500/60",
-      glow: "shadow-[0_0_20px_rgba(249,115,22,0.1)] hover:shadow-[0_0_30px_rgba(249,115,22,0.2)]",
-      iconColor: "text-orange-500/10 group-hover:text-orange-500/25",
+      glow: "shadow-[0_0_20px_rgba(249,115,22,0.05)] hover:shadow-[0_0_30px_rgba(249,115,22,0.15)]",
+      iconColor: "text-orange-500/10 group-hover:text-orange-500/20",
     },
     xp: {
       border: "border-blue-500/30 hover:border-blue-500/60",
-      glow: "shadow-[0_0_20px_rgba(59,130,246,0.1)] hover:shadow-[0_0_30px_rgba(59,130,246,0.2)]",
-      iconColor: "text-blue-500/10 group-hover:text-blue-500/25",
+      glow: "shadow-[0_0_20px_rgba(59,130,246,0.05)] hover:shadow-[0_0_30px_rgba(59,130,246,0.15)]",
+      iconColor: "text-blue-500/10 group-hover:text-blue-500/20",
     },
     level: {
       border: "border-amber-500/30 hover:border-amber-500/60",
-      glow: "shadow-[0_0_20px_rgba(245,158,11,0.1)] hover:shadow-[0_0_30px_rgba(245,158,11,0.2)]",
-      iconColor: "text-amber-500/10 group-hover:text-amber-500/25",
+      glow: "shadow-[0_0_20px_rgba(245,158,11,0.05)] hover:shadow-[0_0_30px_rgba(245,158,11,0.15)]",
+      iconColor: "text-amber-500/10 group-hover:text-amber-500/20",
     },
     solved: {
       border: "border-emerald-500/30 hover:border-emerald-500/60",
-      glow: "shadow-[0_0_20px_rgba(16,185,129,0.1)] hover:shadow-[0_0_30px_rgba(16,185,129,0.2)]",
-      iconColor: "text-emerald-500/10 group-hover:text-emerald-500/25",
+      glow: "shadow-[0_0_20px_rgba(16,185,129,0.05)] hover:shadow-[0_0_30px_rgba(16,185,129,0.15)]",
+      iconColor: "text-emerald-500/10 group-hover:text-emerald-500/20",
     },
   };
 
@@ -81,7 +80,11 @@ export default function StatCard({
 
   return (
     <div
-      className={`bg-[#111625] border rounded-xl p-5 flex flex-col justify-between h-36 relative overflow-hidden group transition-all duration-300
+      style={{
+        backgroundColor: "var(--card-bg)",
+        borderColor: "var(--border)",
+      }}
+      className={`border rounded-xl p-5 flex flex-col justify-between h-36 relative overflow-hidden group transition-all duration-300
         ${currentTheme.border} ${currentTheme.glow}
       `}
     >
@@ -95,17 +98,23 @@ export default function StatCard({
 
       <div className="relative z-10 flex flex-col justify-between h-full">
         <div>
-          <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
+          <span
+            className="text-xs font-semibold uppercase tracking-wider block mb-1"
+            style={{ color: "var(--text-h)" }}
+          >
             {label}
           </span>
-          <span className="text-3xl font-black text-white tracking-tight block">
+          <span
+            className="text-3xl font-black tracking-tight block"
+            style={{ color: "var(--text)" }}
+          >
             {displayValue}
           </span>
         </div>
 
         <div className="mt-2">
           {progress !== undefined ? (
-            <div className="w-full bg-zinc-950 h-1 rounded-full overflow-hidden border border-zinc-800/50">
+            <div className="w-full bg-zinc-200 dark:bg-zinc-950 h-1 rounded-full overflow-hidden border border-zinc-300 dark:border-zinc-800/50">
               <div
                 className="bg-linear-to-r from-amber-500 to-orange-500 h-full rounded-full transition-all duration-1000 ease-out"
                 style={{ width: `${progress}%` }}
