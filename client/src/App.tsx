@@ -19,21 +19,21 @@ function App() {
       <Route
         path="/"
         element={
-          <div className="min-h-screen bg-[#050816] text-white">
+          <div className="min-h-screen bg-white dark:bg-[#050816] text-gray-900 dark:text-white transition-colors duration-300">
             {/* Navbar */}
             <NavBar />
 
             {/* Hero Section */}
             <section className="flex flex-col items-center justify-center text-center mt-28 px-6">
-              <h1 className="text-6xl font-bold text-blue-400 mb-5 tracking-tight">
+              <h1 className="text-6xl font-bold text-blue-500 dark:text-blue-400 mb-5 tracking-tight">
                 CodeQuest
               </h1>
 
-              <h2 className="text-4xl font-extrabold mb-5 bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
+              <h2 className="text-4xl font-extrabold mb-5 bg-linear-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
                 I Code, I Think, I Conquer
               </h2>
 
-              <p className="text-gray-400 max-w-2xl mb-10 text-lg leading-relaxed">
+              <p className="text-gray-600 dark:text-gray-400 max-w-2xl mb-10 text-lg leading-relaxed">
                 Đập tan tư duy lối mòn "Copy-Paste". Khai phóng bản năng giải
                 quyết vấn đề của một Kỹ sư Phần mềm thực thụ.
               </p>
@@ -46,11 +46,11 @@ function App() {
             {/* Features Section */}
             <section className="grid md:grid-cols-3 gap-8 px-10 mt-28 pb-20 max-w-6xl mx-auto">
               {/* Feature 1 */}
-              <div className="bg-[#111827] p-8 rounded-2xl border border-gray-800/60 hover:border-blue-500/80 transition-all duration-300 shadow-xl group">
-                <h3 className="text-2xl font-bold text-blue-400 mb-4 group-hover:text-blue-300 transition-colors">
+              <div className="bg-gray-50 dark:bg-[#111827] p-8 rounded-2xl border border-gray-200 dark:border-gray-800/60 hover:border-blue-400 dark:hover:border-blue-500/80 transition-all duration-300 shadow-xl group">
+                <h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-4 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
                   AI Mind Mirror
                 </h3>
-                <p className="text-gray-400 text-sm leading-relaxed">
+                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
                   Phân tích chuyên sâu tư duy thuật toán và phong cách giải
                   quyết vấn đề độc quyền của riêng bạn, vượt trội hơn các công
                   cụ chấm điểm thông thường.
@@ -58,22 +58,22 @@ function App() {
               </div>
 
               {/* Feature 2 */}
-              <div className="bg-[#111827] p-8 rounded-2xl border border-gray-800/60 hover:border-blue-500/80 transition-all duration-300 shadow-xl group">
-                <h3 className="text-2xl font-bold text-blue-400 mb-4 group-hover:text-blue-300 transition-colors">
+              <div className="bg-gray-50 dark:bg-[#111827] p-8 rounded-2xl border border-gray-200 dark:border-gray-800/60 hover:border-blue-400 dark:hover:border-blue-500/80 transition-all duration-300 shadow-xl group">
+                <h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-4 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
                   Adaptive Roadmap
                 </h3>
-                <p className="text-gray-400 text-sm leading-relaxed">
+                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
                   Lộ trình học tập cá nhân hóa, tự động tinh chỉnh linh hoạt dựa
                   trên tiến độ thực tế và tốc độ tiếp thu của từng học viên.
                 </p>
               </div>
 
               {/* Feature 3 */}
-              <div className="bg-[#111827] p-8 rounded-2xl border border-gray-800/60 hover:border-blue-500/80 transition-all duration-300 shadow-xl group">
-                <h3 className="text-2xl font-bold text-blue-400 mb-4 group-hover:text-blue-300 transition-colors">
+              <div className="bg-gray-50 dark:bg-[#111827] p-8 rounded-2xl border border-gray-200 dark:border-gray-800/60 hover:border-blue-400 dark:hover:border-blue-500/80 transition-all duration-300 shadow-xl group">
+                <h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-4 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
                   Targeted Sandbox
                 </h3>
-                <p className="text-gray-400 text-sm leading-relaxed">
+                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
                   Trình luyện tập thông minh giúp cô lập và tối ưu hóa các mảng
                   kiến thức còn yếu thông qua hệ thống bài tập thực chiến bổ
                   trợ.

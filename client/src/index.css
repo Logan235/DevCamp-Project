@@ -1,6 +1,30 @@
 @import "tailwindcss";
 
+/* Light mode (default/fallback) */
 :root {
+  --bg: #ffffff;
+  --card-bg: #f5f5f5;
+  --code-bg: #f8f8f8;
+  --footer-bg: #f0f0f0;
+  --panel-bg: #fafafa;
+  --border: #e5e5e5;
+
+  --text-h: #4b5563;
+  --text: #2d3748;
+
+  --accent: #10b981;
+  --accent-bg: #d1fae5;
+  --accent-border: #a7f3d0;
+  --success: #22c55e;
+
+  --select: #2783ff;
+  --select-bg: rgba(39, 131, 255, 0.1);
+
+  --btn-inactive: #d1d5db;
+}
+
+/* Dark mode */
+:root.dark {
   --bg: #050b17;
   --card-bg: #0b1220;
   --code-bg: #0a101f;
@@ -26,6 +50,9 @@ body {
   background-color: var(--bg);
   color: var(--text);
   margin: 0;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 @keyframes glow {

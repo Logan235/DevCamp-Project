@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { ChevronDown, LogOut, Map, Save, User } from "lucide-react";
 import { Button } from "../components/common/Button";
+import { ThemeToggle } from "../components/ThemeToggle";
 import ProgressBar from "./assessment/Progressbar";
 import { logout } from "./auth/slice";
 
@@ -75,7 +76,7 @@ export const NavBar: React.FC<NavBarProps> = ({
 
   return (
     <nav
-      className={`flex justify-between items-center border-b border-gray-800 bg-[#0b0f19]/90 backdrop-blur sticky top-0 z-50 transition-all
+      className={`flex justify-between items-center border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0b0f19]/90 backdrop-blur sticky top-0 z-50 transition-all
         ${isEditor ? "px-4 py-2" : "px-6 md:px-10 py-4"}`}
     >
       <div className="flex items-center gap-6">
@@ -85,15 +86,15 @@ export const NavBar: React.FC<NavBarProps> = ({
           }`}
           to="/"
         >
-          <span className="text-blue-500">&lt;/&gt;</span>
-          <span className="text-blue-400">CodeQuest</span>
+          <span className="text-blue-600 dark:text-blue-500">&lt;/&gt;</span>
+          <span className="text-blue-500 dark:text-blue-400">CodeQuest</span>
         </Link>
 
         {effectiveIsLoggedIn && !isEditor && !isQuiz && (
-          <div className="hidden md:flex items-center gap-4 font-mono text-xs text-zinc-400">
+          <div className="hidden md:flex items-center gap-4 font-mono text-xs text-gray-600 dark:text-zinc-400">
             <Link
               to="/roadmap"
-              className="flex items-center gap-1.5 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               <Map className="w-3.5 h-3.5" /> Lộ trình
             </Link>
@@ -108,8 +109,14 @@ export const NavBar: React.FC<NavBarProps> = ({
       )}
 
       <div className="flex items-center gap-4 justify-end">
+        {/* Theme Toggle Button */}
+        <ThemeToggle />
+
         {isQuiz && showSave && (
-          <Button variant="normal" className="flex gap-3 hover:text-white">
+          <Button
+            variant="normal"
+            className="flex gap-3 hover:text-white dark:hover:text-white"
+          >
             <Save className="w-5 h-5" />
 
             <span
@@ -134,7 +141,7 @@ export const NavBar: React.FC<NavBarProps> = ({
         {effectiveIsLoggedIn || isQuiz ? (
           <div className="flex items-center gap-3 group relative cursor-pointer py-2 selective-zone select-none">
             <div className="flex flex-col items-end pointer-events-none">
-              <span className="text-sm font-semibold text-white">
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">
                 {effectiveUserName}
               </span>
 
@@ -144,12 +151,12 @@ export const NavBar: React.FC<NavBarProps> = ({
                 </span>
               ) : (
                 <>
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-gray-600 dark:text-slate-400">
                     Cấp độ {effectiveCurrentLevel}
                   </span>
 
                   {!isEditor && !isQuiz && (
-                    <span className="text-[10px] text-cyan-400 font-medium">
+                    <span className="text-[10px] text-cyan-500 dark:text-cyan-400 font-medium">
                       {effectiveXpTotal.toLocaleString()} XP
                     </span>
                   )}
@@ -183,15 +190,15 @@ export const NavBar: React.FC<NavBarProps> = ({
                 </div>
               )}
 
-              <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-[#0b0f19]" />
+              <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white dark:border-[#0b0f19]" />
             </div>
 
-            <ChevronDown className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300 transition-all pointer-events-none" />
+            <ChevronDown className="w-3.5 h-3.5 text-gray-500 dark:text-zinc-500 group-hover:text-gray-700 dark:group-hover:text-zinc-300 transition-all pointer-events-none" />
 
             <div
               className="
                 absolute right-0 top-full mt-0 w-44
-                bg-[#111625] border border-zinc-800 rounded-lg shadow-2xl
+                bg-white dark:bg-[#111625] border border-gray-200 dark:border-zinc-800 rounded-lg shadow-2xl
                 opacity-0 invisible group-hover:opacity-100 group-hover:visible
                 transition-all duration-200 transform translate-y-1 group-hover:translate-y-0
                 overflow-hidden z-50 py-1
@@ -199,15 +206,16 @@ export const NavBar: React.FC<NavBarProps> = ({
             >
               <Link
                 to="/profile"
-                className="flex items-center gap-2 px-4 py-2.5 text-xs text-zinc-300 hover:bg-zinc-800 transition-colors cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2.5 text-xs text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               >
-                <User className="w-3.5 h-3.5 text-zinc-400" /> Hồ sơ cá nhân
+                <User className="w-3.5 h-3.5 text-gray-500 dark:text-zinc-400" />{" "}
+                Hồ sơ cá nhân
               </Link>
 
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-rose-400 hover:bg-rose-950/30 border-t border-zinc-800/60 transition-colors text-left cursor-pointer"
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 border-t border-gray-200 dark:border-zinc-800/60 transition-colors text-left cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" /> Đăng xuất
               </button>
@@ -220,9 +228,9 @@ export const NavBar: React.FC<NavBarProps> = ({
               size="sm"
               to="/signup"
               className="
-                border border-[#3b82f6]
-                text-[#60a5fa]
-                hover:bg-[#3b82f6]/10
+                border border-blue-500 dark:border-[#3b82f6]
+                text-blue-600 dark:text-[#60a5fa]
+                hover:bg-blue-50 dark:hover:bg-[#3b82f6]/10
               "
             >
               Đăng ký

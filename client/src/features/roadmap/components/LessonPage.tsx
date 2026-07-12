@@ -125,14 +125,14 @@ export default function LessonPage() {
 
   if (!lesson) {
     return (
-      <div className="min-h-screen bg-[#050816] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-[#050816] text-gray-900 dark:text-white flex items-center justify-center transition-colors">
         Không tìm thấy bài học.
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#050816] p-6 md:p-10 text-white">
+    <div className="min-h-screen bg-white dark:bg-[#050816] p-6 md:p-10 text-gray-900 dark:text-white transition-colors">
       <div
         className="
           max-w-5xl

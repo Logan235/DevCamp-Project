@@ -2,6 +2,7 @@ import React from "react";
 import Editor from "@monaco-editor/react";
 import { Select } from "../../../components/common/Select";
 import { Button } from "../../../components/common/Button";
+import { useTheme } from "../../../contexts/ThemeContext";
 
 const LANGUAGE_OPTIONS = [{ value: "cpp", label: "C++ (Local Engine)" }];
 
@@ -26,13 +27,16 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   onSubmitCode,
   isRunning,
 }) => {
+  const { theme } = useTheme();
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onLanguageChange(e.target.value);
   };
 
+  const monacoTheme = theme === "dark" ? "vs-dark" : "vs";
+
   return (
-    <div className="flex flex-col h-full bg-[#0d111c]/60 rounded-xl border border-zinc-900 overflow-hidden">
-      <div className="flex justify-between items-center px-4 py-2 bg-[#090d16] border-b border-gray-800/80 select-none">
+    <div className="flex flex-col h-full bg-gray-50 dark:bg-[#0d111c]/60 rounded-xl border border-gray-300 dark:border-zinc-900 overflow-hidden">
+      <div className="flex justify-between items-center px-4 py-2 bg-white dark:bg-[#090d16] border-b border-gray-200 dark:border-gray-800/80 select-none transition-colors">
         <div className="flex items-center gap-3">
           <Select
             options={LANGUAGE_OPTIONS}
@@ -75,13 +79,13 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           </Button>
         </div>
       </div>
-      <div className="flex-1 h-full relative bg-[#0f1422]/40 pt-2">
+      <div className="flex-1 h-full relative bg-gray-100 dark:bg-[#0f1422]/40 pt-2">
         <div className="absolute inset-0 w-full h-full">
           <Editor
             height="100%"
             language={language}
             value={code}
-            theme="vs-dark"
+            theme={monacoTheme}
             onChange={(value) => onCodeChange(value || "")}
             options={{
               fontSize: 14,
@@ -93,7 +97,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               lineNumbersMinChars: 3,
             }}
             loading={
-              <div className="flex items-center justify-center h-full text-zinc-500 text-sm gap-2">
+              <div className="flex items-center justify-center h-full text-gray-500 dark:text-zinc-500 text-sm gap-2">
                 <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
                 <span>Đang kết nối...</span>
               </div>

@@ -135,13 +135,13 @@ export default function Profile() {
       <div>
         <NavBar />
 
-        <main className="min-h-screen bg-[#050816] text-zinc-300 flex items-center justify-center px-4">
-          <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6 text-center">
-            <h1 className="text-xl font-bold text-white mb-2">
+        <main className="min-h-screen bg-white dark:bg-[#050816] text-gray-600 dark:text-zinc-300 flex items-center justify-center px-4 transition-colors">
+          <div className="w-full max-w-md rounded-2xl border border-gray-300 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900/70 p-6 text-center">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               Bạn chưa đăng nhập
             </h1>
 
-            <p className="text-sm text-zinc-400 mb-5">
+            <p className="text-sm text-gray-600 dark:text-zinc-400 mb-5">
               Vui lòng đăng nhập để xem và chỉnh sửa hồ sơ cá nhân.
             </p>
 
@@ -159,8 +159,8 @@ export default function Profile() {
       <div>
         <NavBar />
 
-        <main className="min-h-screen bg-[#050816] flex items-center justify-center">
-          <div className="text-zinc-400 animate-pulse">
+        <main className="min-h-screen bg-white dark:bg-[#050816] flex items-center justify-center transition-colors">
+          <div className="text-gray-400 dark:text-zinc-400 animate-pulse">
             Đang tải hồ sơ người dùng...
           </div>
         </main>
@@ -173,8 +173,8 @@ export default function Profile() {
       <div>
         <NavBar />
 
-        <main className="min-h-screen bg-[#050816] flex items-center justify-center px-4">
-          <div className="w-full max-w-md rounded-2xl border border-rose-500/20 bg-rose-500/10 p-6 text-center text-rose-300">
+        <main className="min-h-screen bg-white dark:bg-[#050816] flex items-center justify-center px-4 transition-colors">
+          <div className="w-full max-w-md rounded-2xl border border-rose-300 dark:border-rose-500/20 bg-rose-50 dark:bg-rose-500/10 p-6 text-center text-rose-700 dark:text-rose-300">
             {error || "Không tìm thấy dữ liệu người dùng."}
           </div>
         </main>
@@ -191,8 +191,8 @@ export default function Profile() {
     <div>
       <NavBar />
 
-      <main className="min-h-screen bg-[#050816] text-zinc-100 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-lg rounded-2xl border border-[#1e2227] overflow-hidden bg-zinc-950 shadow-2xl">
+      <main className="min-h-screen bg-white dark:bg-[#050816] text-gray-900 dark:text-zinc-100 flex items-center justify-center px-4 py-12 transition-colors">
+        <div className="w-full max-w-lg rounded-2xl border border-gray-300 dark:border-[#1e2227] overflow-hidden bg-white dark:bg-zinc-950 shadow-2xl">
           <div className="w-full h-44 bg-linear-to-r from-emerald-600 via-emerald-500 to-teal-600 relative overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] bg-size-[16px_16px] opacity-15" />
           </div>
