@@ -158,9 +158,8 @@ export default function Profile() {
     return (
       <div>
         <NavBar />
-
         <main className="min-h-screen bg-white dark:bg-[#050816] flex items-center justify-center transition-colors">
-          <div className="text-gray-400 dark:text-zinc-400 animate-pulse">
+          <div className="text-gray-600 dark:text-zinc-400 animate-pulse font-medium">
             Đang tải hồ sơ người dùng...
           </div>
         </main>
@@ -172,7 +171,6 @@ export default function Profile() {
     return (
       <div>
         <NavBar />
-
         <main className="min-h-screen bg-white dark:bg-[#050816] flex items-center justify-center px-4 transition-colors">
           <div className="w-full max-w-md rounded-2xl border border-rose-300 dark:border-rose-500/20 bg-rose-50 dark:bg-rose-500/10 p-6 text-center text-rose-700 dark:text-rose-300">
             {error || "Không tìm thấy dữ liệu người dùng."}
@@ -191,14 +189,17 @@ export default function Profile() {
     <div>
       <NavBar />
 
-      <main className="min-h-screen bg-white dark:bg-[#050816] text-gray-900 dark:text-zinc-100 flex items-center justify-center px-4 py-12 transition-colors">
-        <div className="w-full max-w-lg rounded-2xl border border-gray-300 dark:border-[#1e2227] overflow-hidden bg-white dark:bg-zinc-950 shadow-2xl">
+      <main
+        className="min-h-screen bg-white dark:bg-[#050816] text-gray-900 dark:text-zinc-100 flex items-center justify-center px-4 py-12 transition-colors"
+        style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}
+      >
+        <div className="w-full max-w-lg rounded-2xl border border-gray-200 dark:border-zinc-800 overflow-hidden bg-gray-50 dark:bg-zinc-950 shadow-2xl transition-colors">
           <div className="w-full h-44 bg-linear-to-r from-emerald-600 via-emerald-500 to-teal-600 relative overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] bg-size-[16px_16px] opacity-15" />
           </div>
 
           <div className="flex flex-col items-center -mt-20 px-5 pb-6">
-            <div className="mb-4 w-36 h-36 rounded-2xl border-4 border-zinc-950 shadow-xl overflow-hidden bg-zinc-800 z-10 flex items-center justify-center">
+            <div className="mb-4 w-36 h-36 rounded-2xl border-4 border-gray-50 dark:border-zinc-950 shadow-xl overflow-hidden bg-gray-200 dark:bg-zinc-800 z-10 flex items-center justify-center">
               {avatarSrc ? (
                 <img
                   src={avatarSrc}
@@ -206,24 +207,26 @@ export default function Profile() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-5xl font-black text-white">
+                <span className="text-5xl font-black text-gray-700 dark:text-white">
                   {displayInitial}
                 </span>
               )}
             </div>
 
-            <h1 className="text-2xl font-bold text-white">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               {user.displayName}
             </h1>
 
-            <p className="mt-1 text-sm text-zinc-400">{user.email}</p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400">
+              {user.email}
+            </p>
 
             {message && (
               <div
                 className={`w-full mt-5 p-3 rounded-lg text-sm ${
                   message.type === "success"
-                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                    : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                    : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
                 }`}
               >
                 {message.text}
@@ -232,15 +235,16 @@ export default function Profile() {
 
             <div className="w-full mt-6 flex flex-col gap-5">
               <div className="flex flex-col gap-2">
-                <span className="uppercase tracking-widest text-xs text-zinc-400">
+                <span className="uppercase tracking-widest text-xs text-gray-400 dark:text-zinc-500">
                   Email
                 </span>
-
-                <span className="font-medium truncate">{user.email}</span>
+                <span className="font-medium truncate text-gray-800 dark:text-zinc-200">
+                  {user.email}
+                </span>
               </div>
 
               <div className="flex flex-col gap-2">
-                <span className="uppercase tracking-widest text-xs text-zinc-400">
+                <span className="uppercase tracking-widest text-xs text-gray-400 dark:text-zinc-500">
                   Họ và tên
                 </span>
 
@@ -249,39 +253,37 @@ export default function Profile() {
                     name="displayName"
                     value={formData.displayName || ""}
                     onChange={handleChange}
-                    className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white outline-none focus:border-emerald-500"
+                    className="rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-gray-900 dark:text-white outline-none focus:border-emerald-500 transition-colors"
                     placeholder="Nhập tên hiển thị"
                   />
                 ) : (
-                  <span className="font-medium truncate">
+                  <span className="font-medium truncate text-gray-800 dark:text-zinc-200">
                     {user.displayName}
                   </span>
                 )}
               </div>
 
               <div className="flex flex-col gap-2">
-                <span className="uppercase tracking-widest text-xs text-zinc-400">
+                <span className="uppercase tracking-widest text-xs text-gray-400 dark:text-zinc-500">
                   Vai trò
                 </span>
-
-                <span className="font-medium truncate">
+                <span className="font-medium truncate text-gray-800 dark:text-zinc-200">
                   {user.role === "admin" ? "Admin" : "Người dùng"}
                 </span>
               </div>
 
               <div className="flex flex-col gap-2">
-                <span className="uppercase tracking-widest text-xs text-zinc-400">
+                <span className="uppercase tracking-widest text-xs text-gray-400 dark:text-zinc-500">
                   Ngày bắt đầu
                 </span>
-
-                <span className="font-medium truncate">
+                <span className="font-medium truncate text-gray-800 dark:text-zinc-200">
                   {user.createdAt
                     ? new Date(user.createdAt).toLocaleDateString("vi-VN")
                     : "Chưa có dữ liệu"}
                 </span>
               </div>
 
-              <div className="border-t border-[#1e2227] pt-5 flex justify-end gap-3">
+              <div className="border-t border-gray-200 dark:border-zinc-800 pt-5 flex justify-end gap-3">
                 {isEditing ? (
                   <>
                     <Button

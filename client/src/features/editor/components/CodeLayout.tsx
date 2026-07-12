@@ -97,7 +97,6 @@ export const CodeLayout: React.FC = () => {
   const [roadmapCompletion, setRoadmapCompletion] =
     useState<RoadmapCompletion | null>(null);
 
-  // State quản lý việc ẩn/hiện AI Chat ở mobile/tablet
   const [isAiOpen, setIsAiOpen] = useState<boolean>(false);
 
   const [, setHasRunCode] = useState<boolean>(false);
@@ -105,7 +104,7 @@ export const CodeLayout: React.FC = () => {
     {
       role: "assistant",
       content:
-        "Mình là AI Mirror. Hãy submit code trước, sau đó hỏi mình phân tích tư duy, lỗi sai hoặc hướng tối ưu nhé.",
+        "Mình là AI Mirror. Hãy submit code trước, sau đó hỏi mình phân tích tư lưu, lỗi sai hoặc hướng tối ưu nhé.",
     },
   ]);
 
@@ -543,16 +542,16 @@ export const CodeLayout: React.FC = () => {
     : "Đến bài đầu tiên của node tiếp theo";
 
   const renderAiChat = () => (
-    <div className="flex flex-col h-full bg-[#090d16]">
-      <div className="h-12 px-4 border-b border-zinc-800 flex items-center justify-between shrink-0">
-        <h2 className="text-sm font-bold text-zinc-100">AI Mirror</h2>
+    <div className="flex flex-col h-full bg-(--bg-header)">
+      <div className="h-12 px-4 border-b border-(--border-main) flex items-center justify-between shrink-0">
+        <h2 className="text-sm font-bold text-(--text-main)">AI Mirror</h2>
         <div className="flex items-center gap-2">
-          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">
+          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px font-semibold text-emerald-600 dark:text-emerald-300">
             Mirror
           </span>
           <button
             onClick={() => setIsAiOpen(false)}
-            className="xl:hidden text-zinc-400 hover:text-zinc-100 p-1"
+            className="xl:hidden text-(--text-muted) hover:text-(--text-main) p-1"
           >
             <svg
               className="w-5 h-5"
@@ -577,16 +576,17 @@ export const CodeLayout: React.FC = () => {
             key={`${message.role}-${index}`}
             className={`rounded-xl px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap ${
               message.role === "user"
-                ? "ml-6 bg-blue-500/15 border border-blue-500/20 text-blue-100"
-                : "mr-6 bg-zinc-900/80 border border-zinc-800 text-zinc-200"
+                ? "ml-6 bg-blue-500/15 border border-blue-500/20 text-blue-800 dark:text-blue-100"
+                : "mr-6 bg-(--bg-chat-bubble-ai) border border-(--border-sub) text-(--text-sub)"
             }`}
           >
             {message.role === "user" ? (
               message.content
             ) : (
               <div
-                className="prose prose-invert prose-xs max-w-none
-                  [&_strong]:text-emerald-400
+                className="prose prose-xs max-w-none dark:prose-invert
+                  [&_strong]:text-emerald-600
+                  dark:[&_strong]:text-emerald-400
                   [&_strong]:font-bold
                   [&_ul]:list-disc
                   [&_ul]:ml-4
@@ -604,15 +604,15 @@ export const CodeLayout: React.FC = () => {
         ))}
 
         {isAiThinking && (
-          <div className="mr-6 rounded-xl px-3 py-2 text-xs text-zinc-400 bg-zinc-900/80 border border-zinc-800">
+          <div className="mr-6 rounded-xl px-3 py-2 text-xs text-(--text-muted) bg-(--bg-chat-bubble-ai) border border-(--border-sub)">
             AI Mirror đang phân tích...
           </div>
         )}
       </div>
 
-      <div className="border-t border-zinc-800 p-3 space-y-2 shrink-0 bg-[#090d16]">
+      <div className="border-t border-(--border-main) p-3 space-y-2 shrink-0 bg-(--bg-header)">
         {!latestSubmissionId && (
-          <p className="text-[11px] text-amber-300/80">
+          <p className="text-[11px] text-amber-600 dark:text-amber-300/80">
             Nên submit code trước để AI Mirror có đủ code, output và lỗi khi
             phân tích.
           </p>
@@ -628,7 +628,7 @@ export const CodeLayout: React.FC = () => {
             }
           }}
           placeholder="Nhập câu hỏi cho AI Mirror..."
-          className="h-20 w-full resize-none rounded-lg border border-zinc-800 bg-[#050816] p-2 text-xs text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-blue-500/60"
+          className="h-20 w-full resize-none rounded-lg border border-(--border-main)] bg-(--bg-main)] p-2 text-xs text-(--text-main)] outline-none placeholder:text-(--text-placeholder)] focus:border-blue-500/60"
           disabled={isAiThinking || !unlockAIMirror}
         />
 
@@ -638,7 +638,7 @@ export const CodeLayout: React.FC = () => {
           disabled={
             !unlockAIMirror || !aiInput.trim() || isAiThinking || !canAskAi
           }
-          className="w-full rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
+          className="w-full rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-(--bg-toggle-disabled)] disabled:text-(--text-toggle-disabled)]"
         >
           {isAiThinking ? "Đang hỏi AI..." : "Gửi"}
         </button>
@@ -647,11 +647,11 @@ export const CodeLayout: React.FC = () => {
   );
 
   return (
-    <div className="h-screen w-full flex flex-col bg-[#050816] overflow-hidden relative">
+    <div className="h-screen w-full flex flex-col bg-(--bg-main) overflow-hidden relative">
       <CodeHeader />
 
       <div className="flex-1 grid grid-cols-1 xl:grid-cols-14 overflow-y-auto xl:overflow-hidden p-2 gap-2">
-        <div className="xl:col-span-3 bg-[#050816] border border-zinc-900 rounded-xl overflow-hidden flex flex-col h-75 xl:h-full">
+        <div className="xl:col-span-3 bg-(--bg-main) border border-(--border-main) rounded-xl overflow-hidden flex flex-col h-75 xl:h-full">
           <SidebarTask
             exercise={exercise}
             isLoading={exerciseLoading}
@@ -673,7 +673,7 @@ export const CodeLayout: React.FC = () => {
             />
           </div>
 
-          <div className="h-56 shrink-0 border border-[#050816] rounded-xl overflow-hidden">
+          <div className="h-56 shrink-0 border border-(--border-main) rounded-xl overflow-hidden">
             <ConsoleOutput
               output={output}
               isError={isError}
@@ -693,7 +693,7 @@ export const CodeLayout: React.FC = () => {
           </div>
         </div>
 
-        <aside className="hidden xl:flex xl:col-span-3 bg-[#090d16] border border-zinc-900 rounded-xl overflow-hidden flex-col min-h-0">
+        <aside className="hidden xl:flex xl:col-span-3 bg-(--bg-header) border border-(--border-main) rounded-xl overflow-hidden flex-col min-h-0">
           {renderAiChat()}
         </aside>
       </div>
@@ -723,7 +723,7 @@ export const CodeLayout: React.FC = () => {
             className="xl:hidden fixed inset-0 bg-black/60 z-40 transition-opacity"
             onClick={() => setIsAiOpen(false)}
           />
-          <div className="xl:hidden fixed bottom-0 right-0 left-0 md:left-auto md:w-100 h-125 md:h-150 bg-[#090d16] border-t md:border-l border-zinc-800 rounded-t-2xl md:rounded-tr-none md:rounded-l-2xl shadow-2xl z-50 overflow-hidden flex flex-col transition-transform animate-in slide-in-from-bottom duration-200">
+          <div className="xl:hidden fixed bottom-0 right-0 left-0 md:left-auto md:w-100 h-125 md:h-150 bg-(--bg-header) border-t md:border-l border-(--border-main) rounded-t-2xl md:rounded-tr-none md:rounded-l-2xl shadow-2xl z-50 overflow-hidden flex flex-col transition-transform animate-in slide-in-from-bottom duration-200">
             {renderAiChat()}
           </div>
         </>

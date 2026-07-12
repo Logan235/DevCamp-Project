@@ -24,16 +24,16 @@ export const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
   completionMessage,
 }) => {
   return (
-    <div className="h-full bg-white dark:bg-[#050816] border-t border-gray-300 dark:border-zinc-800/80 flex flex-col justify-between transition-colors">
+    <div className="h-full bg-(--bg-card)] border-t border-(--border-main) flex flex-col justify-between transition-colors">
       <div className="flex-1 flex flex-col min-h-0">
-        <div className="h-10 px-4 border-b border-gray-300 dark:border-zinc-900 bg-gray-50 dark:bg-[#050816]/50 flex items-center justify-between select-none">
-          <span className="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-zinc-400 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-zinc-500"></span>
+        <div className="h-10 px-4 border-b border-(--border-sub) bg-(--bg-header) flex items-center justify-between select-none">
+          <span className="text-xs font-bold uppercase tracking-wider text-(--text-muted) flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-(--text-muted)"></span>
             Console Output
           </span>
         </div>
 
-        <div className="flex-1 p-4 font-mono text-xs overflow-y-auto bg-gray-100 dark:bg-[#050816]/30 text-gray-900 dark:text-gray-100 selection:bg-gray-300 dark:selection:bg-zinc-800">
+        <div className="flex-1 p-4 font-mono text-xs overflow-y-auto bg-(--bg-chat-content) text-(--text-main) selection:bg-(--bg-toggle-disabled)">
           {output ? (
             <div className="space-y-4">
               <pre
@@ -74,7 +74,7 @@ export const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
               )}
             </div>
           ) : (
-            <span className="text-gray-400 dark:text-zinc-600 text-2xl italic">
+            <span className="text-(--text-placeholder) text-2xl italic">
               KẾt quả sẽ được hiển thị sau khi bạn ấn Run Code
             </span>
           )}

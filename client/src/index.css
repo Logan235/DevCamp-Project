@@ -42,7 +42,9 @@ body {
   background-color: var(--bg);
   color: var(--text);
   margin: 0;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 @keyframes fadeInUp {
@@ -57,8 +59,13 @@ body {
 }
 
 @keyframes floatAnimation {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .reveal-hidden {
@@ -70,6 +77,29 @@ body {
   animation: fadeInUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
-.animate-float-slow { animation: floatAnimation 6s ease-in-out infinite; }
-.animate-float-medium { animation: floatAnimation 5s ease-in-out infinite; }
-.animate-float-fast { animation: floatAnimation 4s ease-in-out infinite; }
+.animate-float-slow {
+  animation: floatAnimation 6s ease-in-out infinite;
+}
+.animate-float-medium {
+  animation: floatAnimation 5s ease-in-out infinite;
+}
+.animate-float-fast {
+  animation: floatAnimation 4s ease-in-out infinite;
+}
+:root {
+  --bg: #ffffff;
+  --text: #1f2937;
+}
+
+.dark {
+  --bg: #050816;
+  --text: #f4f4f5;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+}

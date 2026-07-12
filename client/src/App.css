@@ -183,7 +183,6 @@
   }
 }
 
-/* Định nghĩa chuyển động bay lên xuống */
 @keyframes floatAnimation {
   0%, 100% {
     transform: translateY(0);
@@ -193,7 +192,6 @@
   }
 }
 
-/* Tạo sẵn các class để gọi qua className trong React */
 .animate-float-slow {
   animation: floatAnimation 6s ease-in-out infinite;
 }

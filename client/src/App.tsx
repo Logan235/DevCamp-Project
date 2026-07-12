@@ -42,7 +42,6 @@ const OAuthCallback = React.lazy(() =>
 );
 const Profile = React.lazy(() => import("./features/profile/Profile"));
 
-// Custom hook tự động kích hoạt hiệu ứng khi cuộn tới vị trí mong muốn
 function useScrollReveal() {
   const [isRevealed, setIsRevealed] = useState(false);
   const elementRef = useRef<HTMLDivElement>(null);
@@ -53,11 +52,10 @@ function useScrollReveal() {
         if (entry.isIntersecting) {
           setIsRevealed(true);
         } else {
-          // Khi cuộn ngược lên trên khuất tầm mắt, ẩn đi để lần sau cuộn xuống sẽ kích hoạt lại từ đầu
           setIsRevealed(false);
         }
       },
-      { threshold: 0.15 }, // Kích hoạt khi thấy được 15% diện tích khối
+      { threshold: 0.15 },
     );
 
     if (elementRef.current) observer.observe(elementRef.current);
@@ -67,7 +65,6 @@ function useScrollReveal() {
   return { elementRef, isRevealed };
 }
 
-// Thay đổi background skeleton bằng CSS Variable đồng bộ theo hệ thống
 const SkeletonHome = () => (
   <div
     style={{ backgroundColor: "var(--bg)" }}
@@ -88,6 +85,10 @@ function App() {
 
   return (
     <Suspense fallback={<SkeletonHome />}>
+      <div
+      style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}
+        className="min-h-screen overflow-x-hidden transition-colors duration-300"
+      >
       <Routes>
         <Route
           path="/"
@@ -127,7 +128,7 @@ function App() {
                 </Button>
               </section>
 
-              {/* Features Section - Theo dõi cuộn trang */}
+              {/* Features Section*/}
               <section
                 ref={elementRef}
                 className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 px-6 md:px-10 mt-20 md:mt-28 pb-20 max-w-6xl mx-auto"
@@ -281,6 +282,7 @@ function App() {
           }
         />
       </Routes>
+      </div>
     </Suspense>
   );
 }
