@@ -391,7 +391,9 @@ export default function Result() {
                           <p
                             className={`font-semibold ${isPassed ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
                           >
-                            {(item as any).userAnswerText || "(Lỗi: Chưa tìm thấy dữ liệu text)"}
+                            {item.actual ||
+                              (item as any).userAnswerText ||
+                              "(empty)"}
                           </p>
                         </div>
 
@@ -400,7 +402,9 @@ export default function Result() {
                             Đáp án đúng
                           </p>
                           <p className="font-semibold text-gray-800 dark:text-slate-200">
-                            {(item as any).expectedAnswerText || "(Lỗi: Chưa tìm thấy dữ liệu text)"}
+                            {item.expected ||
+                              (item as any).expectedAnswerText ||
+                              "(essay)"}
                           </p>
                         </div>
                       </div>

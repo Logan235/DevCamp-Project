@@ -86,7 +86,7 @@ export const NavBar: React.FC<NavBarProps> = ({
           className={`font-extrabold tracking-tight flex items-center gap-3 ${
             isEditor ? "text-3xl" : "text-5xl"
           }`}
-          to={effectiveIsLoggedIn ? "/roadmap" : "/"}
+          to="/"
         >
           <span className="text-blue-600 dark:text-blue-500">&lt;/&gt;</span>
           <span className="text-blue-500 dark:text-blue-400">CodeQuest</span>

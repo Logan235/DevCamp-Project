@@ -105,6 +105,26 @@ export class TestService {
     return normalizedSelectedText === normalizedExpectedAnswer;
   }
 
+  private getAssessmentAnswerText(question: any, answer: string): string {
+    const normalizedAnswer = this.normalizeAssessmentAnswer(answer);
+
+    if (
+      !normalizedAnswer ||
+      question.type === 'essay' ||
+      !Array.isArray(question.options)
+    ) {
+      return answer;
+    }
+
+    const matchedOption = question.options.find(
+      (option: any) =>
+        this.normalizeAssessmentAnswer(option.id) === normalizedAnswer ||
+        this.normalizeAssessmentAnswer(option.text) === normalizedAnswer,
+    );
+
+    return matchedOption?.text || answer;
+  }
+
   private getDetectedLevel(scorePercentage: number): string {
     if (scorePercentage >= 80) {
       return 'advanced';
@@ -183,13 +203,19 @@ export class TestService {
         }
       }
 
+      const userAnswerText = this.getAssessmentAnswerText(question, userAnswer);
+      const expectedAnswerText = this.getAssessmentAnswerText(
+        question,
+        expectedAnswer,
+      );
+
       return {
         questionOrder: question.order || index + 1,
         type: question.type,
         status,
         input: question.title,
-        expected: expectedAnswer,
-        actual: userAnswer,
+        expected: expectedAnswerText,
+        actual: userAnswerText,
         category: question.category,
         level: question.level,
       };
@@ -218,7 +244,7 @@ export class TestService {
     const assessmentSubmission = await this.assessmentSubmissionModel.create({
       userId: userId ? this.toObjectId(userId, 'userId') : undefined,
       assessmentId: assessment._id,
-      userAnswers: userCodeOutput,
+      userAnswers: details.map((detail) => detail.actual),
       score: scorePercentage,
       detectedLevel,
       strongSkills: uniqueStrongSkills,
