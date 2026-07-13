@@ -131,6 +131,43 @@ function App() {
                 </section>
 
                 {/* giữ nguyên Features Section phía dưới */}
+                <section className="grid md:grid-cols-3 gap-8 px-10 mt-28 pb-20 max-w-6xl mx-auto">
+                  {/* Feature 1 */}
+                  <div className="bg-[#111827] p-8 rounded-2xl border border-gray-800/60 hover:border-blue-500/80 transition-all duration-300 shadow-xl group">
+                    <h3 className="text-2xl font-bold text-blue-400 mb-4 group-hover:text-blue-300 transition-colors">
+                      AI Mind Mirror
+                    </h3>
+                    <p className="text-gray-400 text-sm leading-relaxed">
+                      Phân tích chuyên sâu tư duy thuật toán và phong cách giải
+                      quyết vấn đề độc quyền của riêng bạn, vượt trội hơn các
+                      công cụ chấm điểm thông thường.
+                    </p>
+                  </div>
+
+                  {/* Feature 2 */}
+                  <div className="bg-[#111827] p-8 rounded-2xl border border-gray-800/60 hover:border-blue-500/80 transition-all duration-300 shadow-xl group">
+                    <h3 className="text-2xl font-bold text-blue-400 mb-4 group-hover:text-blue-300 transition-colors">
+                      Adaptive Roadmap
+                    </h3>
+                    <p className="text-gray-400 text-sm leading-relaxed">
+                      Lộ trình học tập cá nhân hóa, tự động tinh chỉnh linh hoạt
+                      dựa trên tiến độ thực tế và tốc độ tiếp thu của từng học
+                      viên.
+                    </p>
+                  </div>
+
+                  {/* Feature 3 */}
+                  <div className="bg-[#111827] p-8 rounded-2xl border border-gray-800/60 hover:border-blue-500/80 transition-all duration-300 shadow-xl group">
+                    <h3 className="text-2xl font-bold text-blue-400 mb-4 group-hover:text-blue-300 transition-colors">
+                      Targeted Sandbox
+                    </h3>
+                    <p className="text-gray-400 text-sm leading-relaxed">
+                      Trình luyện tập thông minh giúp cô lập và tối ưu hóa các
+                      mảng kiến thức còn yếu thông qua hệ thống bài tập thực
+                      chiến bổ trợ.
+                    </p>
+                  </div>
+                </section>
               </div>
             }
           />
