@@ -94,7 +94,6 @@ function uniqueValues(values?: string[]) {
 
 export default function Result() {
   const location = useLocation();
-  const navigate = useNavigate();
 
   const result = (location.state || {}) as AssessmentResultState;
   const details = Array.isArray(result.details) ? result.details : [];
