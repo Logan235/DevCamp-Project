@@ -238,7 +238,7 @@ export default function Asssessment() {
         <p className="max-w-xl text-center text-sm text-slate-400">
           {loadErrorMessage}
         </p>
-        <Button variant="secondary" onClick={() => navigate("/login")}>
+        <Button variant="secondary" to="/login">
           Quay lại đăng nhập
         </Button>
       </div>

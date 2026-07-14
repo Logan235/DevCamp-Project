@@ -171,21 +171,33 @@ export default function Result() {
     activeRoadmap?.generationParams?.pacePreference || "medium";
 
   return (
-    <div className="w-full mx-auto min-h-screen flex flex-col bg-white dark:bg-[#050b17] text-gray-700 dark:text-slate-300 transition-colors duration-300">
+    <div
+      style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}
+      className="w-full mx-auto min-h-screen flex flex-col transition-colors duration-300"
+    >
       <NavBar variant="quiz" showProgressBar={false} showSave={false} />
 
       <main className="w-full max-w-6xl p-5 flex flex-col gap-8 mx-auto">
         {/* Header Section */}
         <section className="flex flex-col justify-center items-center gap-5 text-center pt-6">
-          <div className="w-fit h-fit p-5 bg-emerald-50 dark:bg-[#0b3026] rounded-2xl border border-emerald-200 dark:border-emerald-500/20 shadow-md dark:shadow-[0_0_25px_rgba(16,185,129,0.15)]">
+          <div
+            style={{ borderColor: "var(--accent-border)" }}
+            className="w-fit h-fit p-5 bg-emerald-500/10 dark:bg-[#0b3026] rounded-2xl border shadow-md dark:shadow-[0_0_25px_rgba(16,185,129,0.15)]"
+          >
             <Award className="text-emerald-600 dark:text-emerald-400 w-12 h-12" />
           </div>
 
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1
+              style={{ color: "var(--text)" }}
+              className="text-3xl font-bold transition-colors"
+            >
               Hoàn thành bài đánh giá!
             </h1>
-            <p className="mt-3 text-gray-500 dark:text-slate-400 max-w-2xl">
+            <p
+              style={{ color: "var(--text-h)" }}
+              className="mt-3 max-w-2xl text-sm md:text-base"
+            >
               AI Mirror đã phân tích kết quả làm bài của bạn. Dữ liệu này sẽ
               được dùng để cá nhân hóa roadmap học tập tiếp theo.
             </p>
@@ -194,35 +206,71 @@ export default function Result() {
 
         {/* Stats Grid */}
         <section className="grid grid-cols-1 md:grid-cols-4 gap-5">
-          <div className="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-slate-800 p-5 rounded-2xl flex flex-col gap-3 transition-colors">
-            <span className="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase">
+          <div
+            style={{
+              backgroundColor: "var(--card-bg)",
+              borderColor: "var(--border)",
+            }}
+            className="border p-5 rounded-2xl flex flex-col gap-3 transition-colors"
+          >
+            <span
+              style={{ color: "var(--text-h)" }}
+              className="text-xs font-semibold uppercase"
+            >
               Điểm số
             </span>
             <div className={`text-4xl font-black ${getScoreColor(score)}`}>
               {score}
-              <span className="text-base text-gray-400 dark:text-slate-500">
+              <span
+                style={{ color: "var(--text-h)" }}
+                className="text-base ml-1 opacity-75"
+              >
                 /100
               </span>
             </div>
-            <span className="text-sm text-gray-500 dark:text-slate-400">
+            <span
+              style={{ color: "var(--text)" }}
+              className="text-sm font-medium"
+            >
               {getScoreLabel(score)}
             </span>
           </div>
 
-          <div className="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-slate-800 p-5 rounded-2xl flex flex-col gap-3 transition-colors">
-            <span className="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase">
+          <div
+            style={{
+              backgroundColor: "var(--card-bg)",
+              borderColor: "var(--border)",
+            }}
+            className="border p-5 rounded-2xl flex flex-col gap-3 transition-colors"
+          >
+            <span
+              style={{ color: "var(--text-h)" }}
+              className="text-xs font-semibold uppercase"
+            >
               Trình độ
             </span>
             <div className="w-fit px-4 py-2 rounded-xl bg-linear-to-r from-[#2563eb] to-[#3b82f6] text-white shadow-lg font-bold">
               {normalizeLevel(displayLevel)}
             </div>
-            <span className="text-sm text-gray-500 dark:text-slate-400">
+            <span
+              style={{ color: "var(--text-h)" }}
+              className="text-xs md:text-sm"
+            >
               Cấp độ hiện tại được suy luận từ bài đánh giá.
             </span>
           </div>
 
-          <div className="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-slate-800 p-5 rounded-2xl flex flex-col gap-3 transition-colors">
-            <span className="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase">
+          <div
+            style={{
+              backgroundColor: "var(--card-bg)",
+              borderColor: "var(--border)",
+            }}
+            className="border p-5 rounded-2xl flex flex-col gap-3 transition-colors"
+          >
+            <span
+              style={{ color: "var(--text-h)" }}
+              className="text-xs font-semibold uppercase"
+            >
               Kết quả câu hỏi
             </span>
             <div className="flex items-end gap-2">
@@ -230,14 +278,26 @@ export default function Result() {
                 {result.passed || `${passedCount}/${details.length || 0}`}
               </span>
             </div>
-            <span className="text-sm text-gray-500 dark:text-slate-400">
+            <span
+              style={{ color: "var(--text-h)" }}
+              className="text-xs md:text-sm"
+            >
               Đúng: {passedCount} · Sai: {failedCount} · Tự luận:{" "}
               {submittedCount}
             </span>
           </div>
 
-          <div className="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-slate-800 p-5 rounded-2xl flex flex-col gap-3 transition-colors">
-            <span className="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase">
+          <div
+            style={{
+              backgroundColor: "var(--card-bg)",
+              borderColor: "var(--border)",
+            }}
+            className="border p-5 rounded-2xl flex flex-col gap-3 transition-colors"
+          >
+            <span
+              style={{ color: "var(--text-h)" }}
+              className="text-xs font-semibold uppercase"
+            >
               Phần thưởng
             </span>
             <div className="flex items-center gap-3">
@@ -245,10 +305,13 @@ export default function Result() {
                 <Zap className="text-emerald-600 dark:text-emerald-400" />
               </div>
               <div className="flex flex-col">
-                <span className="text-2xl font-black text-gray-900 dark:text-white">
+                <span
+                  style={{ color: "var(--text)" }}
+                  className="text-2xl font-black"
+                >
                   +{xp}
                 </span>
-                <span className="text-xs text-gray-400 dark:text-slate-400">
+                <span style={{ color: "var(--text-h)" }} className="text-xs">
                   XP nhận vào hồ sơ
                 </span>
               </div>
@@ -257,11 +320,20 @@ export default function Result() {
         </section>
 
         {/* AI Insight Section */}
-        <section className="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-slate-800 h-fit p-5 rounded-2xl transition-colors">
+        <section
+          style={{
+            backgroundColor: "var(--card-bg)",
+            borderColor: "var(--border)",
+          }}
+          className="border h-fit p-5 rounded-2xl transition-colors"
+        >
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex gap-3 items-center">
-              <Sparkles className="text-violet-600 dark:text-violet-500" />
-              <span className="text-gray-900 dark:text-white text-2xl font-bold">
+              <Sparkles className="text-violet-600 dark:text-violet-400" />
+              <span
+                style={{ color: "var(--text)" }}
+                className="text-2xl font-bold"
+              >
                 Kết quả đánh giá của AI Mirror
               </span>
             </div>
@@ -278,7 +350,10 @@ export default function Result() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-1 md:p-6 mt-4">
             {loadingRoadmap ? (
-              <div className="col-span-3 text-center py-10 text-gray-400 dark:text-slate-500 text-sm">
+              <div
+                style={{ color: "var(--text-h)" }}
+                className="col-span-3 text-center py-10 text-sm"
+              >
                 Đang tải dữ liệu roadmap từ hệ thống...
               </div>
             ) : (
@@ -336,10 +411,19 @@ export default function Result() {
 
         {/* Details Question Section */}
         {details.length > 0 && (
-          <section className="bg-gray-50 dark:bg-[#0f172a] border border-gray-200 dark:border-slate-800 rounded-2xl p-5 transition-colors">
+          <section
+            style={{
+              backgroundColor: "var(--card-bg)",
+              borderColor: "var(--border)",
+            }}
+            className="border rounded-2xl p-5 transition-colors"
+          >
             <div className="flex items-center gap-3 mb-5">
               <AlertTriangle className="text-amber-600 dark:text-amber-400" />
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h2
+                style={{ color: "var(--text)" }}
+                className="text-xl font-bold"
+              >
                 Chi tiết từng câu hỏi
               </h2>
             </div>
@@ -352,14 +436,24 @@ export default function Result() {
                 return (
                   <div
                     key={`${item.questionOrder || index}-${item.category || "item"}`}
-                    className="rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-[#050b17] p-4 transition-colors"
+                    style={{
+                      backgroundColor: "var(--bg)",
+                      borderColor: "var(--border)",
+                    }}
+                    className="rounded-xl border p-4 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                        <p
+                          style={{ color: "var(--text)" }}
+                          className="text-sm font-semibold"
+                        >
                           Câu {item.questionOrder || index + 1}
                         </p>
-                        <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
+                        <p
+                          style={{ color: "var(--text-h)" }}
+                          className="text-xs mt-1"
+                        >
                           {item.category || "Assessment"} ·{" "}
                           {item.level || "Chưa phân loại"}
                         </p>
@@ -378,35 +472,45 @@ export default function Result() {
                       </span>
                     </div>
 
-                    <p className="mt-4 text-sm text-gray-700 dark:text-slate-300 line-clamp-3 font-medium">
+                    <p
+                      style={{ color: "var(--text)" }}
+                      className="mt-4 text-sm line-clamp-3 font-medium"
+                    >
                       {item.input || "Không có nội dung câu hỏi"}
                     </p>
 
                     <div className="mt-4 flex flex-col gap-3 text-xs">
-                      <div className="mt-4 flex flex-col gap-3 text-xs">
-                        <div className="rounded-lg bg-gray-100 dark:bg-slate-900/70 p-3 border border-gray-200/50 dark:border-transparent">
-                          <p className="text-gray-400 dark:text-slate-500 mb-1 font-medium">
-                            Bạn chọn
-                          </p>
-                          <p
-                            className={`font-semibold ${isPassed ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
-                          >
-                            {item.actual ||
-                              (item as any).userAnswerText ||
-                              "(empty)"}
-                          </p>
-                        </div>
+                      <div className="rounded-lg bg-gray-50/50 dark:bg-slate-900/40 p-3 border border-gray-200/50 dark:border-zinc-800">
+                        <p
+                          style={{ color: "var(--text-h)" }}
+                          className="mb-1 font-medium"
+                        >
+                          Bạn chọn
+                        </p>
+                        <p
+                          className={`font-semibold ${isPassed ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
+                        >
+                          {item.actual ||
+                            (item as any).userAnswerText ||
+                            "(empty)"}
+                        </p>
+                      </div>
 
-                        <div className="rounded-lg bg-gray-100 dark:bg-slate-900/70 p-3 border border-gray-200/50 dark:border-transparent">
-                          <p className="text-gray-400 dark:text-slate-500 mb-1 font-medium">
-                            Đáp án đúng
-                          </p>
-                          <p className="font-semibold text-gray-800 dark:text-slate-200">
-                            {item.expected ||
-                              (item as any).expectedAnswerText ||
-                              "(essay)"}
-                          </p>
-                        </div>
+                      <div className="rounded-lg bg-gray-50/50 dark:bg-slate-900/40 p-3 border border-gray-200/50 dark:border-zinc-800">
+                        <p
+                          style={{ color: "var(--text-h)" }}
+                          className="mb-1 font-medium"
+                        >
+                          Đáp án đúng
+                        </p>
+                        <p
+                          style={{ color: "var(--text)" }}
+                          className="font-semibold"
+                        >
+                          {item.expected ||
+                            (item as any).expectedAnswerText ||
+                            "(essay)"}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -421,7 +525,7 @@ export default function Result() {
           <Button
             variant="secondary"
             size="lg"
-            onClick={() => navigate("/assessment")}
+            to="/assessment"
             className="gap-2"
           >
             <RotateCcw className="w-4 h-4" />

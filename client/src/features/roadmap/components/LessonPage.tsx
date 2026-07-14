@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button } from "../../../components/common/Button";
 import { getExerciseByIdApi } from "../../editor/api";
+import { ChevronLeft } from "lucide-react";
 
 type ExerciseExample = {
   input?: string;
@@ -119,10 +120,10 @@ export default function LessonPage() {
           </p>
 
           <div className="flex gap-3 justify-center">
-            <Button variant="secondary" onClick={() => navigate("/roadmap")}>
+            <Button variant="secondary" to="/roadmap">
               Quay lại roadmap
             </Button>
-            <Button variant="primary" onClick={() => navigate("/assessment")}>
+            <Button variant="primary" to="/assessment">
               Làm assessment
             </Button>
           </div>
@@ -196,8 +197,9 @@ export default function LessonPage() {
             )}
           </div>
 
-          <Button variant="secondary" onClick={() => navigate("/roadmap")}>
-            ← Roadmap
+          <Button variant="secondary" to="/roadmap">
+            <ChevronLeft/>
+            Roadmap
           </Button>
         </div>
 

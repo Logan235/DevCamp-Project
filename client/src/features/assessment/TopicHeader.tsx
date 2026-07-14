@@ -13,14 +13,29 @@ export const TopicHeader: React.FC<TopicHeaderProps> = ({
   icon,
 }) => {
   return (
-    <div className="group bg-white dark:bg-[#0d1527] p-6 gap-3 flex flex-col rounded-2xl border border-gray-200 dark:border-slate-800/60 hover:border-blue-500 dark:hover:border-blue-500/50 cursor-pointer transition-all shadow-xs">
-      <div className="items-center flex justify-center rounded-2xl w-12 h-12 bg-blue-50 dark:bg-[#0c1a30] text-blue-600 dark:text-[#50a2ff] border border-blue-100 dark:border-cyan-500/5">
+    <div
+      style={{
+        backgroundColor: "var(--card-bg)",
+        borderColor: "var(--border)",
+      }}
+      className="group p-6 gap-3 flex flex-col rounded-2xl border hover:border-blue-500/50! cursor-pointer transition-all shadow-xs"
+    >
+      <div
+        style={{ borderColor: "var(--border)" }}
+        className="items-center flex justify-center rounded-2xl w-12 h-12 bg-blue-500/10 text-blue-600 dark:text-[#50a2ff] border"
+      >
         {icon}
       </div>
-      <span className="font-semibold text-gray-950 dark:text-white transition-colors">
+      <span
+        style={{ color: "var(--text)" }}
+        className="font-semibold transition-colors"
+      >
         {title}
       </span>
-      <span className="text-[14px] text-gray-500 dark:text-slate-400 transition-colors">
+      <span
+        style={{ color: "var(--text-h)" }}
+        className="text-[14px] transition-colors"
+      >
         {description}
       </span>
     </div>
