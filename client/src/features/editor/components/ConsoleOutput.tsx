@@ -74,7 +74,7 @@ export const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
               )}
             </div>
           ) : (
-            <span className="text-(--text-placeholder) text-2xl italic">
+            <span className="text-(--text-placeholder) text-xl italic">
               Kết quả sẽ được hiển thị sau khi bạn ấn Run Code hoặc Submit Code
             </span>
           )}
