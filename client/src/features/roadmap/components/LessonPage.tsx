@@ -204,7 +204,10 @@ export default function LessonPage() {
         <div className="space-y-6 leading-8" style={{ color: "var(--text)" }}>
           <section
             className="bg-zinc-100/80 dark:bg-[#0f172a]/40 rounded-2xl p-5 border"
-            style={{ borderColor: "var(--border)" }}
+            style={{
+              borderColor: "var(--border)",
+              background: "var(--card-bg)",
+            }}
           >
             <h2 className="text-blue-600 dark:text-blue-400 font-semibold mb-3">
               Mô tả bài toán
@@ -220,7 +223,10 @@ export default function LessonPage() {
           {lesson.constraints && lesson.constraints.length > 0 && (
             <section
               className="bg-zinc-100/80 dark:bg-[#0f172a]/40 rounded-2xl p-5 border"
-              style={{ borderColor: "var(--border)" }}
+              style={{
+                borderColor: "var(--border)",
+                background: "var(--card-bg)",
+              }}
             >
               <h2 className="text-blue-600 dark:text-blue-400 font-semibold mb-3">
                 Ràng buộc
@@ -236,7 +242,10 @@ export default function LessonPage() {
           {lesson.examples && lesson.examples.length > 0 && (
             <section
               className="bg-zinc-100/80 dark:bg-[#0f172a]/40 rounded-2xl p-5 border"
-              style={{ borderColor: "var(--border)" }}
+              style={{
+                borderColor: "var(--border)",
+                background: "var(--card-bg)",
+              }}
             >
               <h2 className="text-blue-600 dark:text-blue-400 font-semibold mb-4">
                 Ví dụ
@@ -247,6 +256,7 @@ export default function LessonPage() {
                   <div
                     key={`example-${index}`}
                     className="rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#020617] p-4"
+                    style={{background: "var(--panel-bg)"}}
                   >
                     <h3
                       className="text-sm font-semibold mb-3"

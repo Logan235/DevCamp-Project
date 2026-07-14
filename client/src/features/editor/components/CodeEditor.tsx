@@ -35,14 +35,14 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   const monacoTheme = theme === "dark" ? "vs-dark" : "vs";
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-[#0d111c]/60 rounded-xl border border-gray-300 dark:border-zinc-900 overflow-hidden">
-      <div className="flex justify-between items-center px-4 py-2 bg-white dark:bg-[#090d16] border-b border-gray-200 dark:border-gray-800/80 select-none transition-colors">
+    <div className="flex flex-col h-full bg-white dark:bg-[#0d111c]/60 rounded-xl border border-gray-200 dark:border-zinc-900 overflow-hidden shadow-xs">
+      <div className="flex justify-between items-center px-4 py-2.5 bg-gray-50 dark:bg-[#090d16] border-b border-gray-200 dark:border-gray-800/80 text-gray-800 dark:text-slate-200 select-none transition-colors duration-300">
         <div className="flex items-center gap-3">
           <Select
             options={LANGUAGE_OPTIONS}
             value={language}
             onChange={handleSelectChange}
-            className="min-w-30 py-1! text-xs"
+            className="min-w-30 py-1! text-xs bg-white dark:bg-[#111827] text-gray-900 dark:text-white border-gray-300 dark:border-gray-700"
           />
         </div>
 
@@ -61,9 +61,9 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             size="sm"
             onClick={onRunCode}
             disabled={isRunning}
-            className="gap-1.5 font-semibold"
+            className="gap-1.5 font-semibold text-white"
           >
-            <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
+            <svg className="w-3 h-3 fill-white" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z" />
             </svg>
             {isRunning ? "Running..." : "Run Code"}
@@ -73,13 +73,14 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             variant="success"
             size="sm"
             onClick={onSubmitCode}
-            className="gap-1.5 font-semibold"
+            className="gap-1.5 font-semibold text-white"
           >
             Submit Code
           </Button>
         </div>
       </div>
-      <div className="flex-1 h-full relative bg-gray-100 dark:bg-[#0f1422]/40 pt-2">
+
+      <div className="flex-1 h-full relative bg-gray-50 dark:bg-[#0f1422]/40 pt-2">
         <div className="absolute inset-0 w-full h-full">
           <Editor
             height="100%"
@@ -97,7 +98,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               lineNumbersMinChars: 3,
             }}
             loading={
-              <div className="flex items-center justify-center h-full text-gray-500 dark:text-zinc-500 text-sm gap-2">
+              <div className="flex items-center justify-center h-full text-gray-400 dark:text-zinc-500 text-sm gap-2">
                 <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
                 <span>Đang kết nối...</span>
               </div>

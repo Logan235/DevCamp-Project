@@ -61,7 +61,10 @@ export const Button: React.FC<ButtonProps> = ({
     );
   }
   return (
-    <button className={combinedClasses} {...props}>
+    <button
+      className={combinedClasses}
+      {...props}
+    >
       {children}
     </button>
   );
