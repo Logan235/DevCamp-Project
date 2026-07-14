@@ -14,27 +14,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [theme, setThemeState] = useState<Theme>("dark");
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Initialize theme from localStorage or system preference
-  useEffect(() => {
-    const storedTheme = localStorage.getItem("theme") as Theme | null;
-
-    if (storedTheme) {
-      setThemeState(storedTheme);
-      applyTheme(storedTheme);
-    } else {
-      // Check system preference
-      const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)",
-      ).matches;
-      const initialTheme = prefersDark ? "dark" : "light";
-      setThemeState(initialTheme);
-      applyTheme(initialTheme);
-    }
-
-    setIsMounted(true);
-  }, []);
 
   const applyTheme = (newTheme: Theme) => {
     const htmlElement = document.documentElement;
@@ -47,6 +26,24 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
 
     localStorage.setItem("theme", newTheme);
   };
+
+  useEffect(() => {
+    const storedTheme = localStorage.getItem("theme") as Theme | null;
+
+    if (storedTheme) {
+      setThemeState(storedTheme);
+      applyTheme(storedTheme);
+      return;
+    }
+
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
+    const initialTheme = prefersDark ? "dark" : "light";
+
+    setThemeState(initialTheme);
+    applyTheme(initialTheme);
+  }, []);
 
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
@@ -68,8 +65,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);
+
   if (!context) {
     throw new Error("useTheme must be used within ThemeProvider");
   }
+
   return context;
 };

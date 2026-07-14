@@ -43,29 +43,6 @@ const OAuthCallback = React.lazy(() =>
 );
 const Profile = React.lazy(() => import("./features/profile/Profile"));
 
-function useScrollReveal() {
-  const [isRevealed, setIsRevealed] = useState(false);
-  const elementRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsRevealed(true);
-        } else {
-          setIsRevealed(false);
-        }
-      },
-      { threshold: 0.15 },
-    );
-
-    if (elementRef.current) observer.observe(elementRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  return { elementRef, isRevealed };
-}
-
 const SkeletonHome = () => (
   <div
     style={{ backgroundColor: "var(--bg)" }}
@@ -82,7 +59,6 @@ const SkeletonHome = () => (
 );
 
 function App() {
-  const { elementRef, isRevealed } = useScrollReveal();
   const isLoggedIn = useSelector((state: any) => state.auth.isLoggedIn);
   return (
     <Suspense fallback={<SkeletonHome />}>
