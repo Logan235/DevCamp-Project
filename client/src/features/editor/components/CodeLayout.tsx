@@ -546,9 +546,6 @@ export const CodeLayout: React.FC = () => {
       <div className="h-12 px-4 border-b border-(--border-main) flex items-center justify-between shrink-0">
         <h2 className="text-sm font-bold text-(--text-main)">AI Mirror</h2>
         <div className="flex items-center gap-2">
-          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px font-semibold text-emerald-600 dark:text-emerald-300">
-            Mirror
-          </span>
           <button
             onClick={() => setIsAiOpen(false)}
             className="xl:hidden text-(--text-muted) hover:text-(--text-main) p-1"
@@ -576,7 +573,7 @@ export const CodeLayout: React.FC = () => {
             key={`${message.role}-${index}`}
             className={`rounded-xl px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap ${
               message.role === "user"
-                ? "ml-6 bg-blue-500/15 border border-blue-500/20 text-blue-800 dark:text-blue-100"
+                ? "ml-6 bg-(--bg-chat-bubble-user) border border-(--border-user-sub) text-(--text-chat-bubble-user)"
                 : "mr-6 bg-(--bg-chat-bubble-ai) border border-(--border-sub) text-(--text-sub)"
             }`}
           >
@@ -612,9 +609,8 @@ export const CodeLayout: React.FC = () => {
 
       <div className="border-t border-(--border-main) p-3 space-y-2 shrink-0 bg-(--bg-header)">
         {!latestSubmissionId && (
-          <p className="text-[11px] text-amber-600 dark:text-amber-300/80">
-            Nên submit code trước để AI Mirror có đủ code, output và lỗi khi
-            phân tích.
+          <p className="text-[11px] text-red-500">
+            Bạn phải Run code trước khi hỏi AI Mirror
           </p>
         )}
 
@@ -628,7 +624,7 @@ export const CodeLayout: React.FC = () => {
             }
           }}
           placeholder="Nhập câu hỏi cho AI Mirror..."
-          className="h-20 w-full resize-none rounded-lg border border-(--border-main)] bg-(--bg-main)] p-2 text-xs text-(--text-main)] outline-none placeholder:text-(--text-placeholder)] focus:border-blue-500/60"
+          className="h-20 w-full resize-none rounded-lg border border-(--border-main)] bg-(--bg-main)] p-2 text-xs text-(--text-main)] outline-none placeholder:text-(--text-placeholder) focus:border-blue-500/60"
           disabled={isAiThinking || !unlockAIMirror}
         />
 
@@ -638,7 +634,7 @@ export const CodeLayout: React.FC = () => {
           disabled={
             !unlockAIMirror || !aiInput.trim() || isAiThinking || !canAskAi
           }
-          className="w-full rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-(--bg-toggle-disabled)] disabled:text-(--text-toggle-disabled)]"
+          className="w-full rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white! transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-(--bg-toggle-disabled)] disabled:text-(--text-toggle-disabled)]"
         >
           {isAiThinking ? "Đang hỏi AI..." : "Gửi"}
         </button>

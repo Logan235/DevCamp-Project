@@ -17,6 +17,10 @@
   --select: #2783ff;
   --select-bg: rgba(39, 131, 255, 0.1);
   --btn-inactive: #d1d5db;
+  --user-bubble-text: #ffffff;
+  --bg-chat-bubble-user: #b9d7ff;  
+  --text-chat-bubble-user: #0f172a;
+  --border-user-sub: #479aff;
 }
 
 /* Dark mode */
@@ -36,6 +40,10 @@
   --select: #2783ff;
   --select-bg: rgba(39, 131, 255, 0.15);
   --btn-inactive: #272c39;
+  --user-bubble-text: #f0fdf4;
+  --bg-chat-bubble-user: #002258;  
+  --text-chat-bubble-user: #f8fafc; 
+  --border-user-sub: #00193d;
 }
 
 body {
