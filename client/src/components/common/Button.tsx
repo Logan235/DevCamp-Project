@@ -1,5 +1,5 @@
 import React, { type ButtonHTMLAttributes } from "react";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?:
@@ -23,31 +23,25 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyles =
-    "inline-flex items-center justify-center font-medium rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed";
+    "inline-flex items-center justify-center font-medium rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed select-none";
 
   const variants = {
-    // nút chính
     primary:
-      "bg-emerald-600 hover:bg-emerald-500 text-white focus:ring-emerald-500 shadow-md shadow-emerald-900/20 cursor-pointer hover:scale-105",
+      "bg-emerald-600 hover:bg-emerald-500 text-white !text-white focus:ring-emerald-500 shadow-md shadow-emerald-900/20 cursor-pointer hover:scale-105",
 
-    // nút phụ
     secondary:
-      "bg-gray-300 dark:bg-zinc-800 hover:bg-gray-400 dark:hover:bg-zinc-700 text-gray-800 dark:text-zinc-300 border border-gray-400 dark:border-zinc-700 focus:ring-gray-500 dark:focus:ring-zinc-600 cursor-pointer",
+      "bg-gray-200 dark:bg-zinc-800 hover:bg-gray-300 dark:hover:bg-zinc-700 text-gray-800 dark:text-zinc-300 border border-gray-300 dark:border-zinc-700 focus:ring-gray-500 dark:focus:ring-zinc-600 cursor-pointer",
 
-    // run code
     success:
-      "bg-emerald-600 hover:bg-emerald-500 text-white font-semibold focus:ring-emerald-500 cursor-pointer",
+      "bg-emerald-600 hover:bg-emerald-500 text-white !text-white font-semibold focus:ring-emerald-500 cursor-pointer",
 
-    // nút đăng nhập bằng phương thức khác
     oauth:
-      "bg-gray-200 dark:bg-zinc-800/60 hover:bg-gray-300 dark:hover:bg-zinc-800 text-gray-800 dark:text-zinc-300 border border-gray-300 dark:border-zinc-700/80 w-full justify-center gap-2",
+      "bg-gray-100 dark:bg-zinc-800/60 hover:bg-gray-200 dark:hover:bg-zinc-800 text-gray-800 dark:text-zinc-300 border border-gray-300 dark:border-zinc-700/80 w-full justify-center gap-2",
 
-    // nút không nền
-    normal: "cursor-pointer hover:scale-105",
+    normal: "cursor-pointer hover:scale-105 text-current",
 
-    // nút vàng
     thirdary:
-      "bg-amber-600 hover:bg-amber-500 text-white focus:ring-amber-500 shadow-md shadow-amber-900/20 cursor-pointer hover:scale-105",
+      "bg-amber-600 hover:bg-amber-500 text-white !text-white focus:ring-amber-500 shadow-md shadow-amber-900/20 cursor-pointer hover:scale-105",
   };
 
   const sizes = {
@@ -67,10 +61,7 @@ export const Button: React.FC<ButtonProps> = ({
     );
   }
   return (
-    <button
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
-      {...props}
-    >
+    <button className={combinedClasses} {...props}>
       {children}
     </button>
   );
