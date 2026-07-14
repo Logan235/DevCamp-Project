@@ -9,9 +9,9 @@ import { Button } from "../../../components/common/Button";
 import { useAuth } from "../../auth/hooks";
 
 export default function Dashboard() {
-  const { displayName } = useAuth()
+  const { displayName } = useAuth();
   return (
-    <div className="bg-[#0b0f19] min-h-screen text-gray-300 font-sans antialiased selection:bg-blue-500/30">
+    <div className="bg-white dark:bg-[#0b0f19] min-h-screen text-gray-900 dark:text-gray-300 font-sans antialiased selection:bg-blue-500/30 transition-colors">
       <DashboardHeader />
 
       <main className="max-w-7xl mx-auto p-6 md:p-10 space-y-10">

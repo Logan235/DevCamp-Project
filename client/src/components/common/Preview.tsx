@@ -27,15 +27,20 @@ export const Preview: React.FC<PreviewProps> = ({
 
   return (
     <div
-      className={`fixed z-50 pointer-events-none bg-[#111625]/95 border border-zinc-800/80 rounded-lg p-3 w-56 shadow-2xl backdrop-blur-md transition-all duration-200 ease-out font-sans
-        ${visible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-2"}`}
       style={{
+        backgroundColor: "var(--card-bg)",
+        borderColor: "var(--border)",
         left: `${x + 15}px`,
         top: `${y + 15}px`,
       }}
+      className={`fixed z-50 pointer-events-none border rounded-lg p-3 w-56 shadow-2xl backdrop-blur-md ease-out font-sans
+        ${visible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-2"}`}
     >
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
+        <span
+          className="text-[10px] font-mono uppercase tracking-wider"
+          style={{ color: "var(--text-h)" }}
+        >
           Xem trước
         </span>
         <Badge
@@ -51,8 +56,16 @@ export const Preview: React.FC<PreviewProps> = ({
                 : "Nhập môn"}
         </Badge>
       </div>
-      <h4 className="text-xs font-bold text-white mb-1 truncate">{title}</h4>
-      <p className="text-[11px] text-zinc-400 leading-relaxed bg-zinc-950/40 p-2 rounded border border-zinc-900 font-mono">
+      <h4
+        className="text-xs font-bold mb-1 truncate"
+        style={{ color: "var(--text)" }}
+      >
+        {title}
+      </h4>
+      <p
+        style={{ color: "var(--text-h)", borderColor: "var(--border)" }}
+        className="text-[11px] leading-relaxed bg-zinc-200/50 dark:bg-zinc-950/40 p-2 rounded border font-mono"
+      >
         {getTenWords(conceptText)}
       </p>
     </div>

@@ -1,237 +1,313 @@
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Button } from "../../components/common/Button";
 import { NavBar } from "../NavBar";
-import { useState, useEffect } from "react";
-import { getMeApi } from "./api";
-import { useSelector } from "react-redux";
+import { getMeApi, updateMeApi } from "./api";
+import { setCredentials } from "../auth/slice";
 
 interface UserProfile {
   email: string;
   displayName: string;
   createdAt?: string;
-  password?: string;
+  avatar?: string;
+  avatarUrl?: string;
+  role?: "user" | "admin" | string;
+  currentLevel?: string;
+  xpTotal?: number;
 }
 
 export default function Profile() {
-  const { userlog, isLoggedIn } = useSelector((state: any) => state.auth);
-  if (!isLoggedIn || !userlog) {
-    return <NavBar isLoggedIn={false} />;
-  }
-  const mapLevelToNumber = (levelStr: string): number => {
-    switch (levelStr?.toLowerCase()) {
-      case "beginner":
-        return 1;
-      case "intermediate":
-        return 2;
-      case "advanced":
-        return 3;
-      default:
-        return 1;
-    }
-  };
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useDispatch();
+  const isLoggedIn = useSelector((state: any) => state.auth.isLoggedIn);
 
-  const [isEditing, setIsEditing] = useState(false);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const data = await getMeApi();
+
+        const profile: UserProfile = {
+          email: data.email,
+          displayName: data.displayName || data.email,
+          createdAt: data.createdAt,
+          avatar: data.avatar,
+          avatarUrl: data.avatarUrl,
+          role: data.role,
+          currentLevel: data.currentLevel,
+          xpTotal: data.xpTotal,
+        };
+
+        setUser(profile);
+        setFormData(profile);
+      } catch (err: any) {
+        setError(
+          err.response?.data?.message ||
+            err.message ||
+            "Không thể tải hồ sơ người dùng.",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchUserData();
+  }, [isLoggedIn]);
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const handleSave = async () => {
     try {
       setSaving(true);
       setMessage(null);
 
-      // Gọi API gửi dữ liệu về Backend
-      const response = await fetch(
-        "https://api.codequest.com/v1/user/profile",
-        {
-          method: "PUT", // Hoặc PATCH tùy quy chuẩn của BE
-          body: JSON.stringify(formData),
-        },
-      );
-      if (!response.ok) {
-        throw new Error("Không thể cập nhật thông tin. Vui lòng thử lại!");
-      }
+      const updatedUser = await updateMeApi({
+        displayName: formData.displayName?.trim(),
+      });
 
-      const updatedUser: UserProfile = await response.json();
+      const profile: UserProfile = {
+        email: updatedUser.email,
+        displayName: updatedUser.displayName || updatedUser.email,
+        createdAt: updatedUser.createdAt,
+        avatar: updatedUser.avatar,
+        avatarUrl: updatedUser.avatarUrl,
+        role: updatedUser.role,
+        currentLevel: updatedUser.currentLevel,
+        xpTotal: updatedUser.xpTotal,
+      };
 
-      setUser(updatedUser);
+      setUser(profile);
+      setFormData(profile);
+      dispatch(setCredentials(updatedUser));
       setIsEditing(false);
-      setMessage({ type: "success", text: "Cập nhật hồ sơ thành công!" });
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setMessage({ type: "error", text: err.message });
-      } else {
-        setMessage({ type: "error", text: "Đã xảy ra lỗi không xác định." });
-      }
+      setMessage({
+        type: "success",
+        text: "Cập nhật hồ sơ thành công!",
+      });
+    } catch (err: any) {
+      setMessage({
+        type: "error",
+        text:
+          err.response?.data?.message ||
+          err.message ||
+          "Không thể cập nhật hồ sơ.",
+      });
     } finally {
       setSaving(false);
     }
   };
 
   const handleCancel = () => {
-    if (user) setFormData(user);
+    if (user) {
+      setFormData(user);
+    }
+
     setIsEditing(false);
     setMessage(null);
   };
 
-  if (!user) return <div className="text-zinc-400">Đang tải...</div>;
+  if (!isLoggedIn) {
+    return (
+      <div>
+        <NavBar />
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        setLoading(true);
-        const data = await getMeApi();
-        setUser({
-          email: data.email,
-          displayName: data.displayName,
-          createdAt: data.createdAt,
-        });
-        setFormData({
-          email: data.email,
-          displayName: data.displayName,
-          createdAt: data.createdAt,
-        });
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("Error occurred while fetching user data.");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
+        <main className="min-h-screen bg-white dark:bg-[#050816] text-gray-600 dark:text-zinc-300 flex items-center justify-center px-4 transition-colors">
+          <div className="w-full max-w-md rounded-2xl border border-gray-300 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900/70 p-6 text-center">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Bạn chưa đăng nhập
+            </h1>
 
-    fetchUserData();
-  }, []);
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+            <p className="text-sm text-gray-600 dark:text-zinc-400 mb-5">
+              Vui lòng đăng nhập để xem và chỉnh sửa hồ sơ cá nhân.
+            </p>
+
+            <Button variant="primary" to="/login">
+              Đăng nhập
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
-      <div className="p-6 text-center text-zinc-400 animate-pulse">
-        Loading user information...
+      <div>
+        <NavBar />
+        <main className="min-h-screen bg-white dark:bg-[#050816] flex items-center justify-center transition-colors">
+          <div className="text-gray-600 dark:text-zinc-400 animate-pulse font-medium">
+            Đang tải hồ sơ người dùng...
+          </div>
+        </main>
       </div>
     );
   }
 
   if (error || !user) {
     return (
-      <div className="p-6 text-center text-rose-400 bg-rose-500/10 rounded-xl border border-rose-500/20">
-        {error || "User data not found."}
+      <div>
+        <NavBar />
+        <main className="min-h-screen bg-white dark:bg-[#050816] flex items-center justify-center px-4 transition-colors">
+          <div className="w-full max-w-md rounded-2xl border border-rose-300 dark:border-rose-500/20 bg-rose-50 dark:bg-rose-500/10 p-6 text-center text-rose-700 dark:text-rose-300">
+            {error || "Không tìm thấy dữ liệu người dùng."}
+          </div>
+        </main>
       </div>
     );
   }
+
+  const avatarSrc = user.avatar || user.avatarUrl;
+  const displayInitial =
+    user.displayName?.charAt(0)?.toUpperCase() ||
+    user.email.charAt(0).toUpperCase();
+
   return (
     <div>
-      <NavBar
-        isLoggedIn={true}
-        userName={userlog.displayName || userlog.email}
-        role={userlog.role}
-        currentLevel={mapLevelToNumber(userlog.currentLevel)}
-        xpTotal={userlog.xpTotal || 0}
-        userAvatar={userlog.avatar}
-      />
-      <main className="min-h-screen bg-background text-foreground flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-lg rounded-2xl border border-[#1e2227] overflow-hidden bg-zinc-1010">
-          {message && (
-            <div
-              className={`p-3 rounded-lg mb-4 text-sm ${
-                message.type === "success"
-                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                  : "bg-red-500/10 text-red-400 border border-red-500/20"
-              }`}
-            >
-              {message.text}
-            </div>
-          )}
-          <div className="flex flex-col items-center">
-            {/* 1. Nền xanh lá (Banner): Phủ ở phần trên card */}
-            <div className="w-full h-44 bg-linear-to-r from-emerald-600 via-emerald-500 to-teal-600 shadow-[0_0_25px_rgba(16,185,129,0.25)] relative overflow-hidden">
-              {/* Họa tiết lưới mờ Deep Tech trang trí */}
-              <div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] bg-size-[16px_16px] opacity-15" />
-            </div>
+      <NavBar />
 
-            {/* 2. Avatar: Kéo ngược lên trên bằng margin âm (-mt-[135px]) để trượt 3/4 vào vùng xanh */}
-            <div className="relative -mt-33.75 mb-2 w-45 h-45 rounded-2xl border-4 border-zinc-950 shadow-xl overflow-hidden bg-zinc-800 z-10">
-              <img
-                src={userlog.avatar}
-                className="w-full h-full object-cover"
-                alt="User Avatar"
-              />
-            </div>
+      <main
+        className="min-h-screen bg-white dark:bg-[#050816] text-gray-900 dark:text-zinc-100 flex items-center justify-center px-4 py-12 transition-colors"
+        style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}
+      >
+        <div className="w-full max-w-lg rounded-2xl border border-gray-200 dark:border-zinc-800 overflow-hidden bg-gray-50 dark:bg-zinc-950 shadow-2xl transition-colors">
+          <div className="w-full h-44 bg-linear-to-r from-emerald-600 via-emerald-500 to-teal-600 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] bg-size-[16px_16px] opacity-15" />
           </div>
 
-          <div className="flex flex-col gap-6 p-5">
-            <div className="border-t border-[#1e2227] mx-6" />
-            <div className="flex flex-col gap-3">
-              <span className="uppercase tracking-widest text-muted-foreground mb-0.5 text-zinc-400">
-                EMAIL
-              </span>
-              <div className="font-medium truncate">
-                {user.email}
-                <span className="text-[10px] ml-2 text-zinc-600">
-                  (Không thể chỉnh sửa)
-                </span>
-              </div>
-            </div>
-            <div className="flex flex-col gap-3">
-              <span className="uppercase tracking-widest text-muted-foreground mb-0.5 text-zinc-400">
-                HỌ VÀ TÊN
-              </span>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="fullname"
-                  value={formData.displayName || ""}
-                  onChange={handleChange}
-                  disabled={saving}
-                  className="w-full p-2.5 bg-zinc-950 rounded-lg text-zinc-100 border border-emerald-500/50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          <div className="flex flex-col items-center -mt-20 px-5 pb-6">
+            <div className="mb-4 w-36 h-36 rounded-2xl border-4 border-gray-50 dark:border-zinc-950 shadow-xl overflow-hidden bg-gray-200 dark:bg-zinc-800 z-10 flex items-center justify-center">
+              {avatarSrc ? (
+                <img
+                  src={avatarSrc}
+                  alt={user.displayName || user.email}
+                  className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="font-medium truncate">{user.displayName}</span>
+                <span className="text-5xl font-black text-gray-700 dark:text-white">
+                  {displayInitial}
+                </span>
               )}
             </div>
-            <div className="flex flex-col gap-3">
-              <span className="uppercase tracking-widest text-muted-foreground mb-0.5 text-zinc-400">
-                NGÀY BẮT ĐẦU
-              </span>
-              <span className="font-medium truncate">{user.createdAt}</span>
-            </div>
-            <div className="border-t border-[#1e2227] mx-6" />
-            <div className="flex justify-end gap-3">
-              {!isEditing ? (
-                <Button variant="secondary" onClick={() => setIsEditing(true)}>
-                  Chỉnh sửa hồ sơ
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    onClick={handleCancel}
-                    disabled={saving}
-                    className="px-4 py-2 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition"
-                  >
-                    Hủy
+
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {user.displayName}
+            </h1>
+
+            <p className="mt-1 text-sm text-gray-500 dark:text-zinc-400">
+              {user.email}
+            </p>
+
+            {message && (
+              <div
+                className={`w-full mt-5 p-3 rounded-lg text-sm ${
+                  message.type === "success"
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                    : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                }`}
+              >
+                {message.text}
+              </div>
+            )}
+
+            <div className="w-full mt-6 flex flex-col gap-5">
+              <div className="flex flex-col gap-2">
+                <span className="uppercase tracking-widest text-xs text-gray-400 dark:text-zinc-500">
+                  Email
+                </span>
+                <span className="font-medium truncate text-gray-800 dark:text-zinc-200">
+                  {user.email}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <span className="uppercase tracking-widest text-xs text-gray-400 dark:text-zinc-500">
+                  Họ và tên
+                </span>
+
+                {isEditing ? (
+                  <input
+                    name="displayName"
+                    value={formData.displayName || ""}
+                    onChange={handleChange}
+                    className="rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-gray-900 dark:text-white outline-none focus:border-emerald-500 transition-colors"
+                    placeholder="Nhập tên hiển thị"
+                  />
+                ) : (
+                  <span className="font-medium truncate text-gray-800 dark:text-zinc-200">
+                    {user.displayName}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <span className="uppercase tracking-widest text-xs text-gray-400 dark:text-zinc-500">
+                  Vai trò
+                </span>
+                <span className="font-medium truncate text-gray-800 dark:text-zinc-200">
+                  {user.role === "admin" ? "Admin" : "Người dùng"}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <span className="uppercase tracking-widest text-xs text-gray-400 dark:text-zinc-500">
+                  Ngày bắt đầu
+                </span>
+                <span className="font-medium truncate text-gray-800 dark:text-zinc-200">
+                  {user.createdAt
+                    ? new Date(user.createdAt).toLocaleDateString("vi-VN")
+                    : "Chưa có dữ liệu"}
+                </span>
+              </div>
+
+              <div className="border-t border-gray-200 dark:border-zinc-800 pt-5 flex justify-end gap-3">
+                {isEditing ? (
+                  <>
+                    <Button
+                      variant="normal"
+                      onClick={handleCancel}
+                      disabled={saving}
+                    >
+                      Hủy
+                    </Button>
+
+                    <Button
+                      variant="primary"
+                      onClick={handleSave}
+                      disabled={saving}
+                    >
+                      {saving ? "Đang lưu..." : "Lưu"}
+                    </Button>
+                  </>
+                ) : (
+                  <Button variant="primary" onClick={() => setIsEditing(true)}>
+                    Chỉnh sửa hồ sơ
                   </Button>
-                  <Button
-                    variant="primary"
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="px-4 py-2 rounded-lg text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-500 transition disabled:opacity-50 flex items-center gap-2"
-                  >
-                    {saving ? "Đang lưu..." : "Lưu thay đổi"}
-                  </Button>
-                </>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>

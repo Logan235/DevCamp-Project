@@ -2,7 +2,13 @@ import React, { type ButtonHTMLAttributes } from "react";
 import { Link } from "react-router";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "success" | "oauth" | "normal" | "thirdary";
+  variant?:
+    | "primary"
+    | "secondary"
+    | "success"
+    | "oauth"
+    | "normal"
+    | "thirdary";
   size?: "sm" | "md" | "lg" | "xlg";
   children: React.ReactNode;
   to?: string;
@@ -17,7 +23,7 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyles =
-    "inline-flex items-center justify-center font-medium rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-900 disabled:opacity-50 disabled:cursor-not-allowed";
+    "inline-flex items-center justify-center font-medium rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variants = {
     // nút chính
@@ -26,7 +32,7 @@ export const Button: React.FC<ButtonProps> = ({
 
     // nút phụ
     secondary:
-      "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700 focus:ring-zinc-600 cursor-pointer",
+      "bg-gray-300 dark:bg-zinc-800 hover:bg-gray-400 dark:hover:bg-zinc-700 text-gray-800 dark:text-zinc-300 border border-gray-400 dark:border-zinc-700 focus:ring-gray-500 dark:focus:ring-zinc-600 cursor-pointer",
 
     // run code
     success:
@@ -34,14 +40,14 @@ export const Button: React.FC<ButtonProps> = ({
 
     // nút đăng nhập bằng phương thức khác
     oauth:
-      "bg-zinc-800/60 hover:bg-zinc-800 text-zinc-300 border-zinc-700/80 w-full justify-center gap-2",
+      "bg-gray-200 dark:bg-zinc-800/60 hover:bg-gray-300 dark:hover:bg-zinc-800 text-gray-800 dark:text-zinc-300 border border-gray-300 dark:border-zinc-700/80 w-full justify-center gap-2",
 
     // nút không nền
     normal: "cursor-pointer hover:scale-105",
 
     // nút vàng
     thirdary:
-      "bg-amber-600 hover:bg-amber-500 text-black focus:ring-amber-500 shadow-md shadow-amber-900/20 cursor-pointer hover:scale-105",
+      "bg-amber-600 hover:bg-amber-500 text-white focus:ring-amber-500 shadow-md shadow-amber-900/20 cursor-pointer hover:scale-105",
   };
 
   const sizes = {

@@ -292,25 +292,45 @@ export default function RoadmapPage() {
   };
 
   return (
-    <div className="bg-[#0b0f19] min-h-screen text-zinc-300 font-sans antialiased overflow-x-hidden">
+    <div
+      style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}
+      className="min-h-screen font-sans antialiased overflow-x-hidden transition-colors duration-300"
+    >
       <RoadmapHeader />
 
       <main className="max-w-7xl mx-auto p-6 md:p-8 grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
         <div
-          className="lg:col-span-3 bg-[#111625]/40 border border-zinc-800/60 rounded-xl p-6 overflow-x-auto scrollbar-thin scrollbar-thumb-zinc-800 relative"
-          style={{ backgroundImage: `url(${bg})` }}
+          style={{
+            backgroundColor: "var(--card-bg)",
+            borderColor: "var(--border)",
+          }}
+          className="lg:col-span-3 border rounded-xl p-6 overflow-x-auto scrollbar-thin scrollbar-thumb-zinc-800 relative isolation"
         >
-          <div className="absolute inset-0 bg-zinc-950/70 backdrop-blur-[2px] pointer-events-none z-0" />
+          <div
+            className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center transition-all duration-500 opacity-0 dark:opacity-100 hidden dark:block"
+            style={{ backgroundImage: `url(${bg})` }}
+          />
+
+          <div
+            style={{ backgroundColor: "var(--bg)" }}
+            className="fixed inset-0 opacity-99 dark:opacity-60 backdrop-blur-[1px] pointer-events-none z-0 transition-all duration-300"
+          />
 
           <div className="w-350 h-112.5 relative mt-10 z-10">
             <div className="absolute -top-7.5 left-2">
-              <h2 className="text-2xl font-semibold text-white tracking-tight">
+              <h2
+                className="text-2xl font-semibold tracking-tight"
+                style={{ color: "var(--text)" }}
+              >
                 {activeRoadmap?.title || "Lộ trình học cá nhân hóa"}
               </h2>
             </div>
 
             {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center text-sm text-zinc-400">
+              <div
+                className="absolute inset-0 flex items-center justify-center text-sm"
+                style={{ color: "var(--text-h)" }}
+              >
                 Đang tải roadmap...
               </div>
             )}
@@ -323,7 +343,7 @@ export default function RoadmapPage() {
 
             {!isLoading && !loadError && stepsData.length === 0 && (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <p className="text-sm text-zinc-400">
+                <p className="text-sm" style={{ color: "var(--text-h)" }}>
                   Chưa có roadmap active hoặc roadmap chưa có node bài tập.
                 </p>
                 <button
@@ -386,7 +406,7 @@ export default function RoadmapPage() {
           </div>
         </div>
 
-        <div className="lg:col-span-1 lg:sticky lg:top-24">
+        <div className="lg:col-span-1 lg:sticky lg:top-24 w-full">
           <RoadmapSidebar node={activeNode} />
         </div>
       </main>
@@ -413,7 +433,7 @@ export default function RoadmapPage() {
               ? `${stepsData.length - completedCount} bài còn lại`
               : "Chưa có dữ liệu"
           }
-          subColor="text-emerald-400/80"
+          subColor="text-emerald-500"
         />
 
         <StatCard
@@ -422,7 +442,7 @@ export default function RoadmapPage() {
           value={`${progressPercent}%`}
           label="Tiến độ lộ trình hiện tại"
           subText={activeRoadmap?.title || "Roadmap cá nhân hóa"}
-          subColor="text-blue-400/80"
+          subColor="text-blue-500"
         />
 
         <StatCard

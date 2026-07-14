@@ -182,3 +182,24 @@
     border-right-color: var(--border);
   }
 }
+
+@keyframes floatAnimation {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float-slow {
+  animation: floatAnimation 6s ease-in-out infinite;
+}
+
+.animate-float-medium {
+  animation: floatAnimation 5s ease-in-out 1s infinite;
+}
+
+.animate-float-fast {
+  animation: floatAnimation 4s ease-in-out 2s infinite;
+}

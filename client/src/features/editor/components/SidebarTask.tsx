@@ -92,7 +92,7 @@ function renderFormattedText(text: string) {
       return (
         <code
           key={`${part}-${index}`}
-          className="mx-0.5 rounded border border-zinc-700/50 bg-zinc-900 px-1.5 py-0.5 font-mono text-[11px] text-emerald-300"
+          className="mx-0.5 rounded border border-(--border-sub) bg-(--bg-code-inline) px-1.5 py-0.5 font-mono text-[11px text-emerald-400 dark:text-emerald-300"
         >
           {part.slice(1, -1)}
         </code>
@@ -194,12 +194,12 @@ export const SidebarTask: React.FC<SidebarTaskProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex h-full flex-col justify-center bg-[#050816] p-6 text-zinc-400">
+      <div className="flex h-full flex-col justify-center bg-(--bg-main) p-6 text-(--text-muted)">
         <div className="animate-pulse space-y-3">
-          <div className="h-4 w-32 rounded bg-zinc-800" />
-          <div className="h-6 w-56 rounded bg-zinc-800" />
-          <div className="h-28 rounded-xl bg-zinc-900" />
-          <div className="h-40 rounded-xl bg-zinc-900" />
+          <div className="h-4 w-32 rounded bg-(--bg-skeleton)" />
+          <div className="h-6 w-56 rounded bg-(--bg-skeleton)" />
+          <div className="h-28 rounded-xl bg-(--bg-card)" />
+          <div className="h-40 rounded-xl bg-(--bg-card)" />
         </div>
       </div>
     );
@@ -207,12 +207,12 @@ export const SidebarTask: React.FC<SidebarTaskProps> = ({
 
   if (error) {
     return (
-      <div className="flex h-full flex-col justify-center bg-[#050816] p-6 text-zinc-100">
+      <div className="flex h-full flex-col justify-center bg-(--bg-main) p-6 text-(--text-main)">
         <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4">
-          <p className="text-sm font-semibold text-rose-300">
+          <p className="text-sm font-semibold text-rose-400 dark:text-rose-300">
             Không tải được đề bài
           </p>
-          <p className="mt-2 text-xs leading-relaxed text-rose-200/80">
+          <p className="mt-2 text-xs leading-relaxed text-rose-500/80 dark:text-rose-200/80">
             {error}
           </p>
         </div>
@@ -221,11 +221,11 @@ export const SidebarTask: React.FC<SidebarTaskProps> = ({
   }
 
   return (
-    <div className="flex h-full select-none flex-col justify-between bg-[#050816] p-6 text-zinc-100">
+    <div className="flex h-full select-none flex-col justify-between bg-(--bg-main) p-6 text-(--text-main)">
       <div className="space-y-6 overflow-y-auto pr-1">
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-500 dark:text-emerald-400">
               {learningTask.lessonTitle}
             </span>
 
@@ -234,26 +234,26 @@ export const SidebarTask: React.FC<SidebarTaskProps> = ({
             </Badge>
           </div>
 
-          <h2 className="text-xl font-bold tracking-tight text-zinc-100">
+          <h2 className="text-xl font-bold tracking-tight text-(--text-main)">
             {learningTask.topic}
           </h2>
         </div>
 
-        <div className="rounded-xl border border-zinc-800/60 bg-zinc-900/40 p-4 text-xs leading-relaxed text-zinc-300">
+        <div className="rounded-xl border border-(--border-main) bg-(--bg-card) p-4 text-xs leading-relaxed text-(--text-sub)">
           {renderFormattedText(learningTask.concept)}
         </div>
 
         <div className="space-y-3">
-          <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-400">
+          <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-(--text-muted)">
             Nhiệm vụ
           </h3>
 
-          <p className="text-sm leading-relaxed text-zinc-300">
+          <p className="text-sm leading-relaxed text-(--text-sub)">
             {renderFormattedText(learningTask.objective)}
           </p>
 
-          <div className="mt-2 rounded-xl bg-zinc-950/30 p-3">
-            <p className="mb-2 text-xs font-semibold text-zinc-400">
+          <div className="mt-2 rounded-xl bg-(--bg-input) p-3">
+            <p className="mb-2 text-xs font-semibold text-(--text-muted)">
               Các yêu cầu cần có:
             </p>
 
@@ -263,10 +263,10 @@ export const SidebarTask: React.FC<SidebarTaskProps> = ({
                   key={`${todo}-${index}`}
                   className="flex items-start gap-2 text-xs"
                 >
-                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-[10px] font-bold text-emerald-300">
+                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-[10px font-bold text-emerald-600 dark:text-emerald-300">
                     {index + 1}
                   </span>
-                  <span className="text-zinc-300">
+                  <span className="text-(--text-sub)">
                     {renderFormattedText(todo)}
                   </span>
                 </li>
@@ -276,23 +276,23 @@ export const SidebarTask: React.FC<SidebarTaskProps> = ({
         </div>
 
         <div className="space-y-3 sticky">
-          <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-400">
+          <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-(--text-muted)">
             Kết quả kiểm tra
           </h3>
 
-          <div className="space-y-3 rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-4 font-mono text-xs">
+          <div className="space-y-3 rounded-xl border border-(--border-main) bg-(--bg-card) p-4 font-mono text-xs">
             <div>
-              <div className="mb-1 font-bold text-zinc-500">Input:</div>
-              <pre className="overflow-x-auto whitespace-pre-wrap rounded border border-zinc-900 bg-[#050816]/50 p-2 text-zinc-300">
+              <div className="mb-1 font-bold text-(--text-muted)">Input:</div>
+              <pre className="overflow-x-auto whitespace-pre-wrap rounded border border-(--border-sub) bg-(--bg-main) p-2 text-(--text-sub)">
                 {learningTask.checkpoint.input || "(Không có input mẫu)"}
               </pre>
             </div>
 
             <div>
-              <div className="mb-1 font-bold text-emerald-400">
+              <div className="mb-1 font-bold text-emerald-600 dark:text-emerald-400">
                 Expected output:
               </div>
-              <pre className="overflow-x-auto whitespace-pre-wrap rounded border border-emerald-900/30 bg-emerald-950/10 p-2 text-emerald-300">
+              <pre className="overflow-x-auto whitespace-pre-wrap rounded border border-emerald-500/20 dark:border-emerald-900/30 bg-emerald-500/5 dark:bg-emerald-950/10 p-2 text-emerald-600 dark:text-emerald-300">
                 {learningTask.checkpoint.expectedOutput ||
                   "(Không có expected output mẫu)"}
               </pre>
@@ -300,8 +300,10 @@ export const SidebarTask: React.FC<SidebarTaskProps> = ({
 
             {exercise?.examples?.[0]?.explanation && (
               <div>
-                <div className="mb-1 font-bold text-blue-300">Explanation:</div>
-                <pre className="overflow-x-auto whitespace-pre-wrap rounded border border-blue-900/30 bg-blue-950/10 p-2 text-blue-200">
+                <div className="mb-1 font-bold text-blue-600 dark:text-blue-300">
+                  Explanation:
+                </div>
+                <pre className="overflow-x-auto whitespace-pre-wrap rounded border border-blue-500/20 dark:border-blue-900/30 bg-blue-50/5 dark:bg-blue-950/10 p-2 text-blue-600 dark:text-blue-200">
                   {exercise.examples[0].explanation}
                 </pre>
               </div>

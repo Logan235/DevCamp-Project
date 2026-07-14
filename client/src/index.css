@@ -1,24 +1,40 @@
 @import "tailwindcss";
 
+/* Light mode (default/fallback) */
 :root {
+  --bg: #ffffff;
+  --card-bg: #f5f5f5;
+  --code-bg: #f8f8f8;
+  --footer-bg: #f0f0f0;
+  --panel-bg: #fafafa;
+  --border: #e5e5e5;
+  --text-h: #4b5563;
+  --text: #2d3748;
+  --accent: #10b981;
+  --accent-bg: #d1fae5;
+  --accent-border: #a7f3d0;
+  --success: #22c55e;
+  --select: #2783ff;
+  --select-bg: rgba(39, 131, 255, 0.1);
+  --btn-inactive: #d1d5db;
+}
+
+/* Dark mode */
+:root.dark {
   --bg: #050b17;
   --card-bg: #0b1220;
   --code-bg: #0a101f;
   --footer-bg: #0f1523;
   --panel-bg: #0b1220;
   --border: #161d2a;
-
   --text-h: #99a1af;
   --text: #d6d8db;
-
   --accent: #1fc366;
   --accent-bg: #18442d;
   --accent-border: #1c492d;
   --success: #22c55e;
-
   --select: #2783ff;
   --select-bg: rgba(39, 131, 255, 0.15);
-
   --btn-inactive: #272c39;
 }
 
@@ -26,16 +42,64 @@ body {
   background-color: var(--bg);
   color: var(--text);
   margin: 0;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
-@keyframes glow {
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes floatAnimation {
   0%,
   100% {
-    filter: drop-shadow(0 0 4px rgba(52, 211, 153, 0.3));
-    transform: scale(1);
+    transform: translateY(0);
   }
   50% {
-    filter: drop-shadow(0 0 18px rgba(52, 211, 153, 0.9));
-    transform: scale(1.05); /* Phóng to lên một xíu cho đẹp */
+    transform: translateY(-10px);
   }
+}
+
+.reveal-hidden {
+  opacity: 0;
+  transform: translateY(40px);
+}
+
+.reveal-visible {
+  animation: fadeInUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.animate-float-slow {
+  animation: floatAnimation 6s ease-in-out infinite;
+}
+.animate-float-medium {
+  animation: floatAnimation 5s ease-in-out infinite;
+}
+.animate-float-fast {
+  animation: floatAnimation 4s ease-in-out infinite;
+}
+:root {
+  --bg: #ffffff;
+  --text: #1f2937;
+}
+
+.dark {
+  --bg: #050816;
+  --text: #f4f4f5;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  transition:
+    background-color 0.3s,
+    color 0.3s;
 }
