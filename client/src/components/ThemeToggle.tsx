@@ -15,7 +15,7 @@ export const ThemeToggle: React.FC<{ className?: string }> = ({
         transition-all duration-300 ease-in-out
         text-gray-800 dark:text-gray-100
         focus:outline-none focus:ring-2 focus:ring-offset-2
-        focus:ring-blue-500 focus:ring-offset-white dark:focus:ring-offset-gray-900
+        focus:ring-blue-500 focus:ring-offset-white dark:focus:ring-offset-gray-900 cursor-pointer
         ${className}
       `}
       aria-label="Toggle theme"
