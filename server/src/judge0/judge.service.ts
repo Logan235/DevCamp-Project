@@ -33,7 +33,6 @@ export class JudgeService {
   submitCode(_payload: SubmissionDto): Promise<{ token: string }> {
     return Promise.resolve({ token: `local-token-${Date.now()}` });
   }
-
   async runCode(payload: Judge0Submission): Promise<Judge0Response> {
     const rawCode = this.decodeBase64(payload.source_code);
     const rawInput = this.decodeBase64(payload.stdin || '');
@@ -47,6 +46,8 @@ export class JudgeService {
     const sourceFilePath = path.join(this.tempDir, `main_${uniqueId}.cpp`);
     const outputExePath = path.join(this.tempDir, `program_${uniqueId}`);
     const inputFilePath = path.join(this.tempDir, `input_${uniqueId}.txt`);
+    const dockerVolumePath = this.tempDir.replace(/\\/g, '/');
+    const dockerCommand = `docker run --rm -v "${dockerVolumePath}:/app" -w /app`;
 
     try {
       fs.writeFileSync(sourceFilePath, rawCode, 'utf-8');
@@ -57,9 +58,9 @@ export class JudgeService {
       );
 
       await execAsync(
-        `g++ "${sourceFilePath}" -std=c++17 -O2 -o "${outputExePath}"`,
+        `${dockerCommand} gcc:latest g++ main_${uniqueId}.cpp -std=c++17 -O2 -o program_${uniqueId}`,
         {
-          timeout: 5000,
+          timeout: 10000,
           maxBuffer: 1024 * 1024,
         },
       );
@@ -69,7 +70,7 @@ export class JudgeService {
       const startTime = process.hrtime();
 
       const { stdout, stderr } = await execAsync(
-        `"${outputExePath}" < "${inputFilePath}"`,
+        `${dockerCommand} --network=none gcc:latest sh -c "./program_${uniqueId} < input_${uniqueId}.txt"`,
         {
           timeout: 2000,
           maxBuffer: 1024 * 1024,
