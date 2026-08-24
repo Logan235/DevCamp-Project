@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { ChevronDown, LogOut, Map, Save, User } from "lucide-react";
+import { BookOpen, ChevronDown, LogOut, Map, Save, User } from "lucide-react";
 import { Button } from "../components/common/Button";
 import { ThemeToggle } from "../components/ThemeToggle";
 import ProgressBar from "./assessment/Progressbar";
@@ -92,14 +92,27 @@ export const NavBar: React.FC<NavBarProps> = ({
           <span className="text-blue-500 dark:text-blue-400">CodeQuest</span>
         </Link>
 
-        {effectiveIsLoggedIn && !isEditor && !isQuiz && (
+        {!isEditor && !isQuiz && (
           <div className="hidden md:flex items-center gap-4 font-mono text-xs text-gray-600 dark:text-zinc-400">
+            {effectiveIsLoggedIn && (
+              <Link
+                to="/roadmap"
+                className="flex items-center gap-1.5 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                <Map className="w-3.5 h-3.5" style={{ color: "var(--text)" }} />
+                Lộ trình
+              </Link>
+            )}
+
             <Link
-              to="/roadmap"
+              to="/theory"
               className="flex items-center gap-1.5 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
-              <Map className="w-3.5 h-3.5" style={{ color: "var(--text)" }} />
-              Lộ trình
+              <BookOpen
+                className="w-3.5 h-3.5"
+                style={{ color: "var(--text)" }}
+              />
+              Lý thuyết
             </Link>
             {effectiveRole === "admin" && (
               <Link
