@@ -55,7 +55,9 @@ const FINAL_SUBMISSION_STATUSES = new Set([
   "failed",
 ]);
 const POLL_INTERVAL_MS = 1200;
-const MAX_POLL_ATTEMPTS = 15;
+// 40 x 1.2s = 48s. Production (Render free tier) chấm tuần tự 5 test case,
+// mỗi case compile + run mất vài giây nên 15 lần (18s) là không đủ.
+const MAX_POLL_ATTEMPTS = 40;
 
 function formatSubmissionOutput(submission: SubmissionDetail) {
   const lines = [

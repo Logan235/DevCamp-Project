@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { exec } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -13,7 +13,14 @@ import { SubmissionDto } from './dto/judge.dto';
 
 const execAsync = promisify(exec);
 
-const COMPILE_TIMEOUT_MS = 10000;
+const COMPILE_FLAGS = '-std=c++17 -O2';
+const DOCKER_COMPILE_TIMEOUT_MS = 10000;
+/**
+ * Host không có Docker thường là Render free tier (0.1 vCPU): compile
+ * `bits/stdc++.h` mất hơn 10s khi chưa có precompiled header.
+ */
+const NATIVE_COMPILE_TIMEOUT_MS = 30000;
+const PCH_BUILD_TIMEOUT_MS = 180000;
 const RUN_TIMEOUT_MS = 2000;
 /** Giới hạn bộ nhớ ảo cho engine native (KB). 512MB. */
 const NATIVE_MEMORY_LIMIT_KB = 512 * 1024;
@@ -21,16 +28,35 @@ const NATIVE_MEMORY_LIMIT_KB = 512 * 1024;
 const NATIVE_FILE_LIMIT_KB = 10 * 1024;
 
 @Injectable()
-export class JudgeService {
+export class JudgeService implements OnModuleInit {
   private readonly logger = new Logger(JudgeService.name);
   private readonly tempDir = path.join(process.cwd(), 'local_compiler_tmp');
   private readonly isWindows = process.platform === 'win32';
   private enginePromise: Promise<JudgeEngine> | null = null;
 
+  /**
+   * Precompiled header cho `bits/stdc++.h` (engine native). Thư mục `pch`
+   * được thêm vào -I nên `#include <bits/stdc++.h>` của người dùng sẽ
+   * trúng `pch/bits/stdc++.h.gch` trước header hệ thống.
+   */
+  private readonly pchDir = path.join(this.tempDir, 'pch');
+  private readonly pchHeader = path.join(this.pchDir, 'bits', 'stdc++.h');
+  private pchReady = false;
+  private pchBuilding: Promise<void> | null = null;
+
   constructor() {
     if (!fs.existsSync(this.tempDir)) {
       fs.mkdirSync(this.tempDir, { recursive: true });
     }
+  }
+
+  /** Phát hiện engine ngay khi khởi động để PCH (nếu cần) sẵn sàng trước submission đầu tiên. */
+  onModuleInit(): void {
+    this.resolveEngine().catch((error: unknown) => {
+      this.logger.warn(
+        `[Judge] Engine detection at startup failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    });
   }
 
   getLanguages(): Promise<Array<{ id: number; name: string }>> {
@@ -85,6 +111,8 @@ export class JudgeService {
       this.logger.warn(
         '[Judge] Docker not available, using native g++ on host (no container isolation)',
       );
+      // Build PCH trong nền; submission đến trước khi xong vẫn compile được (chậm hơn).
+      this.ensurePrecompiledHeader();
       return 'native';
     }
 
@@ -100,6 +128,61 @@ export class JudgeService {
     } catch {
       return false;
     }
+  }
+
+  /** Build PCH một lần (idempotent). Không await ở nơi gọi, lỗi chỉ log warn. */
+  private ensurePrecompiledHeader(): void {
+    if (this.pchReady || this.pchBuilding) {
+      return;
+    }
+    this.pchBuilding = this.buildPrecompiledHeader()
+      .catch((error: unknown) => {
+        this.logger.warn(
+          `[Judge:native] PCH build failed, compiling without it: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      })
+      .finally(() => {
+        this.pchBuilding = null;
+      });
+  }
+
+  private async buildPrecompiledHeader(): Promise<void> {
+    const gchPath = `${this.pchHeader}.gch`;
+
+    if (fs.existsSync(gchPath)) {
+      this.pchReady = true;
+      this.logger.log('[Judge:native] Reusing existing precompiled header');
+      return;
+    }
+
+    fs.mkdirSync(path.dirname(this.pchHeader), { recursive: true });
+    // #include_next: trỏ tới bits/stdc++.h thật của hệ thống. Nếu .gch không
+    // dùng được (flags lệch), g++ vẫn fallback sang header này nên không hỏng.
+    fs.writeFileSync(
+      this.pchHeader,
+      '#include_next <bits/stdc++.h>\n',
+      'utf-8',
+    );
+
+    const start = performance.now();
+    this.logger.log(
+      '[Judge:native] Building precompiled header for bits/stdc++.h...',
+    );
+
+    // Flags phải trùng với lúc compile bài nộp, nếu không g++ sẽ bỏ qua .gch.
+    await execAsync(
+      `g++ ${COMPILE_FLAGS} -x c++-header pch/bits/stdc++.h -o pch/bits/stdc++.h.gch`,
+      {
+        cwd: this.tempDir,
+        timeout: PCH_BUILD_TIMEOUT_MS,
+        maxBuffer: 1024 * 1024,
+      },
+    );
+
+    this.pchReady = true;
+    this.logger.log(
+      `[Judge:native] Precompiled header ready in ${Math.round(performance.now() - start)}ms`,
+    );
   }
 
   async runCode(payload: Judge0Submission): Promise<Judge0Response> {
@@ -142,7 +225,10 @@ export class JudgeService {
 
       await execAsync(compileCommand, {
         cwd: this.tempDir,
-        timeout: COMPILE_TIMEOUT_MS,
+        timeout:
+          engine === 'docker'
+            ? DOCKER_COMPILE_TIMEOUT_MS
+            : NATIVE_COMPILE_TIMEOUT_MS,
         maxBuffer: 1024 * 1024,
       });
 
@@ -198,13 +284,17 @@ export class JudgeService {
       };
     } catch (error: unknown) {
       const execError = error as ExecException;
-      const errorMsg = execError.stderr || execError.message || 'Unknown Error';
+      const isCompileError = !!(execError.cmd && execError.cmd.includes('g++'));
+
+      let errorMsg = execError.stderr || execError.message || 'Unknown Error';
+      if (isCompileError && execError.killed === true) {
+        // execAsync kill g++ vì quá timeout: stderr rỗng, message chỉ có lệnh.
+        errorMsg = `Compilation timed out after ${Math.round((engine === 'docker' ? DOCKER_COMPILE_TIMEOUT_MS : NATIVE_COMPILE_TIMEOUT_MS) / 1000)}s`;
+      }
 
       this.logger.error(
         `[Judge:${engine ?? 'none'}] Execution failed: ${errorMsg}`,
       );
-
-      const isCompileError = !!(execError.cmd && execError.cmd.includes('g++'));
 
       if (this.isWindows && engine === 'native' && !isCompileError) {
         // Trên Windows, timeout của execAsync chỉ kill cmd.exe, program.exe con
@@ -269,19 +359,20 @@ export class JudgeService {
     files: { sourceName: string; inputName: string; programName: string },
   ): { compileCommand: string; runCommand: string } {
     const { sourceName, inputName, programName } = files;
-    const compileFlags = '-std=c++17 -O2';
 
     if (engine === 'docker') {
       const dockerVolumePath = this.tempDir.replace(/\\/g, '/');
       const dockerCommand = `docker run --rm -v "${dockerVolumePath}:/app" -w /app`;
       return {
-        compileCommand: `${dockerCommand} gcc:latest g++ ${sourceName} ${compileFlags} -o ${programName}`,
+        compileCommand: `${dockerCommand} gcc:latest g++ ${sourceName} ${COMPILE_FLAGS} -o ${programName}`,
         runCommand: `${dockerCommand} --network=none gcc:latest sh -c "./${programName} < ${inputName}"`,
       };
     }
 
     // native: g++ cài sẵn trên host (Render, VPS, CI...).
-    const compileCommand = `g++ ${sourceName} ${compileFlags} -o ${programName}`;
+    // -I pch chỉ thêm khi .gch đã sẵn sàng; thư mục pch nằm trong cwd = tempDir.
+    const pchFlag = this.pchReady ? ' -I pch' : '';
+    const compileCommand = `g++ ${sourceName} ${COMPILE_FLAGS}${pchFlag} -o ${programName}`;
 
     if (this.isWindows) {
       // Windows không có ulimit/timeout của coreutils; dựa vào timeout của execAsync.
