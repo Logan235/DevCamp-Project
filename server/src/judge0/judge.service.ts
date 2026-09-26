@@ -49,6 +49,10 @@ export class JudgeService {
     const dockerVolumePath = this.tempDir.replace(/\\/g, '/');
     const dockerCommand = `docker run --rm -v "${dockerVolumePath}:/app" -w /app`;
 
+    const engineStart = performance.now();
+    let compileMs = 0;
+    let runMs = 0;
+
     try {
       fs.writeFileSync(sourceFilePath, rawCode, 'utf-8');
       fs.writeFileSync(inputFilePath, rawInput, 'utf-8');
@@ -56,6 +60,8 @@ export class JudgeService {
       this.logger.log(
         `[Local Engine] Compiling source file: main_${uniqueId}.cpp`,
       );
+      // Measure compile time
+      const compileStart = performance.now();
 
       await execAsync(
         `${dockerCommand} gcc:latest g++ main_${uniqueId}.cpp -std=c++17 -O2 -o program_${uniqueId}`,
@@ -65,9 +71,13 @@ export class JudgeService {
         },
       );
 
-      this.logger.log(`[Local Engine] Compile success. Running program...`);
+      compileMs = Math.round(performance.now() - compileStart);
 
-      const startTime = process.hrtime();
+      this.logger.log(
+        `[Local Engine] Compile success in ${compileMs}ms. Running program...`,
+      );
+
+      const runStart = performance.now();
 
       const { stdout, stderr } = await execAsync(
         `${dockerCommand} --network=none gcc:latest sh -c "./program_${uniqueId} < input_${uniqueId}.txt"`,
@@ -77,8 +87,10 @@ export class JudgeService {
         },
       );
 
-      const endTime = process.hrtime(startTime);
-      const executionTime = (endTime[0] + endTime[1] / 1e9).toFixed(3);
+      runMs = Math.round(performance.now() - runStart);
+      const executionTime = (runMs / 1000).toFixed(3);
+
+      this.logger.log(`[Local Engine] Run finished in ${runMs}ms`);
 
       const normalizedStdout = this.normalizeOutput(stdout || '');
       const normalizedExpectedOutput =
@@ -101,6 +113,11 @@ export class JudgeService {
         status: {
           id: isAccepted ? 3 : 4,
           description: isAccepted ? 'Accepted' : 'Wrong Answer',
+        },
+        timings: {
+          compileMs,
+          runMs,
+          engineTotalMs: Math.round(performance.now() - engineStart),
         },
       };
     } catch (error: unknown) {

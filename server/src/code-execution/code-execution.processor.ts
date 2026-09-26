@@ -43,8 +43,13 @@ export class CodeExecutionProcessor extends WorkerHost {
   async process(job: Job<CodeExecutionJob>): Promise<void> {
     const { submissionId, code, language, input, expectedOutput } = job.data;
 
+    // job.timestamp = lúc queue.add(); job.processedOn = lúc worker nhận job
+    const processStartedAt = job.processedOn ?? Date.now();
+    const queueWaitMs = Math.max(0, processStartedAt - job.timestamp);
+    const processStart = performance.now();
+
     this.logger.log(
-      `[CodeExecution] Processing submission ${submissionId} with language ${language}`,
+      `[CodeExecution] Processing submission ${submissionId} with language ${language} (queue wait ${queueWaitMs}ms, attempt ${job.attemptsMade + 1})`,
     );
 
     const submission = await this.submissionModel.findById(submissionId);
@@ -87,15 +92,33 @@ export class CodeExecutionProcessor extends WorkerHost {
       submission.runtime = normalizedResult.runtime;
       submission.memory = normalizedResult.memory;
 
+      const processMs = Math.round(performance.now() - processStart);
+      submission.timings = {
+        queueWaitMs,
+        ...(result.timings ?? {}),
+        processMs,
+        endToEndMs: queueWaitMs + processMs,
+      };
+
       await submission.save();
 
+      const t = submission.timings;
       this.logger.log(
-        `[CodeExecution] Submission ${submissionId} finished with status ${submission.status}`,
+        `[CodeExecution] Submission ${submissionId} finished with status ${submission.status} | ` +
+          `queueWait=${t.queueWaitMs}ms compile=${t.compileMs ?? '-'}ms run=${t.runMs ?? '-'}ms ` +
+          `engine=${t.engineTotalMs ?? '-'}ms process=${t.processMs}ms endToEnd=${t.endToEndMs}ms`,
       );
     } catch (error) {
       submission.status = 'error';
       submission.error =
         error instanceof Error ? error.message : 'Unknown execution error';
+
+      const processMs = Math.round(performance.now() - processStart);
+      submission.timings = {
+        queueWaitMs,
+        processMs,
+        endToEndMs: queueWaitMs + processMs,
+      };
 
       await submission.save();
 

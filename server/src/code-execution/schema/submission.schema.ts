@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import type { SubmissionTimings } from '../../interfaceFile/interface';
 
 @Schema({ timestamps: true })
 export class Submission extends Document {
@@ -32,6 +33,9 @@ export class Submission extends Document {
 
   @Prop()
   memory?: number; // bytes
+
+  @Prop({ type: Object })
+  timings?: SubmissionTimings; // queueWaitMs, compileMs, runMs, engineTotalMs, processMs, endToEndMs
 
   @Prop({ default: 'pending' })
   status: string; // pending, success, wrong_answer, compile_error, runtime_error, error

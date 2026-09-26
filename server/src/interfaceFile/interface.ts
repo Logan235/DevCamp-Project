@@ -70,6 +70,23 @@ export interface Judge0Response {
   };
   memory?: number | null;
   token?: string;
+  timings?: ExecutionTimings;
+}
+
+/** Thời gian (ms) của từng giai đoạn trong local engine. */
+export interface ExecutionTimings {
+  /** docker run gcc g++ ... (bao gồm cả thời gian khởi động container) */
+  compileMs: number; /** docker run gcc ./program < input (bao gồm cả thời gian khởi động container) */
+  runMs: number;
+  engineTotalMs: number; /** ghi file + compile + run + dọn file */
+}
+
+/** Thời gian (ms) của toàn bộ vòng đời job, lưu trong Submission.timings */
+export interface SubmissionTimings extends Partial<ExecutionTimings> {
+  /** Từ lúc queue.add() đến lúc worker bắt đầu process() */
+  queueWaitMs: number;
+  processMs: number; /** Toàn bộ process(): findById + engine + save */
+  endToEndMs: number; /** queueWaitMs + processMs: từ lúc enqueue đến khi kết quả được ghi vào Mongo */
 }
 
 export interface AnalysisSkillProfile {
