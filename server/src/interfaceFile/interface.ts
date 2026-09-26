@@ -56,7 +56,13 @@ export interface CodeExecutionJob {
 export interface ExecException extends Error {
   stderr?: string;
   cmd?: string;
+  code?: number | string | null;
+  killed?: boolean; /** true khi Node tự kill tiến trình vì quá timeout của execAsync. */
+  signal?: NodeJS.Signals | null;
 }
+
+/** Engine dùng để compile/run code: docker (sandbox) hoặc g++ trực tiếp trên host. */
+export type JudgeEngine = 'docker' | 'native';
 
 export interface Judge0Response {
   stdout?: string | null;
@@ -75,7 +81,7 @@ export interface Judge0Response {
 
 /** Thời gian (ms) của từng giai đoạn trong local engine. */
 export interface ExecutionTimings {
-  /** docker run gcc g++ ... (bao gồm cả thời gian khởi động container) */
+  engine?: JudgeEngine;
   compileMs: number; /** docker run gcc ./program < input (bao gồm cả thời gian khởi động container) */
   runMs: number;
   engineTotalMs: number; /** ghi file + compile + run + dọn file */

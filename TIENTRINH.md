@@ -139,3 +139,16 @@ Các field trong `Submission.timings`:
 - Bổ sung đo latency từng giai đoạn (queue wait, compile, run, end-to-end) lưu vào MongoDB kèm script thống kê p50/p95.
 - Phát hiện overhead khởi động container chiếm > 80% thời gian chấm; tối ưu bằng container dùng lại và precompiled header,
   giảm thời gian trung bình mỗi submission từ 4,5s xuống __s (p95 __s), tương đương giảm __%.
+
+## Engine chấm bài trên production (2026-09-26)
+
+Render không có Docker CLI trong service (`/bin/sh: 1: docker: not found`), mọi submission trên production đều báo Compilation Error.
+`JudgeService` giờ tự chọn engine, chỉ kiểm tra một lần khi có submission đầu tiên:
+
+- `docker`: có Docker daemon thì giữ nguyên sandbox `gcc:latest` như cũ (máy dev).
+- `native`: không có Docker thì gọi thẳng `g++` trên host. Render native runtime (Debian bookworm) có sẵn `g++` lúc runtime.
+  Linux: chạy qua `sh -c "ulimit -v 512MB -f 10MB; timeout -s KILL 2 ./program < input"`. Windows: kill bằng `taskkill /IM` khi TLE.
+- Ép engine bằng biến môi trường `JUDGE_ENGINE=docker|native`. Engine dùng được lưu trong `Submission.timings.engine`.
+- `server/Dockerfile` dùng khi muốn deploy bằng Docker runtime (đã cài `g++`), không bắt buộc.
+
+Lưu ý: engine native chạy code người dùng chung host với server, không có cách ly container. Chấp nhận cho demo, cần Judge0 hoặc worker riêng có Docker nếu mở public.
