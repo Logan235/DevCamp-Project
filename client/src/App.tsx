@@ -42,6 +42,9 @@ const OAuthCallback = React.lazy(() =>
   })),
 );
 const Profile = React.lazy(() => import("./features/profile/Profile"));
+const TheoryPage = React.lazy(
+  () => import("./features/theory/TheoryPage"),
+);
 
 const SkeletonHome = () => (
   <div
@@ -160,6 +163,8 @@ function App() {
             }
           />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
+
+          <Route path="/theory" element={<TheoryPage />} />
 
           <Route
             path="/roadmap"

@@ -13,6 +13,7 @@ build/
 .next/
 out/
 .tmp/
+local_compiler_tmp/
 
 # Environment Variables
 .env

@@ -36,4 +36,3 @@ export class UpdateSkillProfileDto {
   @Type(() => AssessmentDetailDto)
   details?: AssessmentDetailDto[];
 }
-

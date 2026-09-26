@@ -13,6 +13,7 @@ import { CodeExecutionModule } from './code-execution/code-execution.module';
 import { LearningModule } from './learning/learning.module';
 import { AiMirrorModule } from './ai-mirror/ai-mirror.module';
 import { JudgeModule } from './judge0/judge.module';
+import { SkillsProfileModule } from './skills-profile/skills-profile.module';
 import path from 'path';
 
 @Module({
@@ -79,6 +80,7 @@ import path from 'path';
     LearningModule,
     AiMirrorModule,
     JudgeModule,
+    SkillsProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

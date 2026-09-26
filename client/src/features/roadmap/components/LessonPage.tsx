@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router";
 import { Button } from "../../../components/common/Button";
 import { getExerciseByIdApi } from "../../editor/api";
 import { ChevronLeft } from "lucide-react";
+import { VisualizerBox } from "./VisualizerBox";
 
 type ExerciseExample = {
   input?: string;
@@ -221,6 +222,13 @@ export default function LessonPage() {
               {lesson.description || "Bài này chưa có mô tả chi tiết."}
             </pre>
           </section>
+
+          {/* Algorithm Visualizer Box — key theo bài để reset lại bước khi đổi bài */}
+          <VisualizerBox
+            key={lesson.slug || challengeId}
+            slug={lesson.slug}
+            title={title}
+          />
 
           {lesson.constraints && lesson.constraints.length > 0 && (
             <section

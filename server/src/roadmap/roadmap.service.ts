@@ -274,7 +274,6 @@ export class RoadmapService {
     if (nodes.length === 0) {
       throw new BadRequestException(
         'Cannot generate roadmap because no matching challenges were found',
-        
       );
     }
 
