@@ -7,15 +7,25 @@ import type {
   Judge0Submission,
   ExecException,
   Judge0Response,
+  JudgeEngine,
 } from '../interfaceFile/interface';
 import { SubmissionDto } from './dto/judge.dto';
 
 const execAsync = promisify(exec);
 
+const COMPILE_TIMEOUT_MS = 10000;
+const RUN_TIMEOUT_MS = 2000;
+/** Giới hạn bộ nhớ ảo cho engine native (KB). 512MB. */
+const NATIVE_MEMORY_LIMIT_KB = 512 * 1024;
+/** Giới hạn kích thước file program được phép ghi ra (KB) cho engine native. */
+const NATIVE_FILE_LIMIT_KB = 10 * 1024;
+
 @Injectable()
 export class JudgeService {
   private readonly logger = new Logger(JudgeService.name);
   private readonly tempDir = path.join(process.cwd(), 'local_compiler_tmp');
+  private readonly isWindows = process.platform === 'win32';
+  private enginePromise: Promise<JudgeEngine> | null = null;
 
   constructor() {
     if (!fs.existsSync(this.tempDir)) {
@@ -33,6 +43,65 @@ export class JudgeService {
   submitCode(_payload: SubmissionDto): Promise<{ token: string }> {
     return Promise.resolve({ token: `local-token-${Date.now()}` });
   }
+
+  /**
+   * Chọn engine chấm bài, chỉ kiểm tra một lần rồi cache.
+   *
+   * - JUDGE_ENGINE=docker | native : ép dùng engine chỉ định.
+   * - Mặc định: có Docker CLI + daemon thì dùng docker (sandbox),
+   *   không thì fallback sang g++ cài trên host (Render, VPS không có Docker).
+   */
+  private resolveEngine(): Promise<JudgeEngine> {
+    if (!this.enginePromise) {
+      this.enginePromise = this.detectEngine().catch((error: unknown) => {
+        // Cho phép thử lại ở lần submit sau thay vì cache lỗi vĩnh viễn.
+        this.enginePromise = null;
+        throw error;
+      });
+    }
+    return this.enginePromise;
+  }
+
+  private async detectEngine(): Promise<JudgeEngine> {
+    const forced = (process.env.JUDGE_ENGINE || '').trim().toLowerCase();
+    if (forced === 'docker' || forced === 'native') {
+      this.logger.log(`[Judge] Engine forced by JUDGE_ENGINE=${forced}`);
+      return forced;
+    }
+    if (forced) {
+      this.logger.warn(
+        `[Judge] Unknown JUDGE_ENGINE="${forced}", falling back to auto-detect`,
+      );
+    }
+
+    if (
+      await this.commandWorks('docker version --format "{{.Server.Version}}"')
+    ) {
+      this.logger.log('[Judge] Docker daemon detected, using docker engine');
+      return 'docker';
+    }
+
+    if (await this.commandWorks('g++ --version')) {
+      this.logger.warn(
+        '[Judge] Docker not available, using native g++ on host (no container isolation)',
+      );
+      return 'native';
+    }
+
+    throw new Error(
+      'No judge engine available: neither Docker nor g++ was found on this host',
+    );
+  }
+
+  private async commandWorks(command: string): Promise<boolean> {
+    try {
+      await execAsync(command, { timeout: 5000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async runCode(payload: Judge0Submission): Promise<Judge0Response> {
     const rawCode = this.decodeBase64(payload.source_code);
     const rawInput = this.decodeBase64(payload.stdin || '');
@@ -43,54 +112,60 @@ export class JudgeService {
         : undefined;
 
     const uniqueId = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    const sourceFilePath = path.join(this.tempDir, `main_${uniqueId}.cpp`);
-    const outputExePath = path.join(this.tempDir, `program_${uniqueId}`);
-    const inputFilePath = path.join(this.tempDir, `input_${uniqueId}.txt`);
-    const dockerVolumePath = this.tempDir.replace(/\\/g, '/');
-    const dockerCommand = `docker run --rm -v "${dockerVolumePath}:/app" -w /app`;
+    const sourceName = `main_${uniqueId}.cpp`;
+    const inputName = `input_${uniqueId}.txt`;
+    const programName = `program_${uniqueId}`;
+
+    const sourceFilePath = path.join(this.tempDir, sourceName);
+    const inputFilePath = path.join(this.tempDir, inputName);
+    const outputExePath = path.join(this.tempDir, programName);
+    const outputExePathWin = `${outputExePath}.exe`;
 
     const engineStart = performance.now();
     let compileMs = 0;
     let runMs = 0;
+    let engine: JudgeEngine | undefined;
 
     try {
+      engine = await this.resolveEngine();
+      const { compileCommand, runCommand } = this.buildCommands(engine, {
+        sourceName,
+        inputName,
+        programName,
+      });
+
       fs.writeFileSync(sourceFilePath, rawCode, 'utf-8');
       fs.writeFileSync(inputFilePath, rawInput, 'utf-8');
 
-      this.logger.log(
-        `[Local Engine] Compiling source file: main_${uniqueId}.cpp`,
-      );
-      // Measure compile time
+      this.logger.log(`[Judge:${engine}] Compiling source file: ${sourceName}`);
       const compileStart = performance.now();
 
-      await execAsync(
-        `${dockerCommand} gcc:latest g++ main_${uniqueId}.cpp -std=c++17 -O2 -o program_${uniqueId}`,
-        {
-          timeout: 10000,
-          maxBuffer: 1024 * 1024,
-        },
-      );
+      await execAsync(compileCommand, {
+        cwd: this.tempDir,
+        timeout: COMPILE_TIMEOUT_MS,
+        maxBuffer: 1024 * 1024,
+      });
 
       compileMs = Math.round(performance.now() - compileStart);
 
       this.logger.log(
-        `[Local Engine] Compile success in ${compileMs}ms. Running program...`,
+        `[Judge:${engine}] Compile success in ${compileMs}ms. Running program...`,
       );
 
       const runStart = performance.now();
 
-      const { stdout, stderr } = await execAsync(
-        `${dockerCommand} --network=none gcc:latest sh -c "./program_${uniqueId} < input_${uniqueId}.txt"`,
-        {
-          timeout: 2000,
-          maxBuffer: 1024 * 1024,
-        },
-      );
+      const { stdout, stderr } = await execAsync(runCommand, {
+        cwd: this.tempDir,
+        // Cho engine native, `timeout` bên trong shell là lớp chặn chính;
+        // timeout của execAsync chỉ là lưới an toàn thứ hai.
+        timeout: RUN_TIMEOUT_MS + (engine === 'docker' ? 0 : 500),
+        maxBuffer: 1024 * 1024,
+      });
 
       runMs = Math.round(performance.now() - runStart);
       const executionTime = (runMs / 1000).toFixed(3);
 
-      this.logger.log(`[Local Engine] Run finished in ${runMs}ms`);
+      this.logger.log(`[Judge:${engine}] Run finished in ${runMs}ms`);
 
       const normalizedStdout = this.normalizeOutput(stdout || '');
       const normalizedExpectedOutput =
@@ -115,6 +190,7 @@ export class JudgeService {
           description: isAccepted ? 'Accepted' : 'Wrong Answer',
         },
         timings: {
+          engine,
           compileMs,
           runMs,
           engineTotalMs: Math.round(performance.now() - engineStart),
@@ -124,11 +200,26 @@ export class JudgeService {
       const execError = error as ExecException;
       const errorMsg = execError.stderr || execError.message || 'Unknown Error';
 
-      this.logger.error(`[Local Engine] Execution failed: ${errorMsg}`);
+      this.logger.error(
+        `[Judge:${engine ?? 'none'}] Execution failed: ${errorMsg}`,
+      );
 
       const isCompileError = !!(execError.cmd && execError.cmd.includes('g++'));
 
-      const isTimeout = /timed out|timeout/i.test(errorMsg);
+      if (this.isWindows && engine === 'native' && !isCompileError) {
+        // Trên Windows, timeout của execAsync chỉ kill cmd.exe, program.exe con
+        // vẫn chạy tiếp (vd vòng lặp vô hạn). Kill theo tên file, tên là duy nhất.
+        await this.killWindowsProcess(`${programName}.exe`);
+      }
+
+      const isTimeout =
+        !isCompileError &&
+        (execError.killed === true ||
+          execError.signal === 'SIGKILL' ||
+          execError.signal === 'SIGTERM' ||
+          execError.code === 124 || // GNU timeout: hết giờ (SIGTERM)
+          execError.code === 137 || // GNU timeout -s KILL / OOM
+          /timed out/i.test(errorMsg));
 
       return {
         stdout: null,
@@ -150,10 +241,66 @@ export class JudgeService {
               ? 'Compilation Error'
               : 'Runtime Error',
         },
+        timings: engine
+          ? {
+              engine,
+              compileMs,
+              runMs,
+              engineTotalMs: Math.round(performance.now() - engineStart),
+            }
+          : undefined,
       };
     } finally {
-      this.cleanFiles([sourceFilePath, outputExePath, inputFilePath]);
+      this.cleanFiles([
+        sourceFilePath,
+        outputExePath,
+        outputExePathWin,
+        inputFilePath,
+      ]);
     }
+  }
+
+  /**
+   * Sinh lệnh compile / run cho từng engine. Mọi lệnh chạy với cwd = tempDir
+   * nên chỉ dùng tên file tương đối.
+   */
+  private buildCommands(
+    engine: JudgeEngine,
+    files: { sourceName: string; inputName: string; programName: string },
+  ): { compileCommand: string; runCommand: string } {
+    const { sourceName, inputName, programName } = files;
+    const compileFlags = '-std=c++17 -O2';
+
+    if (engine === 'docker') {
+      const dockerVolumePath = this.tempDir.replace(/\\/g, '/');
+      const dockerCommand = `docker run --rm -v "${dockerVolumePath}:/app" -w /app`;
+      return {
+        compileCommand: `${dockerCommand} gcc:latest g++ ${sourceName} ${compileFlags} -o ${programName}`,
+        runCommand: `${dockerCommand} --network=none gcc:latest sh -c "./${programName} < ${inputName}"`,
+      };
+    }
+
+    // native: g++ cài sẵn trên host (Render, VPS, CI...).
+    const compileCommand = `g++ ${sourceName} ${compileFlags} -o ${programName}`;
+
+    if (this.isWindows) {
+      // Windows không có ulimit/timeout của coreutils; dựa vào timeout của execAsync.
+      // Không bọc tên file trong dấu nháy: cmd.exe sẽ bóc cặp nháy đầu/cuối của cả dòng.
+      return {
+        compileCommand,
+        runCommand: `.\\${programName}.exe < ${inputName}`,
+      };
+    }
+
+    const timeoutSec = Math.ceil(RUN_TIMEOUT_MS / 1000);
+    // ulimit -v: chặn cấp phát bộ nhớ quá mức; ulimit -f: chặn ghi file lớn.
+    // timeout -s KILL: kill hẳn tiến trình khi hết giờ (exit code 137).
+    return {
+      compileCommand,
+      runCommand:
+        `sh -c "ulimit -v ${NATIVE_MEMORY_LIMIT_KB} -f ${NATIVE_FILE_LIMIT_KB}; ` +
+        `timeout -s KILL ${timeoutSec} ./${programName} < ${inputName}"`,
+    };
   }
 
   // Endpoint getSubmission hiện chỉ giữ để tương thích controller cũ.
@@ -177,17 +324,41 @@ export class JudgeService {
     return value.replace(/\r\n/g, '\n').trim();
   }
 
-  private cleanFiles(files: string[]): void {
-    files.forEach((file) => {
+  private async killWindowsProcess(imageName: string): Promise<void> {
+    try {
+      await execAsync(`taskkill /F /T /IM "${imageName}"`, { timeout: 5000 });
+      this.logger.warn(`[Judge:native] Killed leftover process ${imageName}`);
+    } catch {
+      // Không có tiến trình nào đang chạy với tên này, bỏ qua.
+    }
+  }
+
+  /**
+   * Xoá file tạm. Nếu file còn bị khoá (tiến trình vừa bị kill chưa nhả handle,
+   * thường gặp trên Windows) thì thử lại vài lần trong nền, không chặn kết quả.
+   */
+  private cleanFiles(files: string[], attempt = 0): void {
+    const remaining = files.filter((file) => {
       if (!fs.existsSync(file)) {
-        return;
+        return false;
       }
 
       try {
         fs.unlinkSync(file);
+        return false;
       } catch {
-        // Intentionally ignore temp cleanup errors.
+        return true;
       }
     });
+
+    if (remaining.length > 0 && attempt < 5) {
+      setTimeout(() => this.cleanFiles(remaining, attempt + 1), 500);
+    } else if (remaining.length > 0) {
+      this.logger.warn(
+        `[Judge] Could not remove temp files: ${remaining
+          .map((f) => path.basename(f))
+          .join(', ')}`,
+      );
+    }
   }
 }
